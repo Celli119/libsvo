@@ -1,0 +1,322 @@
+# depslib dependency file v1.0
+1300132884 source:/home/otaco/Desktop/gloost_svn_prep/libsvo/projects/gbmConv/src/gbmConv.cpp
+	<iostream>
+	<cmath>
+	<stdlib.h>
+	<CmdParser.h>
+	<gloostHelper.h>
+	<DirectoryList.h>
+	<Mesh.h>
+	<PlyLoader.h>
+	<GbmWriter.h>
+
+1299234573 /home/otaco/Desktop/gloost_svn_prep/gloost/src/CmdParser.h
+	<string>
+	<vector>
+	<map>
+
+1300096161 /home/otaco/Desktop/gloost_svn_prep/gloost/src/gloostHelper.h
+	<string>
+	<sstream>
+	<cstring>
+	<iostream>
+
+1299242341 /home/otaco/Desktop/gloost_svn_prep/gloost/src/DirectoryList.h
+	<string>
+	<vector>
+
+1300127337 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Mesh.h
+	<SharedResource.h>
+	<Vector3.h>
+	<Point3.h>
+	<Ray.h>
+	<BoundingBox.h>
+	<ObjMatFile.h>
+	<BitMask.h>
+	<string>
+	<vector>
+	<iostream>
+
+1296486301 /home/otaco/Desktop/gloost_svn_prep/gloost/src/SharedResource.h
+	<string>
+
+1296644652 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Vector3.h
+	<gloostConfig.h>
+	<cmath>
+	<iostream>
+	<fstream>
+
+1298890878 /home/otaco/Desktop/gloost_svn_prep/gloost/src/gloostConfig.h
+	<iostream>
+
+1275303816 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Point3.h
+	<gloostConfig.h>
+	<cmath>
+	<iostream>
+
+1296222727 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Ray.h
+	<gloostConfig.h>
+	<Point3.h>
+	<Vector3.h>
+
+1299757323 /home/otaco/Desktop/gloost_svn_prep/gloost/src/BoundingBox.h
+	<BoundingVolume.h>
+	<Vector3.h>
+	<Matrix.h>
+	<Point3.h>
+	<Ray.h>
+
+1296601499 /home/otaco/Desktop/gloost_svn_prep/gloost/src/BoundingVolume.h
+	<Matrix.h>
+	<Frustum.h>
+
+1245170448 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Matrix.h
+	<gloostConfig.h>
+	<iostream>
+	<cstdlib>
+
+1269130788 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Frustum.h
+	<Point3.h>
+	<Matrix.h>
+	<Plane.h>
+	<string>
+	<vector>
+
+1245170448 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Plane.h
+	<Point3.h>
+	<Vector3.h>
+	<string>
+
+1296649342 /home/otaco/Desktop/gloost_svn_prep/gloost/src/ObjMatFile.h
+	<gloostConfig.h>
+	<gloostMath.h>
+	<Material.h>
+	<SharedResource.h>
+	<string>
+	<map>
+
+1299793066 /home/otaco/Desktop/gloost_svn_prep/gloost/src/gloostMath.h
+	<sstream>
+	<cmath>
+	<stdlib.h>
+	<UniformTypes.h>
+	<Vector3.h>
+	<Vector2.h>
+
+1269130762 /home/otaco/Desktop/gloost_svn_prep/gloost/src/UniformTypes.h
+	<gloostHelper.h>
+	<Point3.h>
+	<Vector3.h>
+	<Matrix.h>
+	<iostream>
+
+1245170448 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Vector2.h
+	<cmath>
+	<iostream>
+
+1259519498 /home/otaco/Desktop/gloost_svn_prep/gloost/src/Material.h
+	<UniformTypes.h>
+	<string>
+	<GL/glew.h>
+	<GL/glut.h>
+
+1299080753 /home/otaco/Desktop/gloost_svn_prep/gloost/src/PlyLoader.h
+	<SharedResource.h>
+	<MeshLoader.h>
+	<BinaryFile.h>
+	<Vector3.h>
+	<Point3.h>
+	<ObjMatFile.h>
+	<string>
+	<vector>
+
+1299100620 /home/otaco/Desktop/gloost_svn_prep/gloost/src/MeshLoader.h
+	<string.h>
+	<string>
+	<vector>
+
+1299158878 /home/otaco/Desktop/gloost_svn_prep/gloost/src/BinaryFile.h
+	<string>
+	<fstream>
+	<sys/stat.h>
+
+1299081089 /home/otaco/Desktop/gloost_svn_prep/gloost/src/GbmWriter.h
+	<MeshWriter.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
+1299074577 /home/otaco/Desktop/gloost_svn_prep/gloost/src/MeshWriter.h
+	<string.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
+1300125724 /home/otaco/Desktop/gloost_svn_prep/gloost/src/BitMask.h
+	<string>
+
+1300132884 source:/home/otaco/Source/libsvo/projects/gbmConv/src/gbmConv.cpp
+	<iostream>
+	<cmath>
+	<stdlib.h>
+	<CmdParser.h>
+	<gloostHelper.h>
+	<DirectoryList.h>
+	<Mesh.h>
+	<PlyLoader.h>
+	<GbmWriter.h>
+
+1305042867 /home/otaco/Source/gloost/src/CmdParser.h
+	<string>
+	<vector>
+	<map>
+
+1319556040 /home/otaco/Source/gloost/src/gloostHelper.h
+	<string>
+	<sstream>
+	<cstring>
+	<iostream>
+	<vector>
+	<stdio.h>
+	<stdlib.h>
+	<fstream>
+
+1305042867 /home/otaco/Source/gloost/src/DirectoryList.h
+	<string>
+	<vector>
+
+1320144781 /home/otaco/Source/gloost/src/Mesh.h
+	<SharedResource.h>
+	<Vector3.h>
+	<Point3.h>
+	<Ray.h>
+	<BoundingBox.h>
+	<ObjMatFile.h>
+	<BitMask.h>
+	<string>
+	<vector>
+	<iostream>
+
+1305042867 /home/otaco/Source/gloost/src/SharedResource.h
+	<string>
+
+1311880363 /home/otaco/Source/gloost/src/Vector3.h
+	<gloostConfig.h>
+	<cmath>
+	<iostream>
+	<fstream>
+
+1321007523 /home/otaco/Source/gloost/src/gloostConfig.h
+	<iostream>
+
+1305042867 /home/otaco/Source/gloost/src/Point3.h
+	<gloostConfig.h>
+	<cmath>
+	<iostream>
+
+1305042867 /home/otaco/Source/gloost/src/Ray.h
+	<gloostConfig.h>
+	<Point3.h>
+	<Vector3.h>
+
+1317887713 /home/otaco/Source/gloost/src/BoundingBox.h
+	<BoundingVolume.h>
+	<Vector3.h>
+	<Matrix.h>
+	<Point3.h>
+	<Ray.h>
+
+1305121020 /home/otaco/Source/gloost/src/BoundingVolume.h
+	<Matrix.h>
+	<Frustum.h>
+
+1305042867 /home/otaco/Source/gloost/src/Matrix.h
+	<gloostConfig.h>
+	<iostream>
+	<cstdlib>
+
+1305042867 /home/otaco/Source/gloost/src/Frustum.h
+	<Point3.h>
+	<Matrix.h>
+	<Plane.h>
+	<string>
+	<vector>
+
+1319205564 /home/otaco/Source/gloost/src/Plane.h
+	<Point3.h>
+	<Vector3.h>
+	<string>
+
+1305042867 /home/otaco/Source/gloost/src/ObjMatFile.h
+	<gloostConfig.h>
+	<gloostMath.h>
+	<Material.h>
+	<SharedResource.h>
+	<string>
+	<map>
+
+1319973319 /home/otaco/Source/gloost/src/gloostMath.h
+	<sstream>
+	<cmath>
+	<stdlib.h>
+	<UniformTypes.h>
+	<Vector3.h>
+	<Vector2.h>
+
+1317900505 /home/otaco/Source/gloost/src/UniformTypes.h
+	<gloostHelper.h>
+	<Point3.h>
+	<Vector3.h>
+	<Matrix.h>
+	<iostream>
+
+1305718060 /home/otaco/Source/gloost/src/Vector2.h
+	<gloostConfig.h>
+	<cmath>
+	<iostream>
+
+1305042867 /home/otaco/Source/gloost/src/Material.h
+	<UniformTypes.h>
+	<string>
+	<GL/glew.h>
+	<GL/glut.h>
+
+1305042867 /home/otaco/Source/gloost/src/BitMask.h
+	<string>
+
+1305042867 /home/otaco/Source/gloost/src/PlyLoader.h
+	<SharedResource.h>
+	<MeshLoader.h>
+	<BinaryFile.h>
+	<Vector3.h>
+	<Point3.h>
+	<ObjMatFile.h>
+	<string>
+	<vector>
+
+1305042867 /home/otaco/Source/gloost/src/MeshLoader.h
+	<string.h>
+	<string>
+	<vector>
+
+1322051752 /home/otaco/Source/gloost/src/BinaryFile.h
+	<string>
+	<fstream>
+	<sys/stat.h>
+
+1305042867 /home/otaco/Source/gloost/src/GbmWriter.h
+	<MeshWriter.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
+1305042867 /home/otaco/Source/gloost/src/MeshWriter.h
+	<string.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
