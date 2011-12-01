@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="../../../../gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
+		<Project filename="../../../libsvo/codeblocks/libsvo_gnulinux.cbp">
+			<Depends filename="../../../../gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
+		</Project>
+		<Project filename="gbmConv.cbp" active="1">
+			<Depends filename="../../../../gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
+			<Depends filename="../../../libsvo/codeblocks/libsvo_gnulinux.cbp" />
+		</Project>
+	</Workspace>
+</CodeBlocks_workspace_file>
