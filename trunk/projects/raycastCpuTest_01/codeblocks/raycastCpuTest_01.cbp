@@ -60,6 +60,7 @@
 			<Add library="libSDL_image" />
 			<Add library="SDLmain" />
 			<Add library="libSDL_mixer" />
+			<Add library="boost_thread" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>

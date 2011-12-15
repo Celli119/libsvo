@@ -41,14 +41,14 @@
 static unsigned int g_screenWidth  = 1280;
 static unsigned int g_screenHeight = 800;
 
+static unsigned int g_bufferWidth  = g_screenWidth;
+static unsigned int g_bufferHeight = g_screenHeight;
+
 /// frameCounter
 unsigned int g_frameCounter = 0;
 
 
 /// includes and globals for this demo /////////////////////////////////////////
-
-
-/// this header includes many nice shapes to draw and helpers
 
 #include <gloostRenderGoodies.h>
 
@@ -76,13 +76,11 @@ float          g_cameraDistance = 2.0;
 
 gloost::Ray g_ray;
 #include <GbmLoader.h>
+#include <PlyLoader.h>
 #include <Mesh.h>
 #include <Vbo.h>
 gloost::Vbo* g_drawRayVbo  = 0;
 gloost::Vbo* g_drawAxisVbo = 0;
-
-
-
 
 // SVO
 #include <Svo.h>
@@ -92,22 +90,34 @@ svo::Svo* g_svo = 0;
 #include <SvoVisualizer.h>
 svo::SvoVisualizer* g_svoVisualizerNodes     = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves    = 0;
-svo::SvoVisualizer* g_svoVisualizerTraversal = 0;
 #include <CpuRaycasterSingleRay.h>
 int g_maxRayCastDepth = 1;
 
 
 #include <SvoBuilderVertices.h>
+#include <SvoBuilderFaces.h>
 
 
 #include <Shader.h>
 #include <UniformSet.h>
 gloost::Shader*     g_SvoVisualizingShader = 0;
 
+
+// setup for rendering into frame buffer
+#include <TextureManager.h>
+#include <Texture.h>
+
+unsigned g_framebufferTextureId = 0;
+
+
+#include <boost/thread.hpp>
+
+
 // info
 bool g_showTextInfo     = true;
 bool g_showOctreeNodes  = true;
 bool g_showOctreeLeaves = false;
+bool g_showRayCastImage = false;
 
 void init();
 void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth);
@@ -117,10 +127,17 @@ void draw2d();
 void cleanup();
 void mouseFunc(int button, int state, int mouse_h, int mouse_v);
 void reloadShaders();
+void raycastIntoFrameBuffer( unsigned startX, unsigned stopX,
+                             unsigned startY, unsigned stopY,
+                             unsigned threadId);
 void resize(int width, int height);
 void key(unsigned char key, int x, int y);
 void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
+
+
+gloost::Mesh* g_testmesh = 0;
+gloost::Vbo*  g_testVbo = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -132,13 +149,16 @@ void init()
 
 #define OPEN_GL_WINDOW
 #define DRAW_MESH
-//#define LOAD_MESH_AS_TESTDATA
+#define LOAD_MESH_AS_TESTDATA
 
 #define BUILD_SVO
 #define BUILD_VISUALIZATION_NODES
 #define BUILD_VISUALIZATION_LEAVES
 
-  unsigned int maxDepth = 4;
+  unsigned int maxDepth = 6;
+
+  g_bufferWidth  = g_screenWidth/3;
+  g_bufferHeight = g_screenHeight/3;
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -151,38 +171,57 @@ void init()
   // points to build an example svo
 
 #ifdef LOAD_MESH_AS_TESTDATA
-  gloost::GbmLoader gbmLoader("/home/otaco/Desktop/gbm/david_angel.gbm");
-  gloost::Mesh* mesh = gbmLoader.getMesh();
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head_low.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/venus_verylow.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_vertex_ao.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Women_hair_undressed_low.ply");
+//
+//
+  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_seperated.ply");
+  gloost::PlyLoader loader1("/home/otaco/Desktop/ply/frog2_seperated_ao.ply");
+
+
+//  for (unsigned i=0; i!=loader.getMesh()->getVertices().size(); ++i)
+//  {
+//    loader.getMesh()->getColors()[i].r = loader.getMesh()->getColors()[i].r * loader1.getMesh()->getColors()[i].r;
+//    loader.getMesh()->getColors()[i].g = loader.getMesh()->getColors()[i].g * loader1.getMesh()->getColors()[i].r;
+//    loader.getMesh()->getColors()[i].b = loader.getMesh()->getColors()[i].b * loader1.getMesh()->getColors()[i].r;
+//  }
+
+
+
+
+  gloost::Mesh* mesh = loader.getMesh();
   mesh->center();
   mesh->scaleToSize(1.0);
 #else
 
   gloost::Mesh* mesh = new gloost::Mesh();
 //  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, 0.25));
-//  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, -0.25));
+  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, -0.25));
 //  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, 0.25));
 //  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, -0.25));
-//  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, 0.25));
+  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, 0.25));
 //  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, -0.25));
-  mesh->getVertices().push_back(gloost::Point3(-0.3, -0.3, 0.2));
+  mesh->getVertices().push_back(gloost::Point3(-0.4, -0.3, 0.2));
 //  mesh->getVertices().push_back(gloost::Point3(-0.25, -0.25, -0.25));
 
 
 //  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, 0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, -0.25));
+  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, -0.25));
 //  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, 0.25));
 //  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, -0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, 0.25));
+  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, 0.25));
 //  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, -0.25));
   mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, 0.25));
 //  mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, -0.25));
 
 
 //  mesh->getColors().push_back(gloost::vec4(0.0,0.0,0.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(0.0,0.0,1.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(0.0,0.0,1.0,1.0));
 //  mesh->getColors().push_back(gloost::vec4(0.0,1.0,0.0,1.0));
 //  mesh->getColors().push_back(gloost::vec4(0.0,1.0,1.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(1.0,0.0,0.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(1.0,0.0,0.0,1.0));
 //  mesh->getColors().push_back(gloost::vec4(1.0,0.0,1.0,1.0));
   mesh->getColors().push_back(gloost::vec4(1.0,1.0,0.0,1.0));
 //  mesh->getColors().push_back(gloost::vec4(1.0,1.0,1.0,1.0));
@@ -192,10 +231,35 @@ void init()
   mesh->takeReference();
 
 
+
 #ifdef BUILD_SVO
   buildSvo(mesh, maxDepth);
   buildSvoVisualization();
 #endif
+
+
+
+  // setup framebuffer
+  unsigned int hostsideBufferSize = g_bufferWidth* g_bufferHeight*4;
+  float* hostside_buffer = new float [hostsideBufferSize];
+
+  for (unsigned i=0; i<hostsideBufferSize; ++i)
+  {
+    hostside_buffer[i] = 0.2;
+  }
+
+  g_framebufferTextureId = gloost::TextureManager::get()->addTexture(new gloost::Texture( g_bufferWidth,
+                                                                                           g_bufferHeight,
+                                                                                           0,
+                                                                                           (void*) hostside_buffer,
+                                                                                           GL_TEXTURE_2D,
+                                                                                           GL_RGBA32F,
+                                                                                           GL_RGBA,
+                                                                                           GL_FLOAT));
+
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 
 
 
@@ -259,9 +323,16 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
     g_svo = new svo::Svo(maxSvoDepth);
   }
 
-  svo::SvoBuilderVertices fromVerticesBuilder;
+#ifdef LOAD_MESH_AS_TESTDATA
+  svo::SvoBuilderFaces builder;
+#else
+  svo::SvoBuilderVertices builder;
+#endif
 
-  fromVerticesBuilder.build(g_svo, mesh);
+  builder.build(g_svo, mesh);
+
+  g_svo->serializeAttributeBuffer();
+
 }
 
 
@@ -302,6 +373,9 @@ void buildSvoVisualization()
 
 void frameStep()
 {
+  ++g_frameCounter;
+
+
   glfwPollEvents();
 
   int x,y;
@@ -310,7 +384,6 @@ void frameStep()
 
   g_mouse.setSpeedToZero();
   g_mouse.setLoc(x,g_screenHeight-y,0);
-
 
 
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ))
@@ -323,7 +396,7 @@ void frameStep()
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_2 ))
   {
     g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
-    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.25f, 4.0f);
+    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.15f, 20.0f);
   }
 
 
@@ -342,15 +415,12 @@ void frameStep()
 
 
     svo::CpuRaycasterSingleRay raycaster;
-    raycaster._db_maxDepth = g_maxRayCastDepth;
-    raycaster.start(g_ray, g_svo);
+    svo::SvoNode* node = raycaster.start2(g_ray, g_svo);
 
-    if (g_svoVisualizerTraversal)
+    if (node)
     {
-      delete g_svoVisualizerTraversal;
+      std::cerr << std::endl << "At " << g_frameCounter << " hit leaf node: " << node;
     }
-
-    g_svoVisualizerTraversal = raycaster.getVisualizer();
 
 
 //    std::cerr << std::endl << "g_ray: " << g_ray;
@@ -373,13 +443,90 @@ void frameStep()
       g_drawRayVbo->dropReference();
     }
 
-
     g_drawRayVbo = new gloost::Vbo(lineMesh);
     g_drawRayVbo->takeReference();
   }
 
+
+
+  // raycast into framebuffer
+  if (g_showRayCastImage)
+  {
+    unsigned g_numThreads = 12;
+    unsigned segmentHeight = g_bufferHeight/g_numThreads;
+
+    boost::thread_group threadGroup;
+
+    for (unsigned i=0; i!=g_numThreads; ++i)
+    {
+      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer, 0, g_bufferWidth,
+                                                                     segmentHeight*i, segmentHeight*(i+1),
+                                                                      i) );
+//      threadGroup.create_thread(raycastIntoFrameBuffer, 0, 200, 0, 100);
+//      raycastIntoFrameBuffer(0, 200, 0, 100);
+    }
+
+    threadGroup.join_all();
+  }
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/// main loop function, render with 3D setup
+
+void
+raycastIntoFrameBuffer(unsigned startX, unsigned stopX,
+                       unsigned startY, unsigned stopY,
+                       unsigned threadId)
+{
+
+  float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
+
+  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
+
+
+  svo::CpuRaycasterSingleRay raycaster;
+
+
+  for (unsigned y=startY; y!=stopY; ++y)
+    for (unsigned x=startX; x!=stopX; ++x)
+    {
+      gloost::Ray ray = g_camera->getPickRay( g_bufferWidth,
+                                              g_bufferHeight,
+                                              x,
+                                              (int)g_bufferHeight - y);
+//      ray.setT(1.0);
+      svo::SvoNode* node = raycaster.start2(ray, g_svo);
+
+      unsigned pixelIndex = (y*g_bufferWidth + x)*4;
+
+      if (node)
+      {
+        unsigned attribIndex = node->getAttribPosition()+3;
+
+        pixels[pixelIndex++] = attribs[attribIndex++];
+        pixels[pixelIndex++] = attribs[attribIndex++];
+        pixels[pixelIndex++] = attribs[attribIndex++];
+        pixels[pixelIndex++] = 1.0f;
+      }
+      else
+      {
+        pixels[pixelIndex++] = 0.3;
+        pixels[pixelIndex++] = 0.1;
+        pixels[pixelIndex++] = 0.1;
+        pixels[pixelIndex++] = 0.0f;
+      }
+    }
+
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setDirty();
+
+
+
+
+
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -389,9 +536,6 @@ void frameStep()
 
 void draw3d(void)
 {
-
-  /// increment the frame counter
-  ++g_frameCounter;
 
 
   /// clear the frame buffer and the depth buffer
@@ -418,19 +562,17 @@ void draw3d(void)
 
 
   // draw model
-
-
   glPushMatrix();
   {
 
     // axis
-    if (g_drawAxisVbo)
+    if (g_drawAxisVbo && g_showTextInfo)
     {
       glPushAttrib(GL_ALL_ATTRIB_BITS);
       glPushMatrix();
       {
 
-        glLineWidth(3.0);
+        glLineWidth(2.0);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -485,26 +627,6 @@ void draw3d(void)
       glPopAttrib();
     }
 
-    // draw visualization traversal
-    if (1 && g_svoVisualizerTraversal)
-    {
-      glPushAttrib(GL_ALL_ATTRIB_BITS);
-      glPushMatrix();
-      {
-
-        glLineWidth(2.0);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        g_SvoVisualizingShader->set();
-          g_svoVisualizerTraversal->draw();
-        g_SvoVisualizingShader->disable();
-      }
-      glPopMatrix();
-      glPopAttrib();
-    }
-
     // draw ray
     if (g_drawRayVbo)
     {
@@ -527,11 +649,9 @@ void draw3d(void)
       glPopMatrix();
       glPopAttrib();
     }
-
-
-
   }
   glPopMatrix();
+
 
 
 }
@@ -570,6 +690,28 @@ void draw2d()
       glDisable(GL_LIGHTING);
 
       // color
+      glColor4f(1.0f, 1.0f, 1.0f, 0.8);
+
+
+      if (g_showRayCastImage)
+      {
+        gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
+
+        glDisable(GL_CULL_FACE);
+
+        frameBufferTexture->bind();
+        glPushMatrix();
+        {
+          glTranslated(0.0, g_screenHeight, 0.0);
+          glScaled(g_screenWidth, -(int)g_screenHeight, 1.0);
+          gloost::drawQuad();
+        }
+        glPopMatrix();
+        frameBufferTexture->unbind();
+
+      }
+
+
       glColor4f(1.0f, 1.0f, 1.0f, 1.0);
 
       // info text
@@ -701,7 +843,9 @@ void key(int key, int state)
       case 'B':
         --g_maxRayCastDepth;
         g_maxRayCastDepth = gloost::clamp(g_maxRayCastDepth, 1, 1000);
-
+        break;
+      case 'F':
+        g_showRayCastImage = !g_showRayCastImage;
         break;
 
 
@@ -766,7 +910,7 @@ int main(int argc, char *argv[])
   }
 
 
-  glfwSetWindowPos( 700, 100);
+  glfwSetWindowPos( 600, 100);
   glfwSetWindowSizeCallback(resize);
   glfwSetKeyCallback(key);
 
@@ -786,7 +930,7 @@ int main(int argc, char *argv[])
   glEnable(GL_DEPTH_TEST);   /// enable z-buffering
   glDepthFunc(GL_LEQUAL);
 
-  glfwSwapInterval( 1 );
+//  glfwSwapInterval( 1 );
 
 
   /// load and intialize stuff for our demo

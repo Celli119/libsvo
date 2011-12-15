@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
-	<File name="../src/gbmConv.cpp" open="1" top="1" tabpos="0">
+	<File name="../src/gbmConv.cpp" open="0" top="0" tabpos="0">
 		<Cursor position="3188" topLine="174" />
 	</File>
 </CodeBlocks_layout_file>
