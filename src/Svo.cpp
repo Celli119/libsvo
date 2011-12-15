@@ -67,7 +67,6 @@ Svo::Svo(int maxDepth):
   _root(new SvoNode()),
   _maxDepth(maxDepth),
   _minVoxelSize(pow(2, -maxDepth)),
-//  _boundingBox(gloost::Point3(0.0, 0.0, 0.0), gloost::Point3(1.0, 1.0, 1.0)),
   _boundingBox(gloost::Point3(-0.5, -0.5, -0.5), gloost::Point3(0.5, 0.5, 0.5)),
   _numNodes(1),
   _numLeaves(0),
@@ -198,7 +197,7 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 
 
 /**
-  \brief normalizes attribs of voxels storing contributions of more than one primitive during creation
+  \brief normalizes attribs of voxels which gathered contributions of more than one primitive during creation
   \param  ...
   \remarks ...
 */
@@ -539,6 +538,7 @@ Svo::serializeAttributeBuffer()
   std::cerr << std::endl << "               Texture id                 " << _attributeBufferTextureId;
 
 
+  return _attributeBufferTextureId;
 }
 
 

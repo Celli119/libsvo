@@ -49,7 +49,19 @@
 namespace svo
 {
 
-  class SvoVisualizer;
+
+struct AxisAndTValue
+{
+  float _t;
+  int   _axis;
+
+  bool operator<(const AxisAndTValue& a)
+  {
+    return a._t < this->_t;
+  }
+
+};
+
 
 
   //  CpuRaycasterSingleRay
@@ -66,18 +78,16 @@ class CpuRaycasterSingleRay
 
 
     // traverses a Svo with a single ray
-	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
+//	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
+	  SvoNode* start2(const gloost::Ray& ray, Svo* svo);
 
     // traverses a Svo with a single ray
-	  SvoNode* traversSvo(const gloost::Ray&    ray);
+//	  SvoNode* traversSvo(const gloost::Ray& ray);
+	  SvoNode* traversSvo2(const gloost::Ray& ray, float tMin, float tMax);
 
 
 	  // intersects the Svo BoundingBox and writes to _tMin and _tMax
 	  bool intersectBoundingBox(const gloost::Ray& ray);
-
-
-    // returns the visualzer
-    SvoVisualizer* getVisualizer();
 
 
     struct CpuRaycastStackElement
@@ -85,6 +95,7 @@ class CpuRaycasterSingleRay
       CpuRaycastStackElement():
         parentNode(0),
         parentTMin(0),
+        parentTMax(0),
         parentCenter(),
         parentDepth(0)
       {}
@@ -92,29 +103,27 @@ class CpuRaycasterSingleRay
       SvoNode*         parentNode;
 
       gloost::mathType parentTMin;
+      gloost::mathType parentTMax;
 
       gloost::Point3   parentCenter;
       int              parentDepth;
     };
 
 
-
-  unsigned _db_maxDepth;
-
-
 	private:
 
-   std::stack<CpuRaycastStackElement> _stack;
+
+	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
+
+
+
 
    gloost::mathType _tMin;
    gloost::mathType _tMax;
 
-   gloost::Point3   _entryPoint;
-   gloost::Point3   _exitPoint;
-
    Svo*             _svo;
 
-   SvoVisualizer*   _visualizer;
+   std::vector<gloost::Point3> _idToPositionLookUp;
 
 };
 

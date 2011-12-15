@@ -163,8 +163,8 @@ void init()
   #define DRAW_MESH
 
   #define BUILD_SVO
-//  #define USE_VERTICES_ONLY
-//  #define BUILD_VISUALIZATION_NODES
+  #define USE_VERTICES_ONLY
+  #define BUILD_VISUALIZATION_NODES
   #define BUILD_VISUALIZATION_LEAVES
 //  #define WRITE_VISUALIZATIONS
 
@@ -191,8 +191,9 @@ void init()
 //  g_meshFilename = "david_angel.ply";
 //  g_meshFilename = "Decimated_Head_low.ply";
 //  g_meshFilename = "Decimated_Head.ply";
+//  g_meshFilename = "skelet.ply";
 //  g_meshFilename = "Decimated_Head_high.ply";
-//  g_meshFilename = "alligator_head.ply";
+  g_meshFilename = "alligator_head.ply";
 //  g_meshFilename = "furniture_leg_color.ply";
 //  g_meshFilename = "GlenRoseTrack.ply";
 //  g_meshFilename = "throttle_low.ply";
@@ -230,7 +231,7 @@ void init()
 //  g_meshFilename = "Women_hair_low.ply";
 //  g_meshFilename = "box.ply";
 //  g_meshFilename = "Women_hair_undressed_low.ply";
-  g_meshFilename = "sphere.ply";
+//  g_meshFilename = "sphere.ply";
 //  g_meshFilename = "plane.ply";
 //  g_meshFilename = "baahm_toroid.ply";
 //  g_meshFilename = "gg_logo.ply";
