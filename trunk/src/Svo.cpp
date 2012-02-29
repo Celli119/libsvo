@@ -424,11 +424,9 @@ Svo::serializeSvo()
           packedMasks.setFlag(i+8, child->getLeafMask().getFlag(i));
         }
 
-
         QueuedNode queuedChild;
         queuedChild.node     = child;
         queuedChild.position = _serializedSvoBuffer.size();
-
 
         _serializedSvoBuffer.push_back(0);                           // child pointer (unknown for now)
         _serializedSvoBuffer.push_back(packedMasks.getValue());      // packed masks
@@ -456,8 +454,9 @@ Svo::serializeSvo()
   // create a texture from the buffer
   gloost::Texture* buffer = new gloost::Texture(textureSize,
                                                 textureSize,
-                                                0,
-                                                (void*)&_serializedSvoBuffer.front(),
+                                                1,
+                                                (unsigned char*)&_serializedSvoBuffer.front(),
+                                                12,
                                                 GL_TEXTURE_2D,
                                                 GL_RGB32F,
                                                 GL_RGB,
@@ -526,8 +525,9 @@ Svo::serializeAttributeBuffer()
   // create a texture from the buffer
   gloost::Texture* buffer = new gloost::Texture(textureSize,
                                                 textureSize,
-                                                0,
-                                                (void*)&_attributeBuffer.front(),
+                                                1,
+                                                (unsigned char*)&_attributeBuffer.front(),
+                                                12,
                                                 GL_TEXTURE_2D,
                                                 GL_RGB32F,
                                                 GL_RGB,

@@ -50,7 +50,8 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DLINUX" />
+			<Add option="-std=gnu++0x" />
+			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../src" />
 			<Add directory="../../../src" />
 			<Add directory="../../../../gloost/src" />
@@ -61,11 +62,8 @@
 			<Add library="glfw" />
 			<Add library="GLU" />
 			<Add library="libtinyxml" />
-			<Add library="libSDL_image" />
-			<Add library="SDLmain" />
-			<Add library="libSDL_mixer" />
 			<Add library="libsvo" />
-			<Add library="libgloost" />
+			<Add library="freeimage" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>

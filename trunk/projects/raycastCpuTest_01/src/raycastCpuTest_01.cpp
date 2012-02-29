@@ -127,8 +127,8 @@ void draw2d();
 void cleanup();
 void mouseFunc(int button, int state, int mouse_h, int mouse_v);
 void reloadShaders();
-void raycastIntoFrameBuffer( unsigned startX, unsigned stopX,
-                             unsigned startY, unsigned stopY,
+void raycastIntoFrameBuffer( unsigned startIndex,
+                             unsigned count,
                              unsigned threadId);
 void resize(int width, int height);
 void key(unsigned char key, int x, int y);
@@ -137,7 +137,10 @@ void idle(void);
 
 
 gloost::Mesh* g_testmesh = 0;
-gloost::Vbo*  g_testVbo = 0;
+gloost::Vbo*  g_testVbo  = 0;
+
+
+std::vector<gloost::Vector2> g_screenCoords;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -148,17 +151,38 @@ void init()
 {
 
 #define OPEN_GL_WINDOW
-#define DRAW_MESH
+//#define DRAW_MESH
 #define LOAD_MESH_AS_TESTDATA
 
 #define BUILD_SVO
-#define BUILD_VISUALIZATION_NODES
-#define BUILD_VISUALIZATION_LEAVES
+//#define BUILD_VISUALIZATION_NODES
+//#define BUILD_VISUALIZATION_LEAVES
 
-  unsigned int maxDepth = 6;
+  unsigned int maxDepth = 10;
 
   g_bufferWidth  = g_screenWidth/3;
   g_bufferHeight = g_screenHeight/3;
+
+  // create screencoords
+  g_screenCoords = std::vector<gloost::Vector2>(g_bufferWidth*g_bufferHeight);
+
+  for (unsigned y=0; y!=g_bufferHeight; ++y)
+  for (unsigned x=0; x!=g_bufferWidth; ++x)
+  {
+    unsigned index = y*g_bufferWidth +x;
+    g_screenCoords[index] = gloost::Vector2(x,y);
+  }
+
+  // mix screen coords
+  for (unsigned i=0; i!=g_screenCoords.size(); ++i)
+  {
+    unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
+    unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
+
+    gloost::Vector2 tmp    = g_screenCoords[index1];
+    g_screenCoords[index1] = g_screenCoords[index2];
+    g_screenCoords[index2] = tmp;
+  }
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -172,14 +196,27 @@ void init()
 
 #ifdef LOAD_MESH_AS_TESTDATA
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head_low.ply");
-//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/venus_verylow.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/baahm_toroid.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Hitachi_FH200.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/lucy_0.125.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/NissanPathfinder.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/sappho_low.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Skull_low.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/sphere.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Women_hair_undressed_low.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/dragon_vrip_verylow.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/triplane.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/fancy_art.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/NissanPathfinder.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/NissanPathfinder.ply");
+  gloost::PlyLoader loader("/home/otaco/Desktop/ply/women.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_vertex_ao.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Women_hair_undressed_low.ply");
-//
-//
-  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_seperated.ply");
-  gloost::PlyLoader loader1("/home/otaco/Desktop/ply/frog2_seperated_ao.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/throttle_low.ply");
 
+
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_seperated.ply");
+//  gloost::PlyLoader loader1("/home/otaco/Desktop/ply/frog2_seperated_ao.ply");
 
 //  for (unsigned i=0; i!=loader.getMesh()->getVertices().size(); ++i)
 //  {
@@ -193,38 +230,38 @@ void init()
 
   gloost::Mesh* mesh = loader.getMesh();
   mesh->center();
-  mesh->scaleToSize(1.0);
+  mesh->scaleToSize(0.5);
 #else
 
   gloost::Mesh* mesh = new gloost::Mesh();
-//  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, 0.25));
-  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, -0.25));
-//  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, 0.25));
-//  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, -0.25));
+  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, 0.25));
+  mesh->getVertices().push_back(gloost::Point3(0.5, 0.5, 0.5));
+  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, 0.25));
+  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, -0.25));
   mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, 0.25));
-//  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, -0.25));
+  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, -0.25));
   mesh->getVertices().push_back(gloost::Point3(-0.4, -0.3, 0.2));
-//  mesh->getVertices().push_back(gloost::Point3(-0.25, -0.25, -0.25));
+  mesh->getVertices().push_back(gloost::Point3(-0.25, -0.25, -0.25));
 
 
-//  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, 0.25));
+  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, 0.25));
   mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, -0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, 0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, -0.25));
+  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, 0.25));
+  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, -0.25));
   mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, 0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, -0.25));
+  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, -0.25));
   mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, 0.25));
-//  mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, -0.25));
+  mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, -0.25));
 
 
-//  mesh->getColors().push_back(gloost::vec4(0.0,0.0,0.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(0.0,0.0,0.0,1.0));
   mesh->getColors().push_back(gloost::vec4(0.0,0.0,1.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(0.0,1.0,0.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(0.0,1.0,1.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(0.0,1.0,0.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(0.0,1.0,1.0,1.0));
   mesh->getColors().push_back(gloost::vec4(1.0,0.0,0.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(1.0,0.0,1.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(1.0,0.0,1.0,1.0));
   mesh->getColors().push_back(gloost::vec4(1.0,1.0,0.0,1.0));
-//  mesh->getColors().push_back(gloost::vec4(1.0,1.0,1.0,1.0));
+  mesh->getColors().push_back(gloost::vec4(1.0,1.0,1.0,1.0));
 
 #endif
 
@@ -250,17 +287,16 @@ void init()
 
   g_framebufferTextureId = gloost::TextureManager::get()->addTexture(new gloost::Texture( g_bufferWidth,
                                                                                            g_bufferHeight,
-                                                                                           0,
-                                                                                           (void*) hostside_buffer,
+                                                                                           1,
+                                                                                           (unsigned char*) hostside_buffer,
+                                                                                           16,
                                                                                            GL_TEXTURE_2D,
-                                                                                           GL_RGBA32F,
-                                                                                           GL_RGBA,
+                                                                                           GL_RGB32F,
+                                                                                           GL_RGB,
                                                                                            GL_FLOAT));
 
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
 
 
   // axis
@@ -293,14 +329,9 @@ void init()
   axisMesh->getLines().push_back(gloost::Line(4, 5));
 
   g_drawAxisVbo = new gloost::Vbo(axisMesh);
-}
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 
-
-void initWithContext()
-{
   g_camera = new gloost::PerspectiveCamera(50.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
@@ -309,6 +340,16 @@ void initWithContext()
   g_camera->lookAt(gloost::Point3(0.0f, 1.0f, 3.0f),
                    gloost::Point3(0.0f, 0.0f, 0.0f),
                    gloost::Vector3(0.0f, 1.0f, 0.0f));
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+void initWithContext()
+{
+
 }
 
 
@@ -400,8 +441,15 @@ void frameStep()
   }
 
 
-  if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
+  static bool mouse3Down = false;
+
+  static unsigned rayCounter = 0;
+
+  if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ) && !mouse3Down)
   {
+
+    mouse3Down = true;
+    ++rayCounter;
 
     g_ray = g_camera->getPickRay( g_screenWidth,
                                   g_screenHeight,
@@ -410,16 +458,16 @@ void frameStep()
     g_ray.setT(1000.0);
 
 
-    gloost::Vector3 sideVec = g_camera->getModelViewMatrix() * gloost::Vector3(0.1, 0.0, 0.0);
-    gloost::Vector3 upVec   = cross(sideVec, g_ray.getDestination()).normalized() * 0.1;
+//    gloost::Vector3 sideVec = g_camera->getModelViewMatrix() * gloost::Vector3(0.1, 0.0, 0.0);
+//    gloost::Vector3 upVec   = cross(sideVec, g_ray.getDestination()).normalized() * 0.1;
 
-
-    svo::CpuRaycasterSingleRay raycaster;
+    std::cerr << std::endl << "------------------------------------------------: ";
+    svo::CpuRaycasterSingleRay raycaster(true);
     svo::SvoNode* node = raycaster.start2(g_ray, g_svo);
 
     if (node)
     {
-      std::cerr << std::endl << "At " << g_frameCounter << " hit leaf node: " << node;
+      std::cerr << std::endl << "At " << rayCounter << " hit leaf node: " << node;
     }
 
 
@@ -446,28 +494,39 @@ void frameStep()
     g_drawRayVbo = new gloost::Vbo(lineMesh);
     g_drawRayVbo->takeReference();
   }
+  else
+  {
+    mouse3Down = false;
+  }
 
 
 
   // raycast into framebuffer
+
+  static unsigned currentScreenCoordIndex = 0;
+  static unsigned samplesPerThreadAnditeration = g_bufferWidth;
+
   if (g_showRayCastImage)
   {
     unsigned g_numThreads = 12;
-    unsigned segmentHeight = g_bufferHeight/g_numThreads;
 
     boost::thread_group threadGroup;
 
     for (unsigned i=0; i!=g_numThreads; ++i)
     {
-      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer, 0, g_bufferWidth,
-                                                                     segmentHeight*i, segmentHeight*(i+1),
+      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer, currentScreenCoordIndex,
+                                                                      samplesPerThreadAnditeration,
                                                                       i) );
-//      threadGroup.create_thread(raycastIntoFrameBuffer, 0, 200, 0, 100);
-//      raycastIntoFrameBuffer(0, 200, 0, 100);
+
+      currentScreenCoordIndex = (currentScreenCoordIndex+samplesPerThreadAnditeration)%(g_bufferWidth*g_bufferHeight);
     }
 
     threadGroup.join_all();
+    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setDirty();
   }
+
+
+
 }
 
 
@@ -477,55 +536,47 @@ void frameStep()
 /// main loop function, render with 3D setup
 
 void
-raycastIntoFrameBuffer(unsigned startX, unsigned stopX,
-                       unsigned startY, unsigned stopY,
+raycastIntoFrameBuffer(unsigned startIndex,
+                       unsigned count,
                        unsigned threadId)
 {
 
   float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
-
   std::vector<float>&  attribs = g_svo->getAttributeBuffer();
-
 
   svo::CpuRaycasterSingleRay raycaster;
 
+  for (unsigned i=startIndex; i!=startIndex+count; ++i)
+  {
+    int x = g_screenCoords[i][0];
+    int y = g_screenCoords[i][1];
 
-  for (unsigned y=startY; y!=stopY; ++y)
-    for (unsigned x=startX; x!=stopX; ++x)
-    {
-      gloost::Ray ray = g_camera->getPickRay( g_bufferWidth,
-                                              g_bufferHeight,
-                                              x,
-                                              (int)g_bufferHeight - y);
+    gloost::Ray ray = g_camera->getPickRay( g_bufferWidth,
+                                            g_bufferHeight,
+                                            x,
+                                            (int)g_bufferHeight - y);
 //      ray.setT(1.0);
-      svo::SvoNode* node = raycaster.start2(ray, g_svo);
+    svo::SvoNode* node = raycaster.start2(ray, g_svo);
 
-      unsigned pixelIndex = (y*g_bufferWidth + x)*4;
+    unsigned pixelIndex = (y*g_bufferWidth + x)*3;
 
-      if (node)
-      {
-        unsigned attribIndex = node->getAttribPosition()+3;
+    if (node)
+    {
+      unsigned attribIndex = node->getAttribPosition()+3;
 
-        pixels[pixelIndex++] = attribs[attribIndex++];
-        pixels[pixelIndex++] = attribs[attribIndex++];
-        pixels[pixelIndex++] = attribs[attribIndex++];
-        pixels[pixelIndex++] = 1.0f;
-      }
-      else
-      {
-        pixels[pixelIndex++] = 0.3;
-        pixels[pixelIndex++] = 0.1;
-        pixels[pixelIndex++] = 0.1;
-        pixels[pixelIndex++] = 0.0f;
-      }
+      pixels[pixelIndex++] = attribs[attribIndex++];
+      pixels[pixelIndex++] = attribs[attribIndex++];
+      pixels[pixelIndex++] = attribs[attribIndex++];
+//        pixels[pixelIndex++] = 1.0f;
     }
-
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setDirty();
-
-
-
-
-
+    else
+    {
+      pixels[pixelIndex++] = 0.3;
+      pixels[pixelIndex++] = 0.1;
+      pixels[pixelIndex++] = 0.1;
+//        pixels[pixelIndex++] = 0.0f;
+    }
+  }
 }
 
 
@@ -690,7 +741,7 @@ void draw2d()
       glDisable(GL_LIGHTING);
 
       // color
-      glColor4f(1.0f, 1.0f, 1.0f, 0.8);
+      glColor4f(1.0f, 1.0f, 1.0f, 1.0);
 
 
       if (g_showRayCastImage)

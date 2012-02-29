@@ -71,7 +71,7 @@ class CpuRaycasterSingleRay
 	public:
 
     // class constructor
-    CpuRaycasterSingleRay();
+    CpuRaycasterSingleRay(bool verboseMode = false);
 
     // class destructor
 	  ~CpuRaycasterSingleRay();
@@ -115,7 +115,7 @@ class CpuRaycasterSingleRay
 
 	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
 
-
+   std::stack<CpuRaycastStackElement> _stack;
 
 
    gloost::mathType _tMin;
@@ -124,6 +124,8 @@ class CpuRaycasterSingleRay
    Svo*             _svo;
 
    std::vector<gloost::Point3> _idToPositionLookUp;
+
+   bool _verboseMode;
 
 };
 
