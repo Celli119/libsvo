@@ -38,6 +38,7 @@
 /// cpp includes
 #include <string>
 #include <iostream>
+#include <chrono>
 
 
 
@@ -100,6 +101,8 @@ Svo*
 SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
 {
 
+
+
   _svo  = svo;
   _mesh = mesh;
 
@@ -115,10 +118,12 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     std::cerr << std::endl << "             Building Octree from triangle faces:";
     std::cerr << std::endl << "               max depth                  " << svo->getMaxDepth();
     std::cerr << std::endl << "               min voxelsize              " << pow(2, -(int)_svo->getMaxDepth());
+    std::cerr << std::endl << "               resolution                 " << pow(2, (int)_svo->getMaxDepth());
     std::cerr << std::endl << "               triangles.size():          " << triangles.size();
 #endif
 
 
+  auto t0 = std::chrono::high_resolution_clock::now();
 
   // for seperate component data
   for (unsigned int i=0; i!=triangles.size(); ++i)
@@ -130,10 +135,12 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     }
   }
 
-
   svo->normalizeAttribs();
   svo->generateInnerNodesAttributes(svo->getRootNode());
 
+
+  auto t1 = std::chrono::high_resolution_clock::now();
+  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Number of leaves:          " << _svo->getNumLeaves();
@@ -141,10 +148,12 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
   std::cerr << std::endl << "               Number of double Points:   " << _svo->getNumDoublePoints();
   std::cerr << std::endl << "               Octree memory real CPU:    " << _svo->getNumNodes()*sizeof(svo::SvoNode)/1024.0/1024.0 << " MB";
+  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
   std::cerr << std::endl;
   std::cerr << std::endl << "             Creating attributes for inner nodes: ";
   std::cerr << std::endl << "               Octree memory serialized:  " << _svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
   std::cerr << std::endl << "               Attribs memory serialized: " << _svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
+  std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl;
 #endif

@@ -60,12 +60,13 @@ namespace svo
   \remarks ...
 */
 
-CpuRaycasterSingleRay::CpuRaycasterSingleRay():
-//  _stack(),
+CpuRaycasterSingleRay::CpuRaycasterSingleRay(bool verboseMode):
+  _stack(),
   _tMin(0),
   _tMax(0),
   _svo(0),
-  _idToPositionLookUp(8)
+  _idToPositionLookUp(8),
+  _verboseMode(verboseMode)
 {
   _idToPositionLookUp[0] = gloost::Point3(-0.25, -0.25, -0.25);
   _idToPositionLookUp[1] = gloost::Point3(-0.25, -0.25,  0.25);
@@ -360,6 +361,11 @@ CpuRaycasterSingleRay::start2(const gloost::Ray& ray, Svo* svo)
 {
   _svo = svo;
 
+  while (_stack.size())
+  {
+    _stack.pop();
+  }
+
   gloost::BoundingBox svoBoundingBox(gloost::Point3(-0.5,-0.5,-0.5),
                                      gloost::Point3(0.5,0.5,0.5));
 
@@ -397,9 +403,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
   element.parentDepth      = 0;
 
 
-  std::stack<CpuRaycastStackElement> stack;
-
-  stack.push(element);
+  _stack.push(element);
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
   const float epsilon = 0.0000001;
@@ -421,37 +425,53 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
   gloost::mathType minusPz_dz = -ray.getOrigin()[2]/ray.getDirection()[2];
 
 
-
-
   /////////////////// LOOP ///////////////////////////////
-  while (stack.size())
+  while (_stack.size())
   {
-    SvoNode*         parentNode         = stack.top().parentNode;
-    gloost::mathType parentTMin         = stack.top().parentTMin;
-    gloost::mathType parentTMax         = stack.top().parentTMax;
-    gloost::Point3   parentCenter       = stack.top().parentCenter;
-    int              depth              = stack.top().parentDepth + 1;
+    SvoNode*         parentNode         = _stack.top().parentNode;
+    gloost::mathType parentTMin         = _stack.top().parentTMin;
+    gloost::mathType parentTMax         = _stack.top().parentTMax;
+    gloost::Point3   parentCenter       = _stack.top().parentCenter;
+    int              depth              = _stack.top().parentDepth + 1;
 
-    stack.pop();
-
-    gloost::Point3 firstChildEntryPoint = (ray.getOrigin() + parentTMin * ray.getDirection()) - parentCenter;
-    unsigned int   firstChildIndex = 4*(firstChildEntryPoint[0] >= 0) + 2*(firstChildEntryPoint[1] >= 0) + (firstChildEntryPoint[2] >= 0);
+    _stack.pop();
 
 
     /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
     /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
     /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
-    gloost::mathType parentScale  = pow(2, -depth+1);
-    gloost::mathType scaleHalf    = pow(2, -depth)*0.5;
+    gloost::mathType parentScale   = pow(2, -depth+1);
+    gloost::mathType childSizeHalf = pow(2, -depth-1);
 
+    /* Depth = 1 (child of root)
+        parentScale = 1.0;
+       Depth = 2:
+        parentScale = 0.5;
+       Depth = 3:
+        parentScale = 0.25;
+    */
+
+
+    //////////////////////////////////// FIRST CHILD of THREE ////////////////////
+
+    // in parent voxel coordinates
+    gloost::Point3 firstChildEntryPoint = (ray.getOrigin() + parentTMin * ray.getDirection()) - parentCenter;
+    unsigned int   firstChildIndex = 4*(firstChildEntryPoint[0] >= 0)
+                                   + 2*(firstChildEntryPoint[1] >= 0)
+                                   +   (firstChildEntryPoint[2] >= 0);
+
+
+
+
+    // in world coordinates
     gloost::Point3 firstChildCenter = _idToPositionLookUp[firstChildIndex]*parentScale + parentCenter;
 
-    gloost::mathType x0 = firstChildCenter[0] - scaleHalf;
-    gloost::mathType x1 = firstChildCenter[0] + scaleHalf;
-    gloost::mathType y0 = firstChildCenter[1] - scaleHalf;
-    gloost::mathType y1 = firstChildCenter[1] + scaleHalf;
-    gloost::mathType z0 = firstChildCenter[2] - scaleHalf;
-    gloost::mathType z1 = firstChildCenter[2] + scaleHalf;
+    gloost::mathType x0 = firstChildCenter[0] - childSizeHalf;
+    gloost::mathType x1 = firstChildCenter[0] + childSizeHalf;
+    gloost::mathType y0 = firstChildCenter[1] - childSizeHalf;
+    gloost::mathType y1 = firstChildCenter[1] + childSizeHalf;
+    gloost::mathType z0 = firstChildCenter[2] - childSizeHalf;
+    gloost::mathType z1 = firstChildCenter[2] + childSizeHalf;
 
 
     // tx(x) = (1/dx)x + (-px/dx)
@@ -473,14 +493,20 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     gloost::mathType tcMin = gloost::max(tx0, ty0, tz0);
     gloost::mathType tcMax = gloost::min(tx1, ty1, tz1);
 
-    std::list<CpuRaycastStackElement> newStackElements;
 
+    std::list<CpuRaycastStackElement> newStackElements;
 
     // handle firstChild
     if (parentNode->getValidMask().getFlag(firstChildIndex))
     {
       if (parentNode->getLeafMask().getFlag(firstChildIndex))
       {
+        if (_verboseMode)
+        {
+          std::cerr << std::endl << "Depth: "       << depth;
+          std::cerr << std::endl << "found Leaf:  " << firstChildIndex;
+          std::cerr << std::endl << "      ";
+        }
         return parentNode->getChild(firstChildIndex);
       }
       else
@@ -492,80 +518,338 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
         firstNodeElement.parentCenter = firstChildCenter;
         firstNodeElement.parentDepth  = depth;
 
+        if (_verboseMode)
+        {
+          std::cerr << std::endl << "Depth: " << depth;
+          std::cerr << std::endl << "push:  " << firstChildIndex;
+          std::cerr << std::endl << "      ";
+        }
+
         newStackElements.push_front(firstNodeElement);
       }
     }
 
-    AxisAndTValue axisAndTs[3];
-    axisAndTs[0]._axis = 0;
-    axisAndTs[0]._t    = tx1;
-    axisAndTs[1]._axis = 1;
-    axisAndTs[1]._t    = ty1;
-    axisAndTs[2]._axis = 2;
-    axisAndTs[2]._t    = tz1;
 
-    sortAxisAndTs(axisAndTs);
-
-
-    bool indexBits[3] = { firstChildEntryPoint[0] >= 0.0,
-                          firstChildEntryPoint[1] >= 0.0,
-                          firstChildEntryPoint[2] >= 0.0};
-
-    for (int i=0; i!=3; ++i)
+    //////////////////////////////////// SECOND CHILD of FOUR ////////////////////
+    if(tcMax <= parentTMax)
     {
+      // in parent voxel coordinates
+      gloost::Point3 secondChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
+      unsigned int   secondChildIndex = 4*(secondChildEntryPoint[0] >= 0)
+                                      + 2*(secondChildEntryPoint[1] >= 0)
+                                      +   (secondChildEntryPoint[2] >= 0);
 
-      indexBits[axisAndTs[i]._axis] = !indexBits[axisAndTs[i]._axis];
 
-      if ( (parentTMax - axisAndTs[i]._t) > 0.001*parentScale)
+
+
+      // in world coordinates
+      gloost::Point3 secondChildCenter = _idToPositionLookUp[secondChildIndex]*parentScale + parentCenter;
+
+      x0 = secondChildCenter[0] - childSizeHalf;
+      x1 = secondChildCenter[0] + childSizeHalf;
+      y0 = secondChildCenter[1] - childSizeHalf;
+      y1 = secondChildCenter[1] + childSizeHalf;
+      z0 = secondChildCenter[2] - childSizeHalf;
+      z1 = secondChildCenter[2] + childSizeHalf;
+
+
+      // tx(x) = (1/dx)x + (-px/dx)
+      // dx...Direction of the Ray in x
+      // px...Origin of the Ray in x
+      tx0 = dxReziprok*x0 + minusPx_dx;
+      tx1 = dxReziprok*x1 + minusPx_dx;
+      gloost::swapToIncreasing(tx0, tx1);
+
+      ty0 = dyReziprok*y0 + minusPy_dy;
+      ty1 = dyReziprok*y1 + minusPy_dy;
+      gloost::swapToIncreasing(ty0, ty1);
+
+      tz0 = dzReziprok*z0 + minusPz_dz;
+      tz1 = dzReziprok*z1 + minusPz_dz;
+      gloost::swapToIncreasing(tz0, tz1);
+
+
+      tcMin = gloost::max(tx0, ty0, tz0);
+      tcMax = gloost::min(tx1, ty1, tz1);
+
+
+      // handle firstChild
+      if (parentNode->getValidMask().getFlag(secondChildIndex))
       {
-        const unsigned int childIndex = (unsigned int) (4*(indexBits[0]) +
-                                                        2*(indexBits[1]) +
-                                                          (indexBits[2]));
-
-        if (parentNode->getValidMask().getFlag(childIndex))
+        if (parentNode->getLeafMask().getFlag(secondChildIndex))
         {
-          // found a leaf
-          if (parentNode->getLeafMask().getFlag(childIndex))
+          if (_verboseMode)
           {
-            return parentNode->getChild(childIndex);
+            std::cerr << std::endl << "Depth: "       << depth;
+            std::cerr << std::endl << "found Leaf:  " << secondChildIndex;
+            std::cerr << std::endl << "      ";
           }
-          else
+          return parentNode->getChild(secondChildIndex);
+        }
+        else
+        {
+          CpuRaycastStackElement secondNodeElement;
+          secondNodeElement.parentNode   = parentNode->getChild(secondChildIndex);
+          secondNodeElement.parentTMin   = tcMin;
+          secondNodeElement.parentTMax   = tcMax;
+          secondNodeElement.parentCenter = secondChildCenter;
+          secondNodeElement.parentDepth  = depth;
+
+          if (_verboseMode)
           {
-
-            CpuRaycastStackElement childElement;
-            childElement.parentNode = parentNode->getChild(childIndex);
-            childElement.parentTMin = axisAndTs[i]._t;
-
-            if (i == 2)
-            {
-              childElement.parentTMax = parentTMax;
-            }
-            else
-            {
-              childElement.parentTMax = axisAndTs[i+1]._t;
-            }
-
-
-            childElement.parentCenter = parentCenter + _idToPositionLookUp[childIndex]*parentScale;
-            childElement.parentDepth  = depth;
-
-            newStackElements.push_front(childElement);
+            std::cerr << std::endl << "Depth: " << depth;
+            std::cerr << std::endl << "push:  " << secondChildCenter;
+            std::cerr << std::endl << "      ";
           }
 
+          newStackElements.push_front(secondNodeElement);
         }
       }
-      else
+    } // if still in parentNode
+
+    //////////////////////////////////// THIRD CHILD of FOUR ////////////////////
+    if(tcMax <= parentTMax)
+    {
+      // in parent voxel coordinates
+      gloost::Point3 thirdChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
+      unsigned int   thirdChildIndex =  4*(thirdChildEntryPoint[0] >= 0)
+                                      + 2*(thirdChildEntryPoint[1] >= 0)
+                                      +   (thirdChildEntryPoint[2] >= 0);
+
+
+
+
+      // in world coordinates
+      gloost::Point3 thirdChildCenter = _idToPositionLookUp[thirdChildIndex]*parentScale + parentCenter;
+
+      x0 = thirdChildCenter[0] - childSizeHalf;
+      x1 = thirdChildCenter[0] + childSizeHalf;
+      y0 = thirdChildCenter[1] - childSizeHalf;
+      y1 = thirdChildCenter[1] + childSizeHalf;
+      z0 = thirdChildCenter[2] - childSizeHalf;
+      z1 = thirdChildCenter[2] + childSizeHalf;
+
+
+      // tx(x) = (1/dx)x + (-px/dx)
+      // dx...Direction of the Ray in x
+      // px...Origin of the Ray in x
+      tx0 = dxReziprok*x0 + minusPx_dx;
+      tx1 = dxReziprok*x1 + minusPx_dx;
+      gloost::swapToIncreasing(tx0, tx1);
+
+      ty0 = dyReziprok*y0 + minusPy_dy;
+      ty1 = dyReziprok*y1 + minusPy_dy;
+      gloost::swapToIncreasing(ty0, ty1);
+
+      tz0 = dzReziprok*z0 + minusPz_dz;
+      tz1 = dzReziprok*z1 + minusPz_dz;
+      gloost::swapToIncreasing(tz0, tz1);
+
+
+      tcMin = gloost::max(tx0, ty0, tz0);
+      tcMax = gloost::min(tx1, ty1, tz1);
+
+
+      // handle firstChild
+      if (parentNode->getValidMask().getFlag(thirdChildIndex))
       {
-        break;
+        if (parentNode->getLeafMask().getFlag(thirdChildIndex))
+        {
+          if (_verboseMode)
+          {
+            std::cerr << std::endl << "Depth: "       << depth;
+            std::cerr << std::endl << "found Leaf:  " << thirdChildIndex;
+            std::cerr << std::endl << "      ";
+          }
+          return parentNode->getChild(thirdChildIndex);
+        }
+        else
+        {
+          CpuRaycastStackElement thirdNodeElement;
+          thirdNodeElement.parentNode   = parentNode->getChild(thirdChildIndex);
+          thirdNodeElement.parentTMin   = tcMin;
+          thirdNodeElement.parentTMax   = tcMax;
+          thirdNodeElement.parentCenter = thirdChildCenter;
+          thirdNodeElement.parentDepth  = depth;
+
+          if (_verboseMode)
+          {
+            std::cerr << std::endl << "Depth: " << depth;
+            std::cerr << std::endl << "push:  " << thirdChildCenter;
+            std::cerr << std::endl << "      ";
+          }
+
+          newStackElements.push_front(thirdNodeElement);
+        }
       }
-    }
+    } // if still in parentNode
+
+
+
+    //////////////////////////////////// FOURTH CHILD of FOUR ////////////////////
+    if(tcMax <= parentTMax){
+      // in parent voxel coordinates
+      gloost::Point3 fourthChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
+      unsigned int   fourthChildIndex =  4*(fourthChildEntryPoint[0] >= 0)
+                                       + 2*(fourthChildEntryPoint[1] >= 0)
+                                       +   (fourthChildEntryPoint[2] >= 0);
+
+
+
+
+      // in world coordinates
+      gloost::Point3 fourthChildCenter = _idToPositionLookUp[fourthChildIndex]*parentScale + parentCenter;
+
+      x0 = fourthChildCenter[0] - childSizeHalf;
+      x1 = fourthChildCenter[0] + childSizeHalf;
+      y0 = fourthChildCenter[1] - childSizeHalf;
+      y1 = fourthChildCenter[1] + childSizeHalf;
+      z0 = fourthChildCenter[2] - childSizeHalf;
+      z1 = fourthChildCenter[2] + childSizeHalf;
+
+
+      // tx(x) = (1/dx)x + (-px/dx)
+      // dx...Direction of the Ray in x
+      // px...Origin of the Ray in x
+      tx0 = dxReziprok*x0 + minusPx_dx;
+      tx1 = dxReziprok*x1 + minusPx_dx;
+      gloost::swapToIncreasing(tx0, tx1);
+
+      ty0 = dyReziprok*y0 + minusPy_dy;
+      ty1 = dyReziprok*y1 + minusPy_dy;
+      gloost::swapToIncreasing(ty0, ty1);
+
+      tz0 = dzReziprok*z0 + minusPz_dz;
+      tz1 = dzReziprok*z1 + minusPz_dz;
+      gloost::swapToIncreasing(tz0, tz1);
+
+
+      tcMin = gloost::max(tx0, ty0, tz0);
+      tcMax = gloost::min(tx1, ty1, tz1);
+
+
+      // handle firstChild
+      if (parentNode->getValidMask().getFlag(fourthChildIndex))
+      {
+        if (parentNode->getLeafMask().getFlag(fourthChildIndex))
+        {
+          if (_verboseMode)
+          {
+            std::cerr << std::endl << "Depth: "       << depth;
+            std::cerr << std::endl << "found Leaf:  " << fourthChildIndex;
+            std::cerr << std::endl << "      ";
+          }
+          return parentNode->getChild(fourthChildIndex);
+        }
+        else
+        {
+          CpuRaycastStackElement fourthNodeElement;
+          fourthNodeElement.parentNode   = parentNode->getChild(fourthChildIndex);
+          fourthNodeElement.parentTMin   = tcMin;
+          fourthNodeElement.parentTMax   = tcMax;
+          fourthNodeElement.parentCenter = fourthChildCenter;
+          fourthNodeElement.parentDepth  = depth;
+
+          if (_verboseMode)
+          {
+            std::cerr << std::endl << "Depth: " << depth;
+            std::cerr << std::endl << "push:  " << fourthChildCenter;
+            std::cerr << std::endl << "      ";
+          }
+
+          newStackElements.push_front(fourthNodeElement);
+        }
+      }
+    } // if still in parentNode
+
+
+//    AxisAndTValue axisAndTs[3];
+//    axisAndTs[0]._axis = 0;
+//    axisAndTs[0]._t    = tx1;
+//    axisAndTs[1]._axis = 1;
+//    axisAndTs[1]._t    = ty1;
+//    axisAndTs[2]._axis = 2;
+//    axisAndTs[2]._t    = tz1;
+//
+//    sortAxisAndTs(axisAndTs);
+//
+//
+//    bool indexBits[3] = { firstChildEntryPoint[0] >= 0.0,
+//                          firstChildEntryPoint[1] >= 0.0,
+//                          firstChildEntryPoint[2] >= 0.0};
+//
+//    for (int i=0; i!=3; ++i)
+//    {
+//
+//      indexBits[axisAndTs[i]._axis] = !indexBits[axisAndTs[i]._axis];
+//
+//      if ( (parentTMax - axisAndTs[i]._t) > 0.001*parentScale)
+////      if ( axisAndTs[i]._t <= parentTMax)
+//      {
+//        const unsigned int childIndex = (unsigned int) (4*(indexBits[0]) +
+//                                                        2*(indexBits[1]) +
+//                                                          (indexBits[2]));
+//
+//        if (parentNode->getValidMask().getFlag(childIndex))
+//        {
+//          // found a leaf
+//          if (parentNode->getLeafMask().getFlag(childIndex))
+//          {
+//
+//            if (_verboseMode)
+//            {
+//              std::cerr << std::endl << "Depth:        " << depth;
+//              std::cerr << std::endl << "found Leaf:   " << childIndex;
+//              std::cerr << std::endl << "first child:  " << firstChildIndex;
+//              std::cerr << std::endl << "      ";
+//            }
+//
+//
+//            return parentNode->getChild(childIndex);
+//          }
+//          else
+//          {
+//            CpuRaycastStackElement childElement;
+//            childElement.parentNode = parentNode->getChild(childIndex);
+//            childElement.parentTMin = axisAndTs[i]._t;
+//
+//            if (i == 2)
+//            {
+//              childElement.parentTMax = parentTMax;
+//            }
+//            else
+//            {
+//              childElement.parentTMax = axisAndTs[i+1]._t;
+//            }
+//
+//
+//            childElement.parentCenter = parentCenter + _idToPositionLookUp[childIndex]*parentScale;
+//            childElement.parentDepth  = depth;
+//
+//
+//            if (_verboseMode)
+//            {
+//              std::cerr << std::endl << "Depth: " << depth;
+//              std::cerr << std::endl << "push:  " << childIndex;
+//              std::cerr << std::endl << "      ";
+//            }
+//            newStackElements.push_front(childElement);
+//          }
+//
+//        }
+//      }
+//      else
+//      {
+//        break;
+//      }
+//    }
 
     std::list<CpuRaycastStackElement>::iterator stackElemtsIt    = newStackElements.begin();
     std::list<CpuRaycastStackElement>::iterator stackElemtsEndIt = newStackElements.end();
 
     for (; stackElemtsIt!=stackElemtsEndIt; ++stackElemtsIt)
     {
-      stack.push(*stackElemtsIt);
+      _stack.push(*stackElemtsIt);
     }
   }
 

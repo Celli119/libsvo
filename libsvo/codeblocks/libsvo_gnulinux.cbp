@@ -44,7 +44,8 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DLINUX" />
+			<Add option="-std=gnu++0x" />
+			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../../src" />
 			<Add directory="../../../gloost/src" />
 		</Compiler>

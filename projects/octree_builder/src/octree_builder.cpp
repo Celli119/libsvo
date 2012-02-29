@@ -44,16 +44,7 @@ static unsigned int g_screenHeight = 800;
 /// frameCounter
 unsigned int g_frameCounter = 0;
 
-
-/// includes and globals for this demo /////////////////////////////////////////
-
-
-/// this header includes many nice shapes to draw and helpers
-
 #include <gloostRenderGoodies.h>
-
-
-
 #include <Vbo.h>
 
 gloost::Vbo* g_vbo = 0;
@@ -122,6 +113,8 @@ svo::Svo* g_svo = 0;
 svo::SvoVisualizer* g_svoVisualizerNodes  = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
+#include <chrono>
+
 
 
 // info
@@ -163,7 +156,7 @@ void init()
   #define DRAW_MESH
 
   #define BUILD_SVO
-  #define USE_VERTICES_ONLY
+//  #define USE_VERTICES_ONLY
   #define BUILD_VISUALIZATION_NODES
   #define BUILD_VISUALIZATION_LEAVES
 //  #define WRITE_VISUALIZATIONS
@@ -173,9 +166,10 @@ void init()
 
 
 
-  unsigned int maxSvoDepth = 8;
+  unsigned int maxSvoDepth = 7;
 
 
+//  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
 //  g_meshFilename = "david_2mm_final_ao.ply";
@@ -183,7 +177,6 @@ void init()
 //  g_meshFilename = "xyzrgb_statuette.ply";
 //  g_meshFilename = "xyzrgb_dragon_low.ply";
 //  g_meshFilename = "xyzrgb_dragon.ply";
-//  g_meshFilename = "bla.ply";
 //  g_meshFilename = "dragon_vrip_verylow.ply";
 //  g_meshFilename = "dragon_vrip_low.ply";
 //  g_meshFilename = "dragon_vrip.ply";
@@ -193,7 +186,7 @@ void init()
 //  g_meshFilename = "Decimated_Head.ply";
 //  g_meshFilename = "skelet.ply";
 //  g_meshFilename = "Decimated_Head_high.ply";
-  g_meshFilename = "alligator_head.ply";
+//  g_meshFilename = "alligator_head.ply";
 //  g_meshFilename = "furniture_leg_color.ply";
 //  g_meshFilename = "GlenRoseTrack.ply";
 //  g_meshFilename = "throttle_low.ply";
@@ -202,6 +195,8 @@ void init()
 //  g_meshFilename = "stego_color.ply";
 //  g_meshFilename = "female02.ply";
 //  g_meshFilename = "women.ply";
+//  g_meshFilename = "Alfa_Romeo_159.ply";
+//  g_meshFilename = "lambo.ply";
 //  g_meshFilename = "dental_scan.ply";
 //  g_meshFilename = "GlenRoseTrack_high.ply";
 //  g_meshFilename = "monster.ply";
@@ -237,7 +232,7 @@ void init()
 //  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
-//  g_meshFilename = "frog2_vertex_ao.ply";
+  g_meshFilename = "frog2_vertex_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -291,7 +286,8 @@ void init()
   g_pointLight->setSpecular(1.0f, 1.0f, 1.0f, 1.0f);
 
 
-  g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
+//  g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
+  g_texter = new gloost::TextureText(g_dataPath + "/fonts/gloost_Fixedsys_16_gui.png");
 
 
   // shaders
@@ -863,9 +859,6 @@ int main(int argc, char *argv[])
   /// enable sync to vblank on linux to control the demo fps
 #ifdef LINUX
 //  setenv("__GL_SYNC_TO_VBLANK","1",true);
-#else
-  /// SDL console output hack  (or SDL will write all output in a file)
-  freopen( "CON", "w", stdout );
 #endif
 
 

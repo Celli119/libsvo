@@ -87,8 +87,6 @@ MengerSponge::MengerSponge(unsigned int maxDepth):
 
      for (unsigned int p=0; p!=points.size(); ++p)
      {
-
-
        for (int z=-1; z!=2; ++z)
        {
          for (int y=-1; y!=2; ++y)
@@ -194,7 +192,10 @@ MengerSponge::pushSolidCubeToMesh(const gloost::Point3& center,
     _mesh->pushInterleavedComponent(x3);
     _mesh->pushInterleavedComponent(gloost::Vector3(1.0, 0.0, 0.0));
 
-    _mesh->getQuads().push_back(gloost::QuadFace(_vertexIndex++, _vertexIndex++, _vertexIndex++, _vertexIndex++));
+    _mesh->getQuads().push_back(gloost::QuadFace(_vertexIndex++,
+                                                 _vertexIndex++,
+                                                 _vertexIndex++,
+                                                 _vertexIndex++));
   }
 
 

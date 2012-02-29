@@ -26,6 +26,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="libgloost" />
+					<Add library="tinyxml" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -39,12 +41,16 @@
 					<Add option="-Wall" />
 					<Add option="-W" />
 				</Compiler>
+				<Linker>
+					<Add library="libgloost_db" />
+					<Add library="tinyxml" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DLINUX" />
+			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../src" />
 			<Add directory="../../../src" />
 			<Add directory="../../../../gloost/src" />
@@ -55,12 +61,8 @@
 			<Add library="glfw" />
 			<Add library="GLU" />
 			<Add library="libsvo" />
-			<Add library="libgloost" />
-			<Add library="libtinyxml" />
-			<Add library="libSDL_image" />
-			<Add library="SDLmain" />
-			<Add library="libSDL_mixer" />
 			<Add library="boost_thread" />
+			<Add library="freeimage" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>
