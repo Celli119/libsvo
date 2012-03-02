@@ -425,9 +425,17 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
   gloost::mathType minusPz_dz = -ray.getOrigin()[2]/ray.getDirection()[2];
 
 
+
+  CpuRaycastStackElement newStackElements[4];
+  unsigned newElementsCounter = 0;
+
   /////////////////// LOOP ///////////////////////////////
   while (_stack.size())
   {
+
+    newElementsCounter = 0;
+
+
     SvoNode*         parentNode         = _stack.top().parentNode;
     gloost::mathType parentTMin         = _stack.top().parentTMin;
     gloost::mathType parentTMax         = _stack.top().parentTMax;
@@ -494,19 +502,12 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     gloost::mathType tcMax = gloost::min(tx1, ty1, tz1);
 
 
-    std::list<CpuRaycastStackElement> newStackElements;
 
     // handle firstChild
     if (parentNode->getValidMask().getFlag(firstChildIndex))
     {
       if (parentNode->getLeafMask().getFlag(firstChildIndex))
       {
-        if (_verboseMode)
-        {
-          std::cerr << std::endl << "Depth: "       << depth;
-          std::cerr << std::endl << "found Leaf:  " << firstChildIndex;
-          std::cerr << std::endl << "      ";
-        }
         return parentNode->getChild(firstChildIndex);
       }
       else
@@ -518,14 +519,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
         firstNodeElement.parentCenter = firstChildCenter;
         firstNodeElement.parentDepth  = depth;
 
-        if (_verboseMode)
-        {
-          std::cerr << std::endl << "Depth: " << depth;
-          std::cerr << std::endl << "push:  " << firstChildIndex;
-          std::cerr << std::endl << "      ";
-        }
-
-        newStackElements.push_front(firstNodeElement);
+        newStackElements[newElementsCounter++] = firstNodeElement;
       }
     }
 
@@ -578,12 +572,6 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
       {
         if (parentNode->getLeafMask().getFlag(secondChildIndex))
         {
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: "       << depth;
-            std::cerr << std::endl << "found Leaf:  " << secondChildIndex;
-            std::cerr << std::endl << "      ";
-          }
           return parentNode->getChild(secondChildIndex);
         }
         else
@@ -595,14 +583,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
           secondNodeElement.parentCenter = secondChildCenter;
           secondNodeElement.parentDepth  = depth;
 
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: " << depth;
-            std::cerr << std::endl << "push:  " << secondChildCenter;
-            std::cerr << std::endl << "      ";
-          }
-
-          newStackElements.push_front(secondNodeElement);
+          newStackElements[newElementsCounter++] = (secondNodeElement);
         }
       }
     } // if still in parentNode
@@ -655,12 +636,6 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
       {
         if (parentNode->getLeafMask().getFlag(thirdChildIndex))
         {
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: "       << depth;
-            std::cerr << std::endl << "found Leaf:  " << thirdChildIndex;
-            std::cerr << std::endl << "      ";
-          }
           return parentNode->getChild(thirdChildIndex);
         }
         else
@@ -672,14 +647,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
           thirdNodeElement.parentCenter = thirdChildCenter;
           thirdNodeElement.parentDepth  = depth;
 
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: " << depth;
-            std::cerr << std::endl << "push:  " << thirdChildCenter;
-            std::cerr << std::endl << "      ";
-          }
-
-          newStackElements.push_front(thirdNodeElement);
+          newStackElements[newElementsCounter++] = (thirdNodeElement);
         }
       }
     } // if still in parentNode
@@ -733,12 +701,6 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
       {
         if (parentNode->getLeafMask().getFlag(fourthChildIndex))
         {
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: "       << depth;
-            std::cerr << std::endl << "found Leaf:  " << fourthChildIndex;
-            std::cerr << std::endl << "      ";
-          }
           return parentNode->getChild(fourthChildIndex);
         }
         else
@@ -750,14 +712,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
           fourthNodeElement.parentCenter = fourthChildCenter;
           fourthNodeElement.parentDepth  = depth;
 
-          if (_verboseMode)
-          {
-            std::cerr << std::endl << "Depth: " << depth;
-            std::cerr << std::endl << "push:  " << fourthChildCenter;
-            std::cerr << std::endl << "      ";
-          }
-
-          newStackElements.push_front(fourthNodeElement);
+          newStackElements[newElementsCounter++] = (fourthNodeElement);
         }
       }
     } // if still in parentNode
@@ -844,12 +799,10 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
 //      }
 //    }
 
-    std::list<CpuRaycastStackElement>::iterator stackElemtsIt    = newStackElements.begin();
-    std::list<CpuRaycastStackElement>::iterator stackElemtsEndIt = newStackElements.end();
-
-    for (; stackElemtsIt!=stackElemtsEndIt; ++stackElemtsIt)
+    --newElementsCounter;
+    for (int i = newElementsCounter; i!=-1; --i)
     {
-      _stack.push(*stackElemtsIt);
+      _stack.push(newStackElements[i]);
     }
   }
 

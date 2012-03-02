@@ -9,5 +9,6 @@
 			<Depends filename="../../../../../../Source/gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
 		</Project>
 		<Project filename="../../../../../../Source/gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
+		<Project filename="../../../../../../Source/libsvo/projects/octree_builder/codeblocks/octree_builder.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

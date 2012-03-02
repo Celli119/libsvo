@@ -100,9 +100,6 @@ SvoBuilderFaces::~SvoBuilderFaces()
 Svo*
 SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
 {
-
-
-
   _svo  = svo;
   _mesh = mesh;
 
@@ -122,10 +119,11 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     std::cerr << std::endl << "               triangles.size():          " << triangles.size();
 #endif
 
-
+  // take start time
   auto t0 = std::chrono::high_resolution_clock::now();
 
-  // for seperate component data
+
+  // seperate component data
   for (unsigned int i=0; i!=triangles.size(); ++i)
   {
     const BuilderTriFace triFace(_mesh, triangles[i]);
@@ -135,7 +133,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     }
   }
 
-  svo->normalizeAttribs();
+  svo->normalizeLeafAttribs();
   svo->generateInnerNodesAttributes(svo->getRootNode());
 
 
@@ -179,12 +177,10 @@ SvoBuilderFaces::buildRecursive(unsigned int           currentDepth,
   // max depth reached
   if ( currentDepth  == _svo->getMaxDepth())
   {
-
     gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5),
                              gloost::Point3( 0.5, 0.5, 0.5));
 
     bbox.transform(_matrixStack.top());
-
     gloost::Point3 voxelCenter = _matrixStack.top() * gloost::Point3(0.0,0.0,0.0);
 
 

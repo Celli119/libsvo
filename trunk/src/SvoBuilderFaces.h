@@ -92,6 +92,10 @@ class SvoBuilderFaces
       gloost::vec4 color0;
       gloost::vec4 color1;
       gloost::vec4 color2;
+
+      gloost::vec2 texCoords0;
+      gloost::vec2 texCoords1;
+      gloost::vec2 texCoords2;
     };
 
 

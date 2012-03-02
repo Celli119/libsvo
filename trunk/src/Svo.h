@@ -78,7 +78,7 @@ class Svo
 
 
     // normalizes attribs of voxels storing contributions of more than one primitive during creation
-    void normalizeAttribs();
+    void normalizeLeafAttribs();
 
     // generates attributes for inner nodes by averaging child attribs
     void generateInnerNodesAttributes(SvoNode* node, int currentDepth = 0);

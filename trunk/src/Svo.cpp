@@ -203,7 +203,7 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 */
 
 void
-Svo::normalizeAttribs()
+Svo::normalizeLeafAttribs()
 {
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
