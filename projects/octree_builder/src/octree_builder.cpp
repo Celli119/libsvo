@@ -98,6 +98,7 @@ gloost::PerspectiveCamera*   g_camera;
 #include <PlyLoader.h>
 #include <GbmWriter.h>
 #include <GbmLoader.h>
+#include <ObjLoader.h>
 #include <Mesh.h>
 gloost::Mesh* g_mesh = 0;
 
@@ -150,7 +151,6 @@ gloost::DrawableCompound* g_rayVisDrawable = 0;
 
 void init()
 {
-
 //  #define USE_GBM_FILES
   #define OPEN_GL_WINDOW
   #define DRAW_MESH
@@ -165,9 +165,7 @@ void init()
   //#define WRITE_SERIALIZED_BUFFERS
 
 
-
-  unsigned int maxSvoDepth = 7;
-
+  unsigned int maxSvoDepth = 6;
 
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
@@ -232,7 +230,7 @@ void init()
 //  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
-  g_meshFilename = "frog2_vertex_ao.ply";
+//  g_meshFilename = "frog2_vertex_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -245,8 +243,15 @@ void init()
   gloost::GbmLoader gbmLoader(g_gbmPath + gloost::pathToBasename(g_meshFilename) + ".gbm");
   g_mesh = gbmLoader.getMesh();
 #else
-  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
-  g_mesh = ply.getMesh();
+//  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
+//  g_mesh = ply.getMesh();
+  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
+  g_mesh = objLoader.getMesh();
+
+  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
+  {
+    g_mesh->getColors().push_back(gloost::vec4(0.8, 0.8, 0.8, 1.0));
+  }
 #endif
 
 
