@@ -30,6 +30,7 @@
 
 
 /// svo system includes
+#include <BuilderTriangleFace.h>
 
 
 /// gloost system includes
@@ -38,9 +39,7 @@
 #include <Mesh.h>
 #include <Vector3.h>
 #include <Point3.h>
-#include <UniformTypes.h>
 #include <MatrixStack.h>
-#include <DrawableCompound.h>
 
 
 /// cpp includes
@@ -61,44 +60,6 @@ class SvoBuilderFaces
 {
 	public:
 
-
-    /// Stores a triangle with position, normals and colors for faster access
-
-    struct BuilderTriFace
-    {
-      BuilderTriFace (gloost::Mesh* mesh, gloost::TriangleFace& triangle)
-      {
-        pos0 = mesh->getVertices()[triangle.vertexIndices[0]];
-        pos1 = mesh->getVertices()[triangle.vertexIndices[1]];
-        pos2 = mesh->getVertices()[triangle.vertexIndices[2]];
-
-        normal0 = mesh->getNormals()[triangle.vertexIndices[0]];
-        normal1 = mesh->getNormals()[triangle.vertexIndices[1]];
-        normal2 = mesh->getNormals()[triangle.vertexIndices[2]];
-
-        color0 = mesh->getColors()[triangle.vertexIndices[0]];
-        color1 = mesh->getColors()[triangle.vertexIndices[1]];
-        color2 = mesh->getColors()[triangle.vertexIndices[2]];
-      }
-
-      gloost::Point3 pos0;
-      gloost::Point3 pos1;
-      gloost::Point3 pos2;
-
-      gloost::Point3 normal0;
-      gloost::Point3 normal1;
-      gloost::Point3 normal2;
-
-      gloost::vec4 color0;
-      gloost::vec4 color1;
-      gloost::vec4 color2;
-
-      gloost::vec2 texCoords0;
-      gloost::vec2 texCoords1;
-      gloost::vec2 texCoords2;
-    };
-
-
     // class constructor
     SvoBuilderFaces();
 
@@ -109,46 +70,11 @@ class SvoBuilderFaces
     // generates the svo by discretising faces
 	  Svo* build(Svo* svo, gloost::Mesh* mesh);
 
-
-//	  gloost::DrawableCompound* _raysDrawable;
-
-
 	protected:
 
     // builds the svo recursive from triangle faces
     void buildRecursive(unsigned int           currentDepth,
-                        const BuilderTriFace&  triangle);
-
-    // wrapper for triBoxOverlap(boxcenter, boxhalfsize, triverts)
-    bool intersectTriangleAABB(const gloost::BoundingBox& aabb,
-                               gloost::TriangleFace& triangle);
-
-
-    // wrapper for triBoxOverlap(boxcenter, boxhalfsize, triverts)
-    bool intersectTriangleAABB(const gloost::BoundingBox& aabb,
-                               const BuilderTriFace& triangle);
-
-    // tries to intersect the triangle using vertices
-    bool findIntersection(const BuilderTriFace& triangle,
-                          const gloost::BoundingBox& aabb,
-                          float& u,
-                          float& v) const;
-
-    //
-    bool intersectRayTriangle( const gloost::Ray& ray,
-                               const BuilderTriFace& triangle,
-                               float& u,
-                               float& v) const;
-
-    //
-    gloost::Vector3 interpolateNormal( gloost::mathType u,
-                                       gloost::mathType v,
-                                       const BuilderTriFace& triangle) const;
-
-    //
-    gloost::Vector3 interpolateColor( gloost::mathType u,
-                                      gloost::mathType v,
-                                      const BuilderTriFace& triangle) const;
+                        const BuilderTriangleFace&  triangle);
 
 
     Svo*                _svo;

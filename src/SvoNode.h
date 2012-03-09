@@ -93,7 +93,7 @@ class SvoNode
     static int getSerializedNodeSize();
 
     // returns a child index for a coordinate between (-0.5,-0.5,-0.5) and (0.5,0.5,0.5)
-    static unsigned int getChildIndexForPosition(const gloost::Point3& pos);
+//    static unsigned int getChildIndexForPosition(const gloost::Point3& pos);
 
 
 	private:

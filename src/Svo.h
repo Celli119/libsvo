@@ -41,13 +41,15 @@
 
 /// cpp includes
 #include <string>
+#include <list>
+#include <vector>
 
 
 
 namespace svo
 {
 
-  /// structure needed to serialize the svo nodes
+  /// struct needed to serialize the svo nodes
   struct QueuedNode
   {
     /// a pointer to a node
@@ -57,6 +59,24 @@ namespace svo
     unsigned int position;
   };
 
+
+  /// struct contains the triangle id and u,v coordinates for an leaf voxel
+  struct DiscreteSample
+  {
+    DiscreteSample(unsigned triangleId,
+                   gloost::mathType u,
+                   gloost::mathType v)
+    {
+      _triangleId = triangleId;
+      _u          = u;
+      _v          = v;
+    }
+
+    unsigned _triangleId;
+
+    gloost::mathType _u;
+    gloost::mathType _v;
+  };
 
 
 
@@ -93,6 +113,18 @@ class Svo
 
     // writes the serialized svo and attributes to a file
     void writeSerialBuffersToFile(const std::string& directory, const std::string& basename);
+
+
+
+    // creates new set of samples for a leaf node and returns an id
+    unsigned createDiscreteSampleList();
+
+    // returns the vector of lists with DiscreteSamples
+    std::vector< std::list<DiscreteSample> >& getDiscreteSampleLists();
+
+    // returns a lists of DiscreteSamples
+    std::list<DiscreteSample>& getDiscreteSampleList(unsigned id);
+
 
 
     // pushs an attribute component
@@ -158,6 +190,9 @@ class Svo
     int                 _numDoublePoints;
     int                 _numOneChildNodes;
 
+    std::vector< std::list<DiscreteSample> > _discreteSamples;
+    unsigned                                 _discreteSampleIndex;
+
 
     // serialized attributes of each node in order: nx,ny,nz,r,g,b
     std::vector<float>  _attributeBuffer;
@@ -166,6 +201,7 @@ class Svo
     // serialized svo nodes
     std::vector<float> _serializedSvoBuffer;
     unsigned int       _serializedSvoBufferTextureId;
+
 
     // attrib normalizer
     std::vector<unsigned> _attribNormalizers;
