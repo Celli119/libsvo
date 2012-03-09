@@ -26,6 +26,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="gloost" />
+					<Add library="tinyxml" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -39,6 +41,9 @@
 					<Add option="-Wall" />
 					<Add option="-W" />
 				</Compiler>
+				<Linker>
+					<Add library="gloost_db" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
@@ -54,10 +59,7 @@
 			<Add library="GLEW" />
 			<Add library="glut" />
 			<Add library="GLU" />
-			<Add library="libtinyxml" />
-			<Add library="libSDL_image" />
-			<Add library="SDLmain" />
-			<Add library="libSDL_mixer" />
+			<Add library="boost_thread" />
 			<Add directory="../../../gloost/gnulinux/bin" />
 		</Linker>
 		<Unit filename="../../data/shaders/color_only.fs" />
@@ -70,8 +72,12 @@
 		<Unit filename="../../data/shaders/meshlab_zbrush.vs" />
 		<Unit filename="../../data/shaders/showSvoTexture.fs" />
 		<Unit filename="../../data/shaders/showSvoTexture.vs" />
+		<Unit filename="../../src/AttributeGenerator.cpp" />
+		<Unit filename="../../src/AttributeGenerator.h" />
 		<Unit filename="../../src/BitMask8.cpp" />
 		<Unit filename="../../src/BitMask8.h" />
+		<Unit filename="../../src/BuilderTriangleFace.cpp" />
+		<Unit filename="../../src/BuilderTriangleFace.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
 		<Unit filename="../../src/MengerSponge.cpp" />

@@ -170,8 +170,8 @@ void init()
 
   unsigned int maxDepth = 8;
 
-  g_bufferWidth  = g_screenWidth/2;
-  g_bufferHeight = g_screenHeight/2;
+  g_bufferWidth  = g_screenWidth/4;
+  g_bufferHeight = g_screenHeight/4;
 
   // create screencoords
   g_screenCoords = std::vector<gloost::Vector2>(g_bufferWidth*g_bufferHeight);

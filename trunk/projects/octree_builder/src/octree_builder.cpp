@@ -19,13 +19,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
-/// for glut win32
-#define _STDCALL_SUPPORTED
-#define _M_IX86
-
-
-
 /// c++ includes
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -106,6 +99,9 @@ gloost::Mesh* g_mesh = 0;
 #include <Svo.h>
 svo::Svo* g_svo = 0;
 #include <SvoNode.h>
+
+#include <AttributeGenerator.h>
+
 #include <SvoBuilderHeightmap.h>
 #include <SvoBuilderVertices.h>
 #include <SvoBuilderFaces.h>
@@ -141,9 +137,6 @@ void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
 
 
-gloost::DrawableCompound* g_rayVisDrawable = 0;
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -157,15 +150,15 @@ void init()
 
   #define BUILD_SVO
 //  #define USE_VERTICES_ONLY
-  #define BUILD_VISUALIZATION_NODES
+//  #define BUILD_VISUALIZATION_NODES
   #define BUILD_VISUALIZATION_LEAVES
 //  #define WRITE_VISUALIZATIONS
 
-  #define SERIALIZE_BUFFERS
+//  #define SERIALIZE_BUFFERS
   //#define WRITE_SERIALIZED_BUFFERS
 
 
-  unsigned int maxSvoDepth = 6;
+  unsigned int maxSvoDepth = 10;
 
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
@@ -245,7 +238,10 @@ void init()
 #else
 //  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
 //  g_mesh = ply.getMesh();
-  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
+//  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
+  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
+//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/wacky_planet.obj");
+//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/xyzrgb_dragon_low.obj");
   g_mesh = objLoader.getMesh();
 
   for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
@@ -276,6 +272,9 @@ void init()
   g_mesh->normalizeNormals();
 
 
+  g_mesh->printMeshInfo();
+
+
 #ifdef OPEN_GL_WINDOW
 #ifdef DRAW_MESH
   std::cerr << std::endl << "vbo: " << "created";
@@ -302,23 +301,23 @@ void init()
   g_modelUniforms = new gloost::UniformSet();
   g_modelUniforms->set_sampler2D("environmentMap",
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/bensFrontyard_blured.jpg"));
-//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
-                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
+                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
+//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/skies.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection", 0.1);
-  g_modelUniforms->set_float("shininess", 40.0);
-  g_modelUniforms->set_float("specular",  0.05);
+  g_modelUniforms->set_float("reflection", 0.05);
+  g_modelUniforms->set_float("shininess", 60.0);
+  g_modelUniforms->set_float("specular",  0.1);
 
 
   g_SvoTextureUniforms = new gloost::UniformSet();
 
   g_camera = new gloost::PerspectiveCamera(50.0,
-                                         (float)g_screenWidth/(float)g_screenHeight,
-                                         0.01,
-                                         20.0);
+                                          (float)g_screenWidth/(float)g_screenHeight,
+                                           0.01,
+                                           20.0);
 
 #endif
 
@@ -351,7 +350,13 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
 #else
   svo::SvoBuilderFaces fromFaceBuilder;
   fromFaceBuilder.build(g_svo, mesh);
-//  g_rayVisDrawable = fromFaceBuilder._raysDrawable;
+
+  /// apply generator to retrieve attributes
+  svo::AttributeGenerator generator;
+//  generator.config(...)
+  generator.generate(g_svo, mesh, new gloost::ObjMatFile());
+
+
 #endif
 
 
@@ -364,7 +369,7 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
   g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
 #endif
 
-  g_svo->serializeAttributeBuffer();
+//  g_svo->serializeAttributeBuffer();
 
 #ifdef WRITE_SERIALIZED_BUFFERS
   g_svo->writeSerialBuffersToFile(g_dataPath + "gbi/", gloost::pathToBasename(g_meshFilename));

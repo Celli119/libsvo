@@ -73,6 +73,8 @@ Svo::Svo(int maxDepth):
   _numOutOfBoundPoints(0),
   _numDoublePoints(0),
   _numOneChildNodes(0),
+  _discreteSamples(),
+  _discreteSampleIndex(0),
   _attributeBuffer(),
   _attributeBufferTextureId(0),
   _serializedSvoBuffer(),
@@ -531,7 +533,7 @@ Svo::serializeAttributeBuffer()
                                                 GL_TEXTURE_2D,
                                                 GL_RGB32F,
                                                 GL_RGB,
-                                                GL_FLOAT );
+                                                GL_FLOAT);
 
   _attributeBufferTextureId = gloost::TextureManager::getInstance()->addTexture(buffer);
 
@@ -554,11 +556,9 @@ Svo::serializeAttributeBuffer()
 void
 Svo::writeSerialBuffersToFile(const std::string& directory, const std::string& basename)
 {
-
   // svo
   if (_serializedSvoBufferTextureId)
   {
-
     // getting the texture for width and height
     gloost::Texture* svoBufferTexture = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(_serializedSvoBufferTextureId);
 
@@ -580,7 +580,55 @@ Svo::writeSerialBuffersToFile(const std::string& directory, const std::string& b
       svoFile.close();
     }
   }
+}
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief creates new set of samples for a leaf node and returns an id
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+Svo::createDiscreteSampleList()
+{
+  _discreteSamples.push_back(std::list<DiscreteSample>() );
+  return _discreteSamples.size()-1;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns the vector of lists of DiscreteSamples
+  \param ...
+  \remarks ...
+*/
+
+std::vector< std::list<DiscreteSample> >&
+Svo::getDiscreteSampleLists()
+{
+  return _discreteSamples;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns a lists of DiscreteSamples
+  \param ...
+  \remarks ...
+*/
+
+std::list<DiscreteSample>&
+Svo::getDiscreteSampleList(unsigned id)
+{
+  return _discreteSamples[id];
 }
 
 
