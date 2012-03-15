@@ -35,6 +35,7 @@
 #include <Vbo.h>
 #include <MatrixStack.h>
 #include <GbmWriter.h>
+#include <InterleavedAttributes.h>
 
 
 /// cpp includes
@@ -116,10 +117,11 @@ SvoVisualizer::~SvoVisualizer()
 */
 
 void
-SvoVisualizer::build(Svo* svo)
+SvoVisualizer::build(Svo* svo, gloost::InterleavedAttributes* attributes)
 {
 
-  _svo = svo;
+  _svo        = svo;
+  _attributes = attributes;
 
   if (svo->getMaxDepth() < _maxDepth)
   {
@@ -485,7 +487,7 @@ SvoVisualizer::pushSolidCubeToMesh(const gloost::BoundingBox& bbox,
                                    unsigned int attributePosition)
 {
 
-
+  attributePosition*=6;
   ++_numSolidBoxes;
 
 /*
@@ -528,19 +530,20 @@ SvoVisualizer::pushSolidCubeToMesh(const gloost::BoundingBox& bbox,
   _mesh->getVertices().push_back(h);
 
 
-  if (_svo->getAttributeBuffer().size())
+  if (_attributes->getVector().size())
   {
     gloost::Vector3 normal;
     gloost::vec4 color;
 
-    normal[0] = _svo->getAttributeBuffer()[attributePosition++];
-    normal[1] = _svo->getAttributeBuffer()[attributePosition++];
-    normal[2] = _svo->getAttributeBuffer()[attributePosition++];
+    normal[0] = _attributes->getVector()[attributePosition++];
+    normal[1] = _attributes->getVector()[attributePosition++];
+    normal[2] = _attributes->getVector()[attributePosition++];
 
-    color.r = _svo->getAttributeBuffer()[attributePosition++];
-    color.g = _svo->getAttributeBuffer()[attributePosition++];
-    color.b = _svo->getAttributeBuffer()[attributePosition++];
+    color.r = _attributes->getVector()[attributePosition++];
+    color.g = _attributes->getVector()[attributePosition++];
+    color.b = _attributes->getVector()[attributePosition++];
     color.a = 1.0;
+
 
     // push 8 normals and 8 colors ...
     _mesh->getNormals().push_back(normal);

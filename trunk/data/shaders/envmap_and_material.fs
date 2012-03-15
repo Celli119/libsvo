@@ -45,7 +45,7 @@ void main(void)
 //    float shadowSoft = (ndotl)*shadow;
 
 
-//    cAmbient    += gl_LightSource[i].ambient * color;
+    cAmbient    += gl_LightSource[i].ambient * color;
 
     cDiffuse    += gl_LightSource[i].diffuse * color * ndotl /* * shadowSoft*/;
 

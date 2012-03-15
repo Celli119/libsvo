@@ -75,11 +75,8 @@ Svo::Svo(int maxDepth):
   _numOneChildNodes(0),
   _discreteSamples(),
   _discreteSampleIndex(0),
-  _attributeBuffer(),
-  _attributeBufferTextureId(0),
   _serializedSvoBuffer(),
-  _serializedSvoBufferTextureId(0),
-  _attribNormalizers()
+  _serializedSvoBufferTextureId(0)
 {
 	// insert your code here
 }
@@ -121,6 +118,15 @@ Svo::insert(const gloost::Point3& point)
 //      return 0;
 //    }
 //  }
+
+  if (point[0] > 0)
+  {
+    return 0;
+  }
+  if (point[1] < 0)
+  {
+    return 0;
+  }
 
   return insertAndBuild(0,     // parent
                         0,     // current child index
@@ -197,143 +203,143 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/**
-  \brief normalizes attribs of voxels which gathered contributions of more than one primitive during creation
-  \param  ...
-  \remarks ...
-*/
-
-void
-Svo::normalizeLeafAttribs()
-{
-
-#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
-    std::cerr << std::endl;
-    std::cerr << std::endl << "Message from Svo::normalizeAttribs():";
-    std::cerr << std::endl << "             Normalizing Attributes for: " << _attribNormalizers.size() << " voxels.";
-#endif
-
-  for (unsigned i=0; i!=_attribNormalizers.size(); ++i)
-  {
-    if (_attribNormalizers[i] > 1)
-    {
-      float normalizer = 1.0/(_attribNormalizers[i]);
-
-      unsigned subAttribPos = i*6;
-
-      unsigned runner = 0;
-      for (; runner!=6; ++runner)
-      {
-        if (subAttribPos >= _attributeBuffer.size())
-        {
-          std::cerr << std::endl << "word: " << "aaaaaaaaaa";
-          std::cerr << std::endl << "subAttribPos: " << subAttribPos;
-          std::cerr << std::endl << "attribs size: " << _attributeBuffer.size();
-          std::cerr << std::endl;
-        }
-        else
-        {
-          _attributeBuffer[subAttribPos+runner] *= normalizer;
-        }
-
-
-      }
-    }
-  }
-}
+//
+///**
+//  \brief normalizes attribs of voxels which gathered contributions of more than one primitive during creation
+//  \param  ...
+//  \remarks ...
+//*/
+//
+//void
+//Svo::normalizeLeafAttribs()
+//{
+//
+//#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
+//    std::cerr << std::endl;
+//    std::cerr << std::endl << "Message from Svo::normalizeAttribs():";
+//    std::cerr << std::endl << "             Normalizing Attributes for: " << _attribNormalizers.size() << " voxels.";
+//#endif
+//
+//  for (unsigned i=0; i!=_attribNormalizers.size(); ++i)
+//  {
+//    if (_attribNormalizers[i] > 1)
+//    {
+//      float normalizer = 1.0/(_attribNormalizers[i]);
+//
+//      unsigned subAttribPos = i*6;
+//
+//      unsigned runner = 0;
+//      for (; runner!=6; ++runner)
+//      {
+//        if (subAttribPos >= _attributeBuffer.size())
+//        {
+//          std::cerr << std::endl << "word: " << "aaaaaaaaaa";
+//          std::cerr << std::endl << "subAttribPos: " << subAttribPos;
+//          std::cerr << std::endl << "attribs size: " << _attributeBuffer.size();
+//          std::cerr << std::endl;
+//        }
+//        else
+//        {
+//          _attributeBuffer[subAttribPos+runner] *= normalizer;
+//        }
+//
+//
+//      }
+//    }
+//  }
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/**
-  \brief generates attributes for inner nodes by averaging child attribs
-  \param node root node of the (sub)tree
-  \remarks ...
-*/
-
-void
-Svo::generateInnerNodesAttributes(SvoNode* node, int currentDepth)
-{
-  if (node->isLeaf())
-  {
-    return;
-  }
-  else
-  {
-
-    // call generateInnerNodesAttributes recursive
-    std::vector<unsigned int> existingChildren;
-
-    for (unsigned int i=0; i!=8; ++i)
-    {
-      if (node->getValidMask().getFlag(i))
-      {
-        generateInnerNodesAttributes(node->getChild(i), currentDepth+1);
-        existingChildren.push_back(i);
-      }
-    }
-
-
-    // if there is only one child, copy attribute index from child to current node
-    if (existingChildren.size() == 1)
-    {
-      node->setAttribPosition(node->getChild(existingChildren[0])->getAttribPosition());
-      ++_numOneChildNodes;
-    }
-    else
-    {
-
-      // average chid attributes for this node
-      gloost::Vector3 averageNormal(0.0,0.0,0.0);
-      gloost::Vector3 averageColor(0.0,0.0,0.0);
-      unsigned int numChildren = 0;
-
-      for (unsigned int i=0; i!=existingChildren.size(); ++i)
-      {
-
-        if (node->getValidMask().getFlag(existingChildren[i]))
-        {
-
-          ++numChildren;
-
-
-          unsigned int attribIndex = node->getChild(existingChildren[i])->getAttribPosition();
-
-
-          averageNormal += gloost::Vector3(_attributeBuffer[attribIndex++],
-                                           _attributeBuffer[attribIndex++],
-                                           _attributeBuffer[attribIndex++]);
-
-          averageColor += gloost::Vector3(_attributeBuffer[attribIndex++],
-                                          _attributeBuffer[attribIndex++],
-                                          _attributeBuffer[attribIndex++]);
-        }
-
-      }
-
-      averageNormal /= numChildren;
-      averageColor  /= numChildren;
-
-  //    std::cerr << std::endl << "averageNormal: " << averageNormal;
-  //    std::cerr << std::endl << "averageColor: " << averageColor;
-
-      node->setAttribPosition(getCurrentAttribPosition());
-      pushAttributeComponent(averageNormal[0]);
-      pushAttributeComponent(averageNormal[1]);
-      pushAttributeComponent(averageNormal[2]);
-
-      pushAttributeComponent(averageColor[0]);
-      pushAttributeComponent(averageColor[1]);
-      pushAttributeComponent(averageColor[2]);
-
-
-    }
-
-  }
-
-}
+//
+///**
+//  \brief generates attributes for inner nodes by averaging child attribs
+//  \param node root node of the (sub)tree
+//  \remarks ...
+//*/
+//
+//void
+//Svo::generateInnerNodesAttributes(SvoNode* node, int currentDepth)
+//{
+//  if (node->isLeaf())
+//  {
+//    return;
+//  }
+//  else
+//  {
+//
+//    // call generateInnerNodesAttributes recursive
+//    std::vector<unsigned int> existingChildren;
+//
+//    for (unsigned int i=0; i!=8; ++i)
+//    {
+//      if (node->getValidMask().getFlag(i))
+//      {
+//        generateInnerNodesAttributes(node->getChild(i), currentDepth+1);
+//        existingChildren.push_back(i);
+//      }
+//    }
+//
+//
+//    // if there is only one child, copy attribute index from child to current node
+//    if (existingChildren.size() == 1)
+//    {
+//      node->setAttribPosition(node->getChild(existingChildren[0])->getAttribPosition());
+//      ++_numOneChildNodes;
+//    }
+//    else
+//    {
+//
+//      // average chid attributes for this node
+//      gloost::Vector3 averageNormal(0.0,0.0,0.0);
+//      gloost::Vector3 averageColor(0.0,0.0,0.0);
+//      unsigned int numChildren = 0;
+//
+//      for (unsigned int i=0; i!=existingChildren.size(); ++i)
+//      {
+//
+//        if (node->getValidMask().getFlag(existingChildren[i]))
+//        {
+//
+//          ++numChildren;
+//
+//
+//          unsigned int attribIndex = node->getChild(existingChildren[i])->getAttribPosition();
+//
+//
+//          averageNormal += gloost::Vector3(_attributeBuffer[attribIndex++],
+//                                           _attributeBuffer[attribIndex++],
+//                                           _attributeBuffer[attribIndex++]);
+//
+//          averageColor += gloost::Vector3(_attributeBuffer[attribIndex++],
+//                                          _attributeBuffer[attribIndex++],
+//                                          _attributeBuffer[attribIndex++]);
+//        }
+//
+//      }
+//
+//      averageNormal /= numChildren;
+//      averageColor  /= numChildren;
+//
+//  //    std::cerr << std::endl << "averageNormal: " << averageNormal;
+//  //    std::cerr << std::endl << "averageColor: " << averageColor;
+//
+////      node->setAttribPosition(getCurrentAttribPosition());
+////      pushAttributeComponent(averageNormal[0]);
+////      pushAttributeComponent(averageNormal[1]);
+////      pushAttributeComponent(averageNormal[2]);
+////
+////      pushAttributeComponent(averageColor[0]);
+////      pushAttributeComponent(averageColor[1]);
+////      pushAttributeComponent(averageColor[2]);
+//
+//
+//    }
+//
+//  }
+//
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -372,8 +378,6 @@ Svo::serializeSvo()
     std::cerr << std::endl << "SERIALIZED TEXTURE TO BIG!: " << textureSize;
     return 0;
   }
-
-
 
   // Add the root to the buffer
   gloost::BitMask packedMasks;
@@ -476,111 +480,109 @@ Svo::serializeSvo()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/**
-  \brief serializes the attribute buffer and returns TextureManager id of resulting texture
-  \param ...
-  \remarks ...
-*/
-
-unsigned int
-Svo::serializeAttributeBuffer()
-{
-  // assuming RG32 Texture
-  // normal = 3 x 32 Bit
-  // color  = 3 x 32 Bit
-
-  float numComponentsPerTexel = 3.0f;  // RGB
-  float bitsPerCoponent       = 32.0f;
-  int   numTexels             = _attributeBuffer.size()/numComponentsPerTexel;  // 6 components for each voxel
-
-  int textureSize = floor(sqrt((float)numTexels)+1);
-
-
-  if (textureSize > 8192)
-  {
-    std::cerr << std::endl << "SERIALIZED TEXTURE TO BIG!: " << textureSize;
-    return 0;
-  }
-
-
-  // fill up buffer to fit square texture size
-  int fillTexels = 0;
-  while (_attributeBuffer.size()/(float)numComponentsPerTexel < textureSize*textureSize)
-  {
-    _attributeBuffer.push_back(0.0);
-    ++fillTexels;
-  }
-
-
-
-  std::cerr << std::endl << "Message from Svo::serializeAttributeBuffer():";
-  std::cerr << std::endl << "             Serialize attribute buffer:";
-  std::cerr << std::endl << "               Components per Texel:      " << numComponentsPerTexel;
-  std::cerr << std::endl << "               Bits per component:        " << bitsPerCoponent << " Bit";
-  std::cerr << std::endl << "               Number of texels:          " << numTexels;
-  std::cerr << std::endl << "               Texture size:              " << textureSize << " x " << textureSize << " pix";
-  std::cerr << std::endl << "               Texture memory size        " << textureSize*textureSize * numComponentsPerTexel * bitsPerCoponent / 8.0f / 1024.0f/ 1024.0f << " MB";
-  std::cerr << std::endl << "               Empty texel in texture     " << fillTexels/3.0;
-
-
-  // create a texture from the buffer
-  gloost::Texture* buffer = new gloost::Texture(textureSize,
-                                                textureSize,
-                                                1,
-                                                (unsigned char*)&_attributeBuffer.front(),
-                                                12,
-                                                GL_TEXTURE_2D,
-                                                GL_RGB32F,
-                                                GL_RGB,
-                                                GL_FLOAT);
-
-  _attributeBufferTextureId = gloost::TextureManager::getInstance()->addTexture(buffer);
-
-  std::cerr << std::endl << "               Texture id                 " << _attributeBufferTextureId;
-
-
-  return _attributeBufferTextureId;
-}
+//
+///**
+//  \brief serializes the attribute buffer and returns TextureManager id of resulting texture
+//  \param ...
+//  \remarks ...
+//*/
+//
+//unsigned int
+//Svo::serializeAttributeBuffer()
+//{
+//  // assuming RG32 Texture
+//  // normal = 3 x 32 Bit
+//  // color  = 3 x 32 Bit
+//
+//  float numComponentsPerTexel = 3.0f;  // RGB
+//  float bitsPerCoponent       = 32.0f;
+//  int   numTexels             = _attributeBuffer.size()/numComponentsPerTexel;  // 6 components for each voxel
+//
+//  int textureSize = floor(sqrt((float)numTexels)+1);
+//
+//
+//  if (textureSize > 8192)
+//  {
+//    std::cerr << std::endl << "SERIALIZED TEXTURE TO BIG!: " << textureSize;
+//    return 0;
+//  }
+//
+//
+//  // fill up buffer to fit square texture size
+//  int fillTexels = 0;
+//  while (_attributeBuffer.size()/(float)numComponentsPerTexel < textureSize*textureSize)
+//  {
+//    _attributeBuffer.push_back(0.0);
+//    ++fillTexels;
+//  }
+//
+//  std::cerr << std::endl << "Message from Svo::serializeAttributeBuffer():";
+//  std::cerr << std::endl << "             Serialize attribute buffer:";
+//  std::cerr << std::endl << "               Components per Texel:      " << numComponentsPerTexel;
+//  std::cerr << std::endl << "               Bits per component:        " << bitsPerCoponent << " Bit";
+//  std::cerr << std::endl << "               Number of texels:          " << numTexels;
+//  std::cerr << std::endl << "               Texture size:              " << textureSize << " x " << textureSize << " pix";
+//  std::cerr << std::endl << "               Texture memory size        " << textureSize*textureSize * numComponentsPerTexel * bitsPerCoponent / 8.0f / 1024.0f/ 1024.0f << " MB";
+//  std::cerr << std::endl << "               Empty texel in texture     " << fillTexels/3.0;
+//
+//
+//  // create a texture from the buffer
+//  gloost::Texture* buffer = new gloost::Texture(textureSize,
+//                                                textureSize,
+//                                                1,
+//                                                (unsigned char*)&_attributeBuffer.front(),
+//                                                12,
+//                                                GL_TEXTURE_2D,
+//                                                GL_RGB32F,
+//                                                GL_RGB,
+//                                                GL_FLOAT);
+//
+//  _attributeBufferTextureId = gloost::TextureManager::getInstance()->addTexture(buffer);
+//
+//  std::cerr << std::endl << "               Texture id                 " << _attributeBufferTextureId;
+//
+//
+//  return _attributeBufferTextureId;
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/**
-  \brief writes the serialized svo and attributes to a file
-  \param ...
-  \remarks ...
-*/
-
-void
-Svo::writeSerialBuffersToFile(const std::string& directory, const std::string& basename)
-{
-  // svo
-  if (_serializedSvoBufferTextureId)
-  {
-    // getting the texture for width and height
-    gloost::Texture* svoBufferTexture = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(_serializedSvoBufferTextureId);
-
-    gloost::BinaryFile svoFile;
-    if (svoFile.openToWrite(directory + "/" + basename + "_svo.gbi"))
-    {
-      // header
-      svoFile.writeString("GBI ");
-      svoFile.writeString("components 3 ");
-      svoFile.writeString("format float ");
-      svoFile.writeString("sizex " + gloost::toString(svoBufferTexture->getWidth()) + " ");
-      svoFile.writeString("sizey " + gloost::toString(svoBufferTexture->getHeight()) + " ");
-//      svoFile.writeString("sizez " + "0");//gloost::toString(svoBufferTexture->get()) + " ");
-      svoFile.writeString("order RGB ");
-
-      // data
-      svoFile.writeBuffer((unsigned char*)&_serializedSvoBuffer.front(), _serializedSvoBuffer.size()*sizeof(float));
-
-      svoFile.close();
-    }
-  }
-}
+//
+///**
+//  \brief writes the serialized svo and attributes to a file
+//  \param ...
+//  \remarks ...
+//*/
+//
+//void
+//Svo::writeSerialBuffersToFile(const std::string& directory, const std::string& basename)
+//{
+//  // svo
+//  if (_serializedSvoBufferTextureId)
+//  {
+//    // getting the texture for width and height
+//    gloost::Texture* svoBufferTexture = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(_serializedSvoBufferTextureId);
+//
+//    gloost::BinaryFile svoFile;
+//    if (svoFile.openToWrite(directory + "/" + basename + "_svo.gbi"))
+//    {
+//      // header
+//      svoFile.writeString("GBI ");
+//      svoFile.writeString("components 3 ");
+//      svoFile.writeString("format float ");
+//      svoFile.writeString("sizex " + gloost::toString(svoBufferTexture->getWidth()) + " ");
+//      svoFile.writeString("sizey " + gloost::toString(svoBufferTexture->getHeight()) + " ");
+////      svoFile.writeString("sizez " + "0");//gloost::toString(svoBufferTexture->get()) + " ");
+//      svoFile.writeString("order RGB ");
+//
+//      // data
+//      svoFile.writeBuffer((unsigned char*)&_serializedSvoBuffer.front(), _serializedSvoBuffer.size()*sizeof(float));
+//
+//      svoFile.close();
+//    }
+//  }
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -641,11 +643,11 @@ Svo::getDiscreteSampleList(unsigned id)
   \remarks ...
 */
 
-void
-Svo::pushAttributeComponent(float component)
-{
-  _attributeBuffer.push_back(component);
-}
+//void
+//Svo::pushAttributeComponent(float component)
+//{
+//  _attributeBuffer.push_back(component);
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -657,11 +659,11 @@ Svo::pushAttributeComponent(float component)
   \remarks ...
 */
 
-unsigned int
-Svo::getCurrentAttribPosition() const
-{
-  return _attributeBuffer.size();
-}
+//unsigned int
+//Svo::getCurrentAttribPosition() const
+//{
+//  return _attributeBuffer.size();
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -673,11 +675,11 @@ Svo::getCurrentAttribPosition() const
   \remarks ...
 */
 
-std::vector<float>&
-Svo::getAttributeBuffer()
-{
-  return _attributeBuffer;
-}
+//std::vector<float>&
+//Svo::getAttributeBuffer()
+//{
+//  return _attributeBuffer;
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -689,11 +691,11 @@ Svo::getAttributeBuffer()
   \remarks ...
 */
 
-void
-Svo::pushNormalizer()
-{
-  _attribNormalizers.push_back(1);
-}
+//void
+//Svo::pushNormalizer()
+//{
+//  _attribNormalizers.push_back(1);
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -705,11 +707,11 @@ Svo::pushNormalizer()
   \remarks ...
 */
 
-void
-Svo::addDoubleNodeToNormalizer(unsigned attribPos)
-{
-  ++_attribNormalizers[attribPos];
-}
+//void
+//Svo::addDoubleNodeToNormalizer(unsigned attribPos)
+//{
+//  ++_attribNormalizers[attribPos];
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -740,21 +742,21 @@ Svo::getSvoBufferTextureId() const
 {
   return _serializedSvoBufferTextureId;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns the id of the attributeBufferTexture within the gloost:TextureManager
-  \param ...
-  \remarks You have to call Svo::serializeAttributeBuffer() to create the texture first
-*/
-
-unsigned int
-Svo::getAttributeBufferTextureId() const
-{
-  return _attributeBufferTextureId;
-}
+//
+//////////////////////////////////////////////////////////////////////////////////
+//
+//
+///**
+//  \brief returns the id of the attributeBufferTexture within the gloost:TextureManager
+//  \param ...
+//  \remarks You have to call Svo::serializeAttributeBuffer() to create the texture first
+//*/
+//
+//unsigned int
+//Svo::getAttributeBufferTextureId() const
+//{
+//  return _attributeBufferTextureId;
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 

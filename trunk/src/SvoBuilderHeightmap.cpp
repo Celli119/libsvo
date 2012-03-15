@@ -162,7 +162,7 @@ SvoBuilderHeightmap::build( unsigned int heightMapId,
       // push new leaf attributes to the attribute buffer
       if (newNode)
       {
-        newNode->setAttribPosition(svo->getCurrentAttribPosition());
+//        newNode->setAttribPosition(svo->getCurrentAttribPosition());
 
 
         // calculate gradient
@@ -200,14 +200,14 @@ SvoBuilderHeightmap::build( unsigned int heightMapId,
 
 
 
-        svo->pushAttributeComponent(normal[0]);
-        svo->pushAttributeComponent(normal[1]);
-        svo->pushAttributeComponent(normal[2]);
-
-        gloost::vec4 color = colorMap->getPixelColor(u, v);
-        svo->pushAttributeComponent(color.r);
-        svo->pushAttributeComponent(color.g);
-        svo->pushAttributeComponent(color.b);
+//        svo->pushAttributeComponent(normal[0]);
+//        svo->pushAttributeComponent(normal[1]);
+//        svo->pushAttributeComponent(normal[2]);
+//
+//        gloost::vec4 color = colorMap->getPixelColor(u, v);
+//        svo->pushAttributeComponent(color.r);
+//        svo->pushAttributeComponent(color.g);
+//        svo->pushAttributeComponent(color.b);
 
 
         // fill holes
@@ -252,7 +252,7 @@ SvoBuilderHeightmap::build( unsigned int heightMapId,
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Octree memory serialized:  " << svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Attribs memory serialized: " << svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
+//  std::cerr << std::endl << "               Attribs memory serialized: " << svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
 //  std::cerr << std::endl << "               Number of one-child-nodes: " << _numOneChildNodes << " ( " << (100.0f*_numOneChildNodes)/(float)getNumNodes() << " % )";
   std::cerr << std::endl;
 

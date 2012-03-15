@@ -42,6 +42,7 @@ namespace gloost
 {
   class Mesh;
   class ObjMatFile;
+  class InterleavedAttributes;
 }
 
 
@@ -62,16 +63,18 @@ class AttributeGenerator
     AttributeGenerator();
 
     // class destructor
-	  ~AttributeGenerator();
-
+	  virtual ~AttributeGenerator();
 
     // init the AttributeGenerator
-	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials);
+	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials){};
+
+	  // returns the generated attribut buffer
+	  virtual gloost::InterleavedAttributes* getAttributeBuffer() = 0;
 
 
 	private:
 
-   // ...
+//   gloost::VertexAttribContainer* _interleavedAttribut buffer;
 
 };
 
