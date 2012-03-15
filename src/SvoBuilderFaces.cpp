@@ -149,7 +149,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl;
   std::cerr << std::endl << "             Creating attributes for inner nodes: ";
   std::cerr << std::endl << "               Octree memory serialized:  " << _svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Attribs memory serialized: " << _svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
+//  std::cerr << std::endl << "               Attribs memory serialized: " << _svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl;
@@ -205,46 +205,6 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
       }
 
       _svo->getDiscreteSampleList(leafNode->getAttribPosition()).push_back(DiscreteSample(triangle._id, u, v));
-
-//      gloost::Vector3 normal = triangle.interpolateNormal(u, v);
-//      gloost::Vector3 color  = triangle.interpolateColor(u, v);
-//
-//      // push attribs for a new leaf node
-//      if (leafNode->getAttribPosition() == 0)
-//      {
-//        leafNode->setAttribPosition(_svo->getCurrentAttribPosition());
-//
-//        _svo->pushNormalizer();
-//
-//        _svo->pushAttributeComponent(normal[0]);
-//        _svo->pushAttributeComponent(normal[1]);
-//        _svo->pushAttributeComponent(normal[2]);
-//
-//        _svo->pushAttributeComponent(triangle._materialId*0.25);
-//        _svo->pushAttributeComponent(triangle._materialId*0.25);
-//        _svo->pushAttributeComponent(triangle._materialId*0.25);
-//      }
-//      // accumulate attribs for an existing node
-//      else
-//      {
-//        unsigned attribPos = leafNode->getAttribPosition();
-//
-//        _svo->addDoubleNodeToNormalizer(attribPos/6);
-//
-//        std::vector<float>& attribs = _svo->getAttributeBuffer();
-//
-//        attribs[attribPos++] += normal[0];
-//        attribs[attribPos++] += normal[1];
-//        attribs[attribPos++] += normal[2];
-//
-//        attribs[attribPos++] += triangle._materialId*0.25;
-//        attribs[attribPos++] += triangle._materialId*0.25;
-//        attribs[attribPos++] += triangle._materialId*0.25;
-//      }
-
-
-
-
     }
     return;
   }

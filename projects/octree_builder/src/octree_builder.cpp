@@ -91,6 +91,7 @@ gloost::PerspectiveCamera*   g_camera;
 #include <PlyLoader.h>
 #include <GbmWriter.h>
 #include <GbmLoader.h>
+#include <InterleavedAttributes.h>
 #include <ObjLoader.h>
 #include <Mesh.h>
 gloost::Mesh* g_mesh = 0;
@@ -100,10 +101,6 @@ gloost::Mesh* g_mesh = 0;
 svo::Svo* g_svo = 0;
 #include <SvoNode.h>
 
-#include <AttributeGenerator.h>
-
-#include <SvoBuilderHeightmap.h>
-#include <SvoBuilderVertices.h>
 #include <SvoBuilderFaces.h>
 
 #include <SvoVisualizer.h>
@@ -111,6 +108,7 @@ svo::SvoVisualizer* g_svoVisualizerNodes  = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
 #include <chrono>
+#include <attribute_generators/Ag_colorAndNormals.h>
 
 
 
@@ -124,8 +122,7 @@ bool g_showSerializedAttribTexture = false;
 
 
 void init();
-void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth);
-void buildSvoVisualization();
+void buildSvoVisualization(gloost::InterleavedAttributes* attributes);
 void draw3d(void);
 void draw2d();
 void cleanup();
@@ -144,17 +141,15 @@ void idle(void);
 
 void init()
 {
-//  #define USE_GBM_FILES
   #define OPEN_GL_WINDOW
   #define DRAW_MESH
 
   #define BUILD_SVO
-//  #define USE_VERTICES_ONLY
 //  #define BUILD_VISUALIZATION_NODES
   #define BUILD_VISUALIZATION_LEAVES
 //  #define WRITE_VISUALIZATIONS
 
-//  #define SERIALIZE_BUFFERS
+  #define SERIALIZE_BUFFERS
   //#define WRITE_SERIALIZED_BUFFERS
 
 
@@ -173,7 +168,7 @@ void init()
 //  g_meshFilename = "dragon_vrip.ply";
 //  g_meshFilename = "david_angel_low.ply";
 //  g_meshFilename = "david_angel.ply";
-//  g_meshFilename = "Decimated_Head_low.ply";
+//  g_meshFilename = "DecileafNodemated_Head_low.ply";
 //  g_meshFilename = "Decimated_Head.ply";
 //  g_meshFilename = "skelet.ply";
 //  g_meshFilename = "Decimated_Head_high.ply";
@@ -186,17 +181,20 @@ void init()
 //  g_meshFilename = "stego_color.ply";
 //  g_meshFilename = "female02.ply";
 //  g_meshFilename = "women.ply";
+//  g_meshFilename = "women_low.ply";
 //  g_meshFilename = "Alfa_Romeo_159.ply";
 //  g_meshFilename = "lambo.ply";
 //  g_meshFilename = "dental_scan.ply";
 //  g_meshFilename = "GlenRoseTrack_high.ply";
 //  g_meshFilename = "monster.ply";
+//  g_meshFilename = "monster_medium.ply";
 //  g_meshFilename = "monster_verylow.ply";
 //  g_meshFilename = "malaysia.ply";
 //  g_meshFilename = "incendia.ply";
 //  g_meshFilename = "julia.ply";
 //  g_meshFilename = "quaternion_julia.ply";
 //  g_meshFilename = "venus.ply";
+//  g_meshFilename = "venus_medium.ply";
 //  g_meshFilename = "face_figurine.ply";
 //  g_meshFilename = "Infinite-Level_02.ply";
 //  g_meshFilename = "teeth_5mp.ply";
@@ -220,10 +218,11 @@ void init()
 //  g_meshFilename = "sphere.ply";
 //  g_meshFilename = "plane.ply";
 //  g_meshFilename = "baahm_toroid.ply";
-//  g_meshFilename = "gg_logo.ply";
+  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
+//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -232,23 +231,16 @@ void init()
 //  g_meshFilename = "steppos_kueche_01.ply";
 
 
-#ifdef USE_GBM_FILES
-  gloost::GbmLoader gbmLoader(g_gbmPath + gloost::pathToBasename(g_meshFilename) + ".gbm");
-  g_mesh = gbmLoader.getMesh();
-#else
-//  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
-//  g_mesh = ply.getMesh();
+  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
+  g_mesh = ply.getMesh();
+
 //  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
-  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
+//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/wacky_planet.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/xyzrgb_dragon_low.obj");
-  g_mesh = objLoader.getMesh();
+//  g_mesh = objLoader.getMesh();
 
-  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
-  {
-    g_mesh->getColors().push_back(gloost::vec4(0.8, 0.8, 0.8, 1.0));
-  }
-#endif
+
 
 
   /// transform
@@ -301,15 +293,16 @@ void init()
   g_modelUniforms = new gloost::UniformSet();
   g_modelUniforms->set_sampler2D("environmentMap",
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/bensFrontyard_blured.jpg"));
-                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
+//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
+                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/sphere_01.png"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/skies.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection", 0.05);
+  g_modelUniforms->set_float("reflection", 0.1);
   g_modelUniforms->set_float("shininess", 60.0);
-  g_modelUniforms->set_float("specular",  0.1);
+  g_modelUniforms->set_float("specular",  0.3);
 
 
   g_SvoTextureUniforms = new gloost::UniformSet();
@@ -323,8 +316,28 @@ void init()
 
 
 #ifdef BUILD_SVO
-  buildSvo(g_mesh, maxSvoDepth);
-  buildSvoVisualization();
+  g_svo = new svo::Svo(maxSvoDepth);
+  svo::SvoBuilderFaces fromFaceBuilder;
+  fromFaceBuilder.build(g_svo, g_mesh);
+
+  /// apply generator to retrieve attributes
+  svo::Ag_colorAndNormals generator;
+  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
+
+  buildSvoVisualization(generator.getAttributeBuffer());
+
+  generator.getAttributeBuffer()->getVector().clear();
+  generator.getAttributeBuffer()->getVector().resize(1);
+
+#ifdef SERIALIZE_BUFFERS
+  g_svo->serializeSvo();
+
+#ifdef OPEN_GL_WINDOW
+  g_SvoTextureUniforms->set_sampler2D("svoTexture" ,g_svo->getSvoBufferTextureId());
+  g_SvoTextureUniforms->set_float("numNodes"       ,g_svo->getNumNodes());
+//  g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
+#endif
+#endif
 #endif
 
 //  g_mesh->interleave(true);
@@ -335,86 +348,25 @@ void init()
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
-{
-
-  if (g_svo == 0)
-  {
-    g_svo = new svo::Svo(maxSvoDepth);
-  }
-
-
-#ifdef USE_VERTICES_ONLY
-  svo::SvoBuilderVertices fromVertexBuilder;
-  fromVertexBuilder.build(g_svo, mesh);
-#else
-  svo::SvoBuilderFaces fromFaceBuilder;
-  fromFaceBuilder.build(g_svo, mesh);
-
-  /// apply generator to retrieve attributes
-  svo::AttributeGenerator generator;
-//  generator.config(...)
-  generator.generate(g_svo, mesh, new gloost::ObjMatFile());
-
-
-#endif
-
-
-#ifdef SERIALIZE_BUFFERS
-  g_svo->serializeSvo();
-
-#ifdef OPEN_GL_WINDOW
-  g_SvoTextureUniforms->set_sampler2D("svoTexture" ,g_svo->getSvoBufferTextureId());
-  g_SvoTextureUniforms->set_float("numNodes"       ,g_svo->getNumNodes());
-  g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
-#endif
-
-//  g_svo->serializeAttributeBuffer();
-
-#ifdef WRITE_SERIALIZED_BUFFERS
-  g_svo->writeSerialBuffersToFile(g_dataPath + "gbi/", gloost::pathToBasename(g_meshFilename));
-#endif
-#endif
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
-void buildSvoVisualization()
+void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
 {
 
   int maxDepth = 80;
 
 #ifdef BUILD_VISUALIZATION_NODES
-
   if (g_svoVisualizerNodes == 0)
   {
     g_svoVisualizerNodes = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_WIRED_NODES);
-    g_svoVisualizerNodes->build(g_svo);
-
-#ifdef WRITE_VISUALIZATIONS
-    g_svoVisualizerNodes->saveAsGbm("/home/otaco/Desktop/gbm/nodes.gbm");
-#endif
-
+    g_svoVisualizerNodes->build(g_svo,attributes);
   }
-
 #endif
-
 
 #ifdef BUILD_VISUALIZATION_LEAVES
-
   if (g_svoVisualizerLeaves == 0)
   {
     g_svoVisualizerLeaves = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_BOXED_LEAFES);
-    g_svoVisualizerLeaves->build(g_svo);
-
-#ifdef WRITE_VISUALIZATIONS
-    g_svoVisualizerLeaves->saveAsGbm("/home/otaco/Desktop/gbm/leaves.gbm");
-#endif
-
+    g_svoVisualizerLeaves->build(g_svo,attributes);
   }
-
 #endif
 
 }
@@ -692,22 +644,22 @@ void draw2d()
 
 
       // show attribute texture
-      if (g_svo && g_showSerializedAttribTexture)
-      {
-        gloost::Texture* attributeBuffer = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(g_svo->getAttributeBufferTextureId());
-
-        attributeBuffer->bind();
-        glPushMatrix();
-        {
-          glTranslatef(g_screenWidth-attributeBuffer->getWidth()*1.0, 0.0, 0.0);
-          glScalef(attributeBuffer->getWidth()*1.0,
-                   attributeBuffer->getHeight()*1.0,
-                   1.0f);
-          gloost::drawQuad();
-        }
-        glPopMatrix();
-        attributeBuffer->unbind();
-      }
+//      if (g_svo && g_showSerializedAttribTexture)
+//      {
+//        gloost::Texture* attributeBuffer = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(g_svo->getAttributeBufferTextureId());
+//
+//        attributeBuffer->bind();
+//        glPushMatrix();
+//        {
+//          glTranslatef(g_screenWidth-attributeBuffer->getWidth()*1.0, 0.0, 0.0);
+//          glScalef(attributeBuffer->getWidth()*1.0,
+//                   attributeBuffer->getHeight()*1.0,
+//                   1.0f);
+//          gloost::drawQuad();
+//        }
+//        glPopMatrix();
+//        attributeBuffer->unbind();
+//      }
 
       // info text
       if (g_showTextInfo)
@@ -867,8 +819,8 @@ int main(int argc, char *argv[])
 //  glfwCreateThread( pollEvents, NULL);
 
   /// enable sync to vblank on linux to control the demo fps
-#ifdef LINUX
-//  setenv("__GL_SYNC_TO_VBLANK","1",true);
+#ifdef GLOOST_GNULINUX
+  setenv("__GL_SYNC_TO_VBLANK","1",true);
 #endif
 
 

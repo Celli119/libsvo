@@ -25,7 +25,7 @@
 
 
 /// svo system includes
-#include <AttributeGenerator.h>
+#include <attribute_generators/AttributeGenerator.h>
 #include <Svo.h>
 
 // gloost includes
@@ -75,22 +75,6 @@ AttributeGenerator::AttributeGenerator()
 */
 
 AttributeGenerator::~AttributeGenerator()
-{
-	// insert your code here
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief   Inits the AttributeGenerator
-  \param   ...
-  \remarks ...
-*/
-
-void
-AttributeGenerator::generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials)
 {
 	// insert your code here
 }

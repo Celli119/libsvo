@@ -49,6 +49,7 @@ namespace gloost
 {
   class Mesh;
   class Vbo;
+  class InterleavedAttributes;
 }
 
 
@@ -74,7 +75,7 @@ class SvoVisualizer
 	  virtual ~SvoVisualizer();
 
 	  // builds the visualization from a svo::Svo
-	  void build(Svo* svo);
+	  void build(Svo* svo, gloost::InterleavedAttributes* attributes);
 
 
 	  // draws the svo visualization
@@ -115,6 +116,8 @@ class SvoVisualizer
 
 
     Svo*                _svo;
+
+    gloost::InterleavedAttributes* _attributes;
 
     unsigned int        _maxDepth;
     gloost::MatrixStack _matrixStack;

@@ -5,9 +5,7 @@
 			<Depends filename="../../../../../../Source/gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
 			<Depends filename="../../../../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp" />
 		</Project>
-		<Project filename="../../../../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp">
-			<Depends filename="../../../../../../Source/gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
-		</Project>
+		<Project filename="../../../../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp" />
 		<Project filename="../../../../../../Source/gloost/gnulinux/library_build_with_codeblocks/library_build_with_codeblocks.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

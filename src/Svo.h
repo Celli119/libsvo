@@ -115,6 +115,8 @@ class Svo
     void writeSerialBuffersToFile(const std::string& directory, const std::string& basename);
 
 
+    typedef std::vector< std::list<DiscreteSample> > SampleListVector;
+    typedef std::list<DiscreteSample>                SampleList;
 
     // creates new set of samples for a leaf node and returns an id
     unsigned createDiscreteSampleList();
@@ -127,20 +129,20 @@ class Svo
 
 
 
-    // pushs an attribute component
-    void pushAttributeComponent(float component);
-
-    // returns current attribute index;
-    unsigned int getCurrentAttribPosition() const;
+//    // pushs an attribute component
+//    void pushAttributeComponent(float component);
+//
+//    // returns current attribute index;
+//    unsigned int getCurrentAttribPosition() const;
 
     // returns the attribute buffer
-    std::vector<float>&  getAttributeBuffer();
+//    std::vector<float>&  getAttributeBuffer();
 
-    // adds a element to the nomralizer vector
-    void pushNormalizer();
-
-    // increases the node count within the normalizer to normalize attribs for double voxels
-    void addDoubleNodeToNormalizer(unsigned attribPos);
+//    // adds a element to the nomralizer vector
+//    void pushNormalizer();
+//
+//    // increases the node count within the normalizer to normalize attribs for double voxels
+//    void addDoubleNodeToNormalizer(unsigned attribPos);
 
 
     // returns the root node
@@ -149,7 +151,7 @@ class Svo
     // returns the id of the serializedSvoBufferTexture within the gloost:TextureManager
     unsigned int getSvoBufferTextureId() const;
     // returns the id of the attributeBufferTexture within the gloost:TextureManager
-    unsigned int getAttributeBufferTextureId() const;
+//    unsigned int getAttributeBufferTextureId() const;
 
 
     // returns the BoundingBox of the Svo
@@ -194,17 +196,9 @@ class Svo
     unsigned                                 _discreteSampleIndex;
 
 
-    // serialized attributes of each node in order: nx,ny,nz,r,g,b
-    std::vector<float>  _attributeBuffer;
-    unsigned int        _attributeBufferTextureId;
-
     // serialized svo nodes
     std::vector<float> _serializedSvoBuffer;
     unsigned int       _serializedSvoBufferTextureId;
-
-
-    // attrib normalizer
-    std::vector<unsigned> _attribNormalizers;
 
 
 

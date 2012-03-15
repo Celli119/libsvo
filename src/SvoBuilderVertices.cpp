@@ -123,9 +123,9 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
 
     bool inside = true;
 
-    for (unsigned int i=0; i!=3; ++i)
+    for (unsigned int c=0; c!=3; ++c)
     {
-      if (vertices[i][i] < svoBoundingBox.getPMin()[i] || vertices[i][i] > svoBoundingBox.getPMax()[i])
+      if (vertices[i][c] < svoBoundingBox.getPMin()[c] || vertices[i][c] > svoBoundingBox.getPMax()[c])
       {
         inside = false;
         break;
@@ -139,15 +139,15 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
       // push new leaf attributes to the attribute buffer
       if (newNode)
       {
-        newNode->setAttribPosition(svo->getCurrentAttribPosition());
-
-        svo->pushAttributeComponent(normals[i][0]);
-        svo->pushAttributeComponent(normals[i][1]);
-        svo->pushAttributeComponent(normals[i][2]);
-
-        svo->pushAttributeComponent(colors[i].r);
-        svo->pushAttributeComponent(colors[i].g);
-        svo->pushAttributeComponent(colors[i].b);
+//        newNode->setAttribPosition(svo->getCurrentAttribPosition());
+//
+//        svo->pushAttributeComponent(normals[i][0]);
+//        svo->pushAttributeComponent(normals[i][1]);
+//        svo->pushAttributeComponent(normals[i][2]);
+//
+//        svo->pushAttributeComponent(colors[i].r);
+//        svo->pushAttributeComponent(colors[i].g);
+//        svo->pushAttributeComponent(colors[i].b);
       }
     }
 
@@ -182,24 +182,24 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
       // push new leaf attributes to the attribute buffer
       if (newNode)
       {
-        newNode->setAttribPosition(svo->getCurrentAttribPosition());
-
-        gloost::Vector3 normal(interleavedComponents[i+3],  // x
-                               interleavedComponents[i+4],  // y
-                               interleavedComponents[i+5]); // z
-
-        svo->pushAttributeComponent(normal[0]);
-        svo->pushAttributeComponent(normal[1]);
-        svo->pushAttributeComponent(normal[2]);
-
-
-        gloost::Vector3 color(interleavedComponents[i+6],  // x
-                              interleavedComponents[i+7],  // y
-                              interleavedComponents[i+8]); // z
-
-        svo->pushAttributeComponent(color[0]);
-        svo->pushAttributeComponent(color[1]);
-        svo->pushAttributeComponent(color[2]);
+//        newNode->setAttribPosition(svo->getCurrentAttribPosition());
+//
+//        gloost::Vector3 normal(interleavedComponents[i+3],  // x
+//                               interleavedComponents[i+4],  // y
+//                               interleavedComponents[i+5]); // z
+//
+//        svo->pushAttributeComponent(normal[0]);
+//        svo->pushAttributeComponent(normal[1]);
+//        svo->pushAttributeComponent(normal[2]);
+//
+//
+//        gloost::Vector3 color(interleavedComponents[i+6],  // x
+//                              interleavedComponents[i+7],  // y
+//                              interleavedComponents[i+8]); // z
+//
+//        svo->pushAttributeComponent(color[0]);
+//        svo->pushAttributeComponent(color[1]);
+//        svo->pushAttributeComponent(color[2]);
       }
 
       i += indexStepWidth;
@@ -227,7 +227,7 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Octree memory serialized:  " << svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Attribs memory serialized: " << svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
+//  std::cerr << std::endl << "               Attribs memory serialized: " << svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
   std::cerr << std::endl << "               Number of one-child-nodes: " << svo->getNumOneChildNodes() << " ( " << (100.0f*svo->getNumOneChildNodes())/(float)svo->getNumNodes() << " % )";
   std::cerr << std::endl;
 
