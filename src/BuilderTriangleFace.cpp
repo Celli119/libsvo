@@ -122,7 +122,37 @@ BuilderTriangleFace::BuilderTriangleFace(gloost::Mesh* mesh, unsigned triangleIn
 
 BuilderTriangleFace::~BuilderTriangleFace()
 {
-	// insert your code here
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the center of the triangle
+  \remarks ...
+*/
+
+gloost::Point3
+BuilderTriangleFace::getCenter() const
+{
+  return (_pos0+_pos1+_pos2)*0.333333333333333;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the average normal of the three vertices
+  \remarks ...
+*/
+
+gloost::Vector3
+BuilderTriangleFace::getFaceNormal() const
+{
+  return (_normal0+_normal1+_normal2)*0.3333333333;
 }
 
 
@@ -313,6 +343,19 @@ BuilderTriangleFace::interpolateColor(gloost::mathType u,
 //  gloost::mathType w = 1.0 - u - v;
   gloost::Vector3 interpolColor = color0*(1.0 - u - v) + color1*u + color2*v;
   return interpolColor;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+gloost::Point3
+BuilderTriangleFace::interpolateTexCoord(gloost::mathType u,
+                                         gloost::mathType v) const
+{
+//  gloost::mathType w = 1.0 - u - v;
+  gloost::Vector3 interpolTexCoord = _texCoord0*(1.0 - u - v) + _texCoord1*u + _texCoord2*v;
+  return interpolTexCoord;
 }
 
 

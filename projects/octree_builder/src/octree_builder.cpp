@@ -109,6 +109,7 @@ svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
 #include <chrono>
 #include <attribute_generators/Ag_colorAndNormals.h>
+#include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
 
 
 
@@ -153,11 +154,12 @@ void init()
   //#define WRITE_SERIALIZED_BUFFERS
 
 
-  unsigned int maxSvoDepth = 10;
+  unsigned int maxSvoDepth = 9;
 
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
+//  g_meshFilename = "omotondo500k-manifold.ply";
 //  g_meshFilename = "david_2mm_final_ao.ply";
 //  g_meshFilename = "Hitachi_FH200.ply";
 //  g_meshFilename = "xyzrgb_statuette.ply";
@@ -218,10 +220,10 @@ void init()
 //  g_meshFilename = "sphere.ply";
 //  g_meshFilename = "plane.ply";
 //  g_meshFilename = "baahm_toroid.ply";
-  g_meshFilename = "gg_logo.ply";
+//  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
-//  g_meshFilename = "frog2_vertex_ao.ply";
+  g_meshFilename = "frog2_vertex_ao.ply";
 //  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
@@ -231,14 +233,22 @@ void init()
 //  g_meshFilename = "steppos_kueche_01.ply";
 
 
-  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
-  g_mesh = ply.getMesh();
+//  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
+//  g_mesh = ply.getMesh();
 
 //  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
+//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/sponza.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/wacky_planet.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/xyzrgb_dragon_low.obj");
-//  g_mesh = objLoader.getMesh();
+  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/two_triangles.obj");
+  g_mesh = objLoader.getMesh();
+
+  g_mesh->getColors().resize(g_mesh->getVertices().size());
+  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
+  {
+    g_mesh->getColors()[i] = gloost::vec4(0.8, 0.8, 0.8, 1.0);
+  }
 
 
 
@@ -321,7 +331,7 @@ void init()
   fromFaceBuilder.build(g_svo, g_mesh);
 
   /// apply generator to retrieve attributes
-  svo::Ag_colorAndNormals generator;
+  svo::Ag_colorAndNormalsFromTextures generator;
   generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
 
   buildSvoVisualization(generator.getAttributeBuffer());

@@ -78,8 +78,8 @@
 		<Unit filename="../../src/BuilderTriangleFace.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
-		<Unit filename="../../src/MengerSponge.cpp" />
-		<Unit filename="../../src/MengerSponge.h" />
+		<Unit filename="../../src/ImageToPointcloud.cpp" />
+		<Unit filename="../../src/ImageToPointcloud.h" />
 		<Unit filename="../../src/Svo.cpp" />
 		<Unit filename="../../src/Svo.h" />
 		<Unit filename="../../src/SvoBuilderFaces.cpp" />

@@ -65,6 +65,13 @@ class BuilderTriangleFace
 	  virtual ~BuilderTriangleFace();
 
 
+    // returns the center of the triangle
+    gloost::Point3 getCenter() const;
+
+    // returns the average normal of the three vertices
+    gloost::Vector3 getFaceNormal() const;
+
+
     // wrapper for triBoxOverlap(boxcenter, boxhalfsize, triverts)
     bool intersectAABB(const gloost::BoundingBox& aabb) const;
 
@@ -86,9 +93,9 @@ class BuilderTriangleFace
     gloost::Vector3 interpolateColor( gloost::mathType u,
                                       gloost::mathType v) const;
     //
-//    gloost::Vector3 interpolateTexCoord( gloost::mathType u,
-//                                         gloost::mathType v,
-//                                         const BuilderTriangleFace& triangle) const;
+    gloost::Point3 interpolateTexCoord( gloost::mathType u,
+                                        gloost::mathType v) const;
+
 
     gloost::Point3 _pos0;
     gloost::Point3 _pos1;
