@@ -126,6 +126,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   for (unsigned int i=0; i!=triangles.size(); ++i)
   {
     const BuilderTriangleFace triFace(_mesh, i);
+//    if (triFace.getCenter()[0] > 0.0 && triFace.getCenter()[2] > 0.0)
     if (triFace.intersectAABB(svo->getBoundingBox()))
     {
       buildRecursive(0, triFace);

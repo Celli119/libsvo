@@ -412,7 +412,7 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
 
   builder.build(g_svo, mesh);
 
-  g_svo->serializeAttributeBuffer();
+//  g_svo->serializeAttributeBuffer();
 
 }
 
@@ -423,7 +423,7 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
 void buildSvoVisualization()
 {
 
-  int maxDepth = 80;
+  int maxDepth = 20;
 
 #ifdef BUILD_VISUALIZATION_NODES
 
@@ -566,7 +566,7 @@ raycastIntoFrameBuffer(unsigned startIndex,
 {
   svo::CpuRaycasterSingleRay raycaster;
   //    float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
-  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
+//  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
 
   while (g_toggle_run_raycasting)
   {
@@ -587,10 +587,13 @@ raycastIntoFrameBuffer(unsigned startIndex,
       if (node)
       {
         unsigned attribIndex = node->getAttribPosition() + 3;
-
-        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
-        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
-        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
+//
+//        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
+//        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
+//        g_renderBuffer[pixelIndex++] = attribs[attribIndex++];
+        g_renderBuffer[pixelIndex++] = 1.0;
+        g_renderBuffer[pixelIndex++] = 1.0;
+        g_renderBuffer[pixelIndex++] = 1.0;
       }
       else
       {

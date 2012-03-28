@@ -119,14 +119,6 @@ Svo::insert(const gloost::Point3& point)
 //    }
 //  }
 
-  if (point[0] > 0)
-  {
-    return 0;
-  }
-  if (point[1] < 0)
-  {
-    return 0;
-  }
 
   return insertAndBuild(0,     // parent
                         0,     // current child index

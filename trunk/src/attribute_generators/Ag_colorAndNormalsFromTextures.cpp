@@ -25,7 +25,7 @@
 
 
 /// svo system includes
-#include <attribute_generators/Ag_colorAndNormals.h>
+#include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
 #include <Svo.h>
 #include <BuilderTriangleFace.h>
 
@@ -34,6 +34,7 @@
 #include <ObjMatFile.h>
 #include <InterleavedAttributes.h>
 #include <BinaryBundle.h>
+#include <Image.h>
 
 
 /// cpp includes
@@ -46,13 +47,13 @@ namespace svo
 {
 
 /**
-  \class   Ag_colorAndNormals
+  \class   Ag_colorAndNormalsFromTextures
 
-  \brief   Retrieves colors and normals from Vertices of a Mesh
+  \brief   ...
 
   \author  Felix Weiszig
   \date    March 2012
-  \remarks ....
+  \remarks Lazy mans way to create a new class ;-)
 */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,12 +64,13 @@ namespace svo
   \remarks ...
 */
 
-Ag_colorAndNormals::Ag_colorAndNormals():
+Ag_colorAndNormalsFromTextures::Ag_colorAndNormalsFromTextures():
     AttributeGenerator(),
     _interleavedAttributBuffer(new gloost::InterleavedAttributes())
 {
 	std::cerr << std::endl << "Attribut Generator: ";
-	std::cerr << std::endl << "  Retrieves colors and normals from Vertices of a Mesh.";
+	std::cerr << std::endl << "  Retrieves colors and normals from Vertices,";
+	std::cerr << std::endl << "  color map and normal map";
 
 	_interleavedAttributBuffer->takeReference();
 }
@@ -82,7 +84,7 @@ Ag_colorAndNormals::Ag_colorAndNormals():
   \remarks ...
 */
 
-Ag_colorAndNormals::~Ag_colorAndNormals()
+Ag_colorAndNormalsFromTextures::~Ag_colorAndNormalsFromTextures()
 {
 	_interleavedAttributBuffer->dropReference();
 }
@@ -96,13 +98,15 @@ Ag_colorAndNormals::~Ag_colorAndNormals()
 */
 
 void
-Ag_colorAndNormals::generate(Svo* svo,
+Ag_colorAndNormalsFromTextures::generate(Svo* svo,
                              gloost::Mesh* mesh,
                              gloost::ObjMatFile* materials)
 {
+  /// load images
+//  gloost::Image map_color("../data/textures/240_color.jpg");
+  gloost::Image map_color("../data/textures/testtex_512.png");
+//  gloost::Image map_normal("../data/textures/240_normal.jpg");
 
-  std::cerr << std::endl << "lists:  " << svo->getDiscreteSampleLists().size();
-  std::cerr << std::endl << "leaves: " << svo->getNumLeaves();
 
 
   gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
@@ -121,8 +125,16 @@ Ag_colorAndNormals::generate(Svo* svo,
     {
       svo::BuilderTriangleFace triangle(mesh, (*sampleIt)._triangleId);
 
+      gloost::Point3 texCoord = triangle.interpolateTexCoord((*sampleIt)._u, (*sampleIt)._v);
+      texCoord[0] *= map_color.getWidth();
+      texCoord[1] *= map_color.getHeight();
+
+//      std::cerr << std::endl << "word: " << texCoord;
+
       normal += triangle.interpolateNormal((*sampleIt)._u, (*sampleIt)._v);
-      color  += triangle.interpolateColor((*sampleIt)._u, (*sampleIt)._v);
+//      std::cerr << std::endl << "word: " << map_normal.getPixelColor(texCoord[0], texCoord[1]).rgb()*0.003921569 * 2.0 - gloost::Vector3(0.5, 0.5, 0.5);
+//      color  += triangle.interpolateColor((*sampleIt)._u, (*sampleIt)._v);
+      color  += map_color.getPixelColor(texCoord[0], texCoord[1]).rgb()*0.003921569;
     }
 
     normal /= svo->getDiscreteSampleList(i).size();
@@ -155,7 +167,7 @@ Ag_colorAndNormals::generate(Svo* svo,
 */
 
 gloost::InterleavedAttributes*
-Ag_colorAndNormals::getAttributeBuffer()
+Ag_colorAndNormalsFromTextures::getAttributeBuffer()
 {
   return _interleavedAttributBuffer;
 }
