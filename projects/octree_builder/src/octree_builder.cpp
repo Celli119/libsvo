@@ -37,24 +37,24 @@ static unsigned int g_screenHeight = 800;
 /// frameCounter
 unsigned int g_frameCounter = 0;
 
-#include <gloostRenderGoodies.h>
-#include <Vbo.h>
+#include <gloost/gloostRenderGoodies.h>
+#include <gloost/Vbo.h>
 
 gloost::Vbo* g_vbo = 0;
 
 
-#include <PointLight.h>
+#include <gloost/PointLight.h>
 gloost::PointLight* g_pointLight = 0;
 
 
-#include <TextureText.h>
+#include <gloost/TextureText.h>
 gloost::TextureText* g_texter = 0;
 
 
 double g_timePerFrame = 0;
 
-#include <Shader.h>
-#include <UniformSet.h>
+#include <gloost/Shader.h>
+#include <gloost/UniformSet.h>
 gloost::Shader*     g_modelShader      = 0;
 gloost::UniformSet* g_modelUniforms    = 0;
 
@@ -71,10 +71,10 @@ std::string g_plyPath      = "/home/otaco/Desktop/ply/";
 std::string g_gbmPath      = "/home/otaco/Desktop/gbm/";
 std::string g_meshFilename;
 
-#include <Matrix.h>
+#include <gloost/Matrix.h>
 gloost::Matrix g_sizeAndCenterMatrix;
 
-#include <Mouse.h>
+#include <gloost/Mouse.h>
 gloost::Mouse g_mouse;
 
 
@@ -84,16 +84,16 @@ float          g_cameraRotateX  = 0;
 float          g_cameraDistance = 2.0;
 
 
-#include <PerspectiveCamera.h>
+#include <gloost/PerspectiveCamera.h>
 gloost::PerspectiveCamera*   g_camera;
 
 
-#include <PlyLoader.h>
-#include <GbmWriter.h>
-#include <GbmLoader.h>
-#include <InterleavedAttributes.h>
-#include <ObjLoader.h>
-#include <Mesh.h>
+#include <gloost/PlyLoader.h>
+#include <gloost/GbmWriter.h>
+#include <gloost/GbmLoader.h>
+#include <gloost/InterleavedAttributes.h>
+#include <gloost/ObjLoader.h>
+#include <gloost/Mesh.h>
 gloost::Mesh* g_mesh = 0;
 
 // SVO
@@ -154,7 +154,9 @@ void init()
   //#define WRITE_SERIALIZED_BUFFERS
 
 
-  unsigned int maxSvoDepth = 9;
+  unsigned int maxSvoDepth = 8;
+
+  {
 
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
@@ -223,8 +225,8 @@ void init()
 //  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
-  g_meshFilename = "frog2_vertex_ao.ply";
-//  g_meshFilename = "frog2_seperated.ply";
+//  g_meshFilename = "frog2_vertex_ao.ply";
+  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -232,23 +234,25 @@ void init()
 //  g_meshFilename = "Infinite-Level_02.ply";
 //  g_meshFilename = "steppos_kueche_01.ply";
 
+  }
 
-//  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
-//  g_mesh = ply.getMesh();
+
+  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
+  g_mesh = ply.getMesh();
 
 //  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/sponza.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/wacky_planet.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/xyzrgb_dragon_low.obj");
-  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/two_triangles.obj");
-  g_mesh = objLoader.getMesh();
+//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/two_triangles.obj");
+//  g_mesh = objLoader.getMesh();
 
-  g_mesh->getColors().resize(g_mesh->getVertices().size());
-  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
-  {
-    g_mesh->getColors()[i] = gloost::vec4(0.8, 0.8, 0.8, 1.0);
-  }
+//  g_mesh->getColors().resize(g_mesh->getVertices().size());
+//  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
+//  {
+//    g_mesh->getColors()[i] = gloost::vec4(0.8, 0.8, 0.8, 1.0);
+//  }
 
 
 
@@ -274,7 +278,7 @@ void init()
   g_mesh->normalizeNormals();
 
 
-  g_mesh->printMeshInfo();
+//  g_mesh->printMeshInfo();
 
 
 #ifdef OPEN_GL_WINDOW
@@ -301,18 +305,18 @@ void init()
 
 
   g_modelUniforms = new gloost::UniformSet();
-  g_modelUniforms->set_sampler2D("environmentMap",
+  g_modelUniforms->set_sampler("environmentMap",
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/bensFrontyard_blured.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
-//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
-                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/sphere_01.png"));
+                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
+//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/sphere_01.png"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/skies.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection", 0.1);
-  g_modelUniforms->set_float("shininess", 60.0);
-  g_modelUniforms->set_float("specular",  0.3);
+  g_modelUniforms->set_float("reflection",  0.1);
+  g_modelUniforms->set_float("shininess",  60.0);
+  g_modelUniforms->set_float("specular",    0.3);
 
 
   g_SvoTextureUniforms = new gloost::UniformSet();
@@ -331,7 +335,9 @@ void init()
   fromFaceBuilder.build(g_svo, g_mesh);
 
   /// apply generator to retrieve attributes
-  svo::Ag_colorAndNormalsFromTextures generator;
+//  svo::Ag_colorAndNormalsFromTextures generator;
+//  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
+  svo::Ag_colorAndNormals generator;
   generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
 
   buildSvoVisualization(generator.getAttributeBuffer());
@@ -343,8 +349,8 @@ void init()
   g_svo->serializeSvo();
 
 #ifdef OPEN_GL_WINDOW
-  g_SvoTextureUniforms->set_sampler2D("svoTexture" ,g_svo->getSvoBufferTextureId());
-  g_SvoTextureUniforms->set_float("numNodes"       ,g_svo->getNumNodes());
+  g_SvoTextureUniforms->set_sampler("svoTexture" ,g_svo->getSvoBufferTextureId());
+  g_SvoTextureUniforms->set_float("numNodes"     ,g_svo->getNumNodes());
 //  g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
 #endif
 #endif
@@ -367,7 +373,7 @@ void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
   if (g_svoVisualizerNodes == 0)
   {
     g_svoVisualizerNodes = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_WIRED_NODES);
-    g_svoVisualizerNodes->build(g_svo,attributes);
+    g_svoVisualizerNodes->build(g_svo, attributes);
   }
 #endif
 
@@ -375,7 +381,7 @@ void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
   if (g_svoVisualizerLeaves == 0)
   {
     g_svoVisualizerLeaves = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_BOXED_LEAFES);
-    g_svoVisualizerLeaves->build(g_svo,attributes);
+    g_svoVisualizerLeaves->build(g_svo, attributes);
   }
 #endif
 
@@ -440,7 +446,7 @@ void frameStep()
                            g_mouse.getSpeed()[1]*0.004,
                            0.0);
 
-    offset = g_camera->getModelViewMatrix().inverted() * offset;
+    offset = g_camera->getViewMatrix().inverted() * offset;
 
     g_modelOffset +=  offset;
 
@@ -496,7 +502,7 @@ void draw3d(void)
   g_camera->set();
 
 
-  g_pointLight->setPosition(g_camera->getModelViewMatrix().inverted() * gloost::Point3(5,5,15));
+  g_pointLight->setPosition(g_camera->getViewMatrix().inverted() * gloost::Point3(5,5,15));
   g_pointLight->set();
 
 

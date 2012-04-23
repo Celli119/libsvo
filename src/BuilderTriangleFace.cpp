@@ -24,8 +24,8 @@
 
 
 /// gloost system includes
-#include <Mesh.h>
-#include <BoundingBox.h>
+#include <gloost/Mesh.h>
+#include <gloost/BoundingBox.h>
 
 
 /// svo includes
@@ -201,14 +201,18 @@ bool
 BuilderTriangleFace::intersectAABB(const gloost::BoundingBox& aabb) const
 {
   gloost::Point3 bbCenter = aabb.getCenter();
-  float boxcenter[3] = {bbCenter[0],bbCenter[1],bbCenter[2]};
+  float boxcenter[3] = {(float)bbCenter[0],
+                        (float)bbCenter[1],
+                        (float)bbCenter[2]};
 
   gloost::Vector3 bbHalfSize = aabb.getHalfSize();
-  float boxhalfsize[3] = {/*epsilon +*/ bbHalfSize[0], /*epsilon +*/ bbHalfSize[1], /*epsilon +*/ bbHalfSize[2]};
+  float boxhalfsize[3] = {/*epsilon +*/ (float)bbHalfSize[0],
+                          /*epsilon +*/ (float)bbHalfSize[1],
+                          /*epsilon +*/ (float)bbHalfSize[2]};
 
-  float triverts[3][3] = {	{_pos0[0], _pos0[1],_pos0[2]},
-                            {_pos1[0], _pos1[1], _pos1[2]},
-                            {_pos2[0], _pos2[1], _pos2[2]}};
+  float triverts[3][3] = {	{(float)_pos0[0], (float)_pos0[1], (float)_pos0[2]},
+                            {(float)_pos1[0], (float)_pos1[1], (float)_pos1[2]},
+                            {(float)_pos2[0], (float)_pos2[1], (float)_pos2[2]}};
 
   return (bool) triBoxOverlap(boxcenter, boxhalfsize, triverts);
 }

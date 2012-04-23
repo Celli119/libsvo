@@ -30,8 +30,8 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
 
 
 /// cpp includes
@@ -60,6 +60,7 @@ class ImageToPointcloud
 	  static gloost::Mesh* generate(gloost::mathType fieldOfView,
                                   const gloost::Matrix& viewMatrix,
                                   const std::string& depthImagePath,
+                                  const std::string& normalImagePath,
                                   const std::string& colorImagePath);
 
 

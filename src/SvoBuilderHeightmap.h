@@ -33,8 +33,8 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
 
 
 /// cpp includes

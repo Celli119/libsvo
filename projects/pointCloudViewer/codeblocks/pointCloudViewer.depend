@@ -311,23 +311,23 @@
 	<PerspectiveCamera.h>
 	<Ray.h>
 
-1321827723 source:/home/otaco/Source/libsvo/projects/pointCloudViewer/src/pointCloudViewer.cpp
+1333644783 source:/home/otaco/Source/libsvo/projects/pointCloudViewer/src/pointCloudViewer.cpp
 	<GL/glew.h>
 	<GL/glfw.h>
 	<iostream>
 	<cmath>
 	<stdlib.h>
-	<gloostRenderGoodies.h>
-	<TextureText.h>
-	<Matrix.h>
-	<Mouse.h>
-	<FirstPersonCamera.h>
-	<BinaryFile.h>
-	<Mesh.h>
-	<GbmWriter.h>
-	<GbmLoader.h>
-	<Vbo.h>
-	<Shader.h>
+	<gloost/gloostRenderGoodies.h>
+	<gloost/TextureText.h>
+	<gloost/Matrix.h>
+	<gloost/Mouse.h>
+	<gloost/FirstPersonCamera.h>
+	<gloost/BinaryFile.h>
+	<gloost/Mesh.h>
+	<gloost/GbmWriter.h>
+	<gloost/GbmLoader.h>
+	<gloost/Vbo.h>
+	<gloost/Shader.h>
 
 1318593170 /home/otaco/Source/gloost/src/gloostRenderGoodies.h
 	<UniformTypes.h>
@@ -566,4 +566,254 @@
 	<GL/glew.h>
 	<GLUT/glut.h>
 	<GL/glut.h>
+
+1333630097 /home/otaco/Source/gloost/src/gloost/gloostRenderGoodies.h
+	<gloost/UniformTypes.h>
+	<gloost/gloostMath.h>
+	<GL/glew.h>
+	<string>
+
+1333629644 /home/otaco/Source/gloost/src/gloost/UniformTypes.h
+	<gloost/gloostHelper.h>
+	<gloost/Point3.h>
+	<gloost/Vector3.h>
+	<gloost/Matrix.h>
+	<iostream>
+
+1333629366 /home/otaco/Source/gloost/src/gloost/gloostHelper.h
+	<string>
+	<sstream>
+	<cstring>
+	<iostream>
+	<vector>
+	<stdio.h>
+	<stdlib.h>
+	<fstream>
+
+1333629650 /home/otaco/Source/gloost/src/gloost/Point3.h
+	<gloost/gloostConfig.h>
+	<cmath>
+	<iostream>
+
+1333629366 /home/otaco/Source/gloost/src/gloost/gloostConfig.h
+	<iostream>
+
+1333629661 /home/otaco/Source/gloost/src/gloost/Vector3.h
+	<gloost/gloostConfig.h>
+	<cmath>
+	<iostream>
+	<fstream>
+
+1333629638 /home/otaco/Source/gloost/src/gloost/Matrix.h
+	<gloost/gloostConfig.h>
+	<iostream>
+	<cstdlib>
+
+1333629621 /home/otaco/Source/gloost/src/gloost/gloostMath.h
+	<sstream>
+	<cmath>
+	<stdlib.h>
+	<gloost/UniformTypes.h>
+	<gloost/Vector3.h>
+	<gloost/Vector2.h>
+
+1333629666 /home/otaco/Source/gloost/src/gloost/Vector2.h
+	<gloost/gloostConfig.h>
+	<cmath>
+	<iostream>
+
+1333630404 /home/otaco/Source/gloost/src/gloost/TextureText.h
+	<gloost/Vector2.h>
+	<gloost/Vector3.h>
+	<gloost/TextureManager.h>
+	<gloost/UniformTypes.h>
+	<string>
+	<GL/glew.h>
+	<vector>
+
+1333629693 /home/otaco/Source/gloost/src/gloost/TextureManager.h
+	<gloost/Texture.h>
+	<map>
+	<boost/thread/mutex.hpp>
+
+1333629701 /home/otaco/Source/gloost/src/gloost/Texture.h
+	<gloost/MultiGlContext.h>
+	<gloost/Matrix.h>
+	<gloost/UniformTypes.h>
+	<gloost/BitMask.h>
+	<gloost/Image.h>
+	<string>
+	<map>
+	<GL/glew.h>
+
+1333629705 /home/otaco/Source/gloost/src/gloost/MultiGlContext.h
+	<gloost/gloostMath.h>
+	<gloost/SharedResource.h>
+	<string>
+	<vector>
+
+1333629367 /home/otaco/Source/gloost/src/gloost/SharedResource.h
+	<string>
+	<boost/thread/mutex.hpp>
+
+1333629365 /home/otaco/Source/gloost/src/gloost/BitMask.h
+	<string>
+
+1333630083 /home/otaco/Source/gloost/src/gloost/Image.h
+	<gloost/SharedResource.h>
+	<gloost/gloostMath.h>
+	<gloost/gloostConfig.h>
+	<string>
+	<FreeImage.h>
+	<windows.h>
+	<FreeImage/FreeImage.h>
+
+1333630218 /home/otaco/Source/gloost/src/gloost/Mouse.h
+	<gloost/Point3.h>
+	<gloost/Vector3.h>
+	<string>
+	<map>
+
+1333629814 /home/otaco/Source/gloost/src/gloost/FirstPersonCamera.h
+	<gloost/PerspectiveCamera.h>
+	<gloost/Ray.h>
+
+1333629821 /home/otaco/Source/gloost/src/gloost/PerspectiveCamera.h
+	<gloost/Camera.h>
+	<gloost/Ray.h>
+
+1333629751 /home/otaco/Source/gloost/src/gloost/Camera.h
+	<gloost/Matrix.h>
+	<gloost/Point3.h>
+	<gloost/Vector3.h>
+	<gloost/Ray.h>
+	<gloost/Frustum.h>
+
+1333629729 /home/otaco/Source/gloost/src/gloost/Ray.h
+	<gloost/gloostConfig.h>
+	<gloost/Point3.h>
+	<gloost/Vector3.h>
+
+1333629658 /home/otaco/Source/gloost/src/gloost/Frustum.h
+	<gloost/Point3.h>
+	<gloost/Matrix.h>
+	<gloost/Plane.h>
+	<string>
+	<vector>
+
+1333629670 /home/otaco/Source/gloost/src/gloost/Plane.h
+	<gloost/Point3.h>
+	<gloost/Vector3.h>
+	<string>
+
+1333640025 /home/otaco/Source/gloost/src/gloost/BinaryFile.h
+	<string>
+	<fstream>
+	<sys/stat.h>
+
+1333629852 /home/otaco/Source/gloost/src/gloost/Mesh.h
+	<gloost/SharedResource.h>
+	<gloost/Vector3.h>
+	<gloost/Point3.h>
+	<gloost/Ray.h>
+	<gloost/BoundingBox.h>
+	<gloost/ObjMatFile.h>
+	<gloost/BitMask.h>
+	<string>
+	<vector>
+	<iostream>
+
+1333629627 /home/otaco/Source/gloost/src/gloost/BoundingBox.h
+	<gloost/BoundingVolume.h>
+	<gloost/Vector3.h>
+	<gloost/Matrix.h>
+	<gloost/Point3.h>
+	<gloost/Ray.h>
+
+1333629632 /home/otaco/Source/gloost/src/gloost/BoundingVolume.h
+	<gloost/Matrix.h>
+	<gloost/Frustum.h>
+
+1333630089 /home/otaco/Source/gloost/src/gloost/ObjMatFile.h
+	<gloost/gloostConfig.h>
+	<gloost/gloostMath.h>
+	<gloost/UniformSet.h>
+	<gloost/SharedResource.h>
+	<string>
+	<map>
+
+1333630102 /home/otaco/Source/gloost/src/gloost/UniformSet.h
+	<gloost/glErrorUtil.h>
+	<gloost/Shader.h>
+	<gloost/Material.h>
+	<GL/glew.h>
+	<string>
+	<map>
+
+1333629366 /home/otaco/Source/gloost/src/gloost/glErrorUtil.h
+	<iostream>
+
+1333630128 /home/otaco/Source/gloost/src/gloost/Shader.h
+	<gloost/MultiGlContext.h>
+	<stdlib.h>
+	<iostream>
+	<stdio.h>
+	<malloc.h>
+	<map>
+	<vector>
+	<fcntl.h>
+	<cstdlib>
+	<fstream>
+	<sys/stat.h>
+	<string.h>
+	<GL/glew.h>
+
+1333630132 /home/otaco/Source/gloost/src/gloost/Material.h
+	<gloost/UniformTypes.h>
+	<string>
+	<map>
+
+1333630125 /home/otaco/Source/gloost/src/gloost/GbmWriter.h
+	<gloost/MeshWriter.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
+1333629366 /home/otaco/Source/gloost/src/gloost/MeshWriter.h
+	<string.h>
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+
+1333630116 /home/otaco/Source/gloost/src/gloost/GbmLoader.h
+	<gloost/MeshLoader.h>
+	<string>
+	<vector>
+
+1333629366 /home/otaco/Source/gloost/src/gloost/MeshLoader.h
+	<string.h>
+	<string>
+	<vector>
+
+1333630140 /home/otaco/Source/gloost/src/gloost/Vbo.h
+	<string>
+	<vector>
+	<GL/glew.h>
+	<GL/gl.h>
+	<map>
+	<gloost/Drawable.h>
+	<gloost/Vector3.h>
+	<gloost/Point3.h>
+	<gloost/Material.h>
+	<gloost/BitMask.h>
+	<gloost/Mesh.h>
+
+1333629775 /home/otaco/Source/gloost/src/gloost/Drawable.h
+	<string>
+	<map>
+	<GL/glew.h>
+	<GL/gl.h>
+	<gloost/MultiGlContext.h>
 

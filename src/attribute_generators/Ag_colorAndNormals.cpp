@@ -30,10 +30,10 @@
 #include <BuilderTriangleFace.h>
 
 // gloost includes
-#include <Mesh.h>
-#include <ObjMatFile.h>
-#include <InterleavedAttributes.h>
-#include <BinaryBundle.h>
+#include <gloost/Mesh.h>
+#include <gloost/ObjMatFile.h>
+#include <gloost/InterleavedAttributes.h>
+#include <gloost/BinaryBundle.h>
 
 
 /// cpp includes
@@ -48,7 +48,7 @@ namespace svo
 /**
   \class   Ag_colorAndNormals
 
-  \brief   Retrieves colors and normals from Vertices of a Mesh
+  \brief   Retrieves colors and normals from Triangles of a Mesh
 
   \author  Felix Weiszig
   \date    March 2012
@@ -127,8 +127,6 @@ Ag_colorAndNormals::generate(Svo* svo,
 
     normal /= svo->getDiscreteSampleList(i).size();
     color  /= svo->getDiscreteSampleList(i).size();
-
-//    color = mult(color,color);
 
     attribBundle.putFloat(normal[0]);
     attribBundle.putFloat(normal[1]);

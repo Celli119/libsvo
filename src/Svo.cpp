@@ -25,13 +25,13 @@
 
 
 /// gloost system includes
+#include <gloost/TextureManager.h>
+#include <gloost/BitMask.h>
+#include <gloost/MatrixStack.h>
+#include <gloost/BinaryFile.h>
+
+
 #include <Svo.h>
-#include <TextureManager.h>
-#include <BitMask.h>
-#include <MatrixStack.h>
-#include <BinaryFile.h>
-
-
 
 /// cpp includes
 #include <string>

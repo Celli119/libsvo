@@ -30,11 +30,11 @@
 #include <BuilderTriangleFace.h>
 
 // gloost includes
-#include <Mesh.h>
-#include <ObjMatFile.h>
-#include <InterleavedAttributes.h>
-#include <BinaryBundle.h>
-#include <Image.h>
+#include <gloost/Mesh.h>
+#include <gloost/ObjMatFile.h>
+#include <gloost/InterleavedAttributes.h>
+#include <gloost/BinaryBundle.h>
+#include <gloost/Image.h>
 
 
 /// cpp includes

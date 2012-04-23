@@ -33,9 +33,9 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
-#include <Mesh.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
+#include <gloost/Mesh.h>
 
 
 /// cpp includes

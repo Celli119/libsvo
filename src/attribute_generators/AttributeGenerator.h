@@ -30,8 +30,8 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
 
 
 /// cpp includes
@@ -71,10 +71,14 @@ class AttributeGenerator
 	  // returns the generated attribut buffer
 	  virtual gloost::InterleavedAttributes* getAttributeBuffer() = 0;
 
+	  // returns a vector of texture ids, textures containing serialized attribute data
+	  std::vector<unsigned>& getAttribTextures();
 
-	private:
 
-//   gloost::VertexAttribContainer* _interleavedAttribut buffer;
+	protected:
+
+    // vector of texture ids of serialized attribute data
+    std::vector<unsigned> _attributeTextureIds;
 
 };
 

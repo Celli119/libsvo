@@ -30,9 +30,9 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <BoundingBox.h>
-#include <Mesh.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/BoundingBox.h>
+#include <gloost/Mesh.h>
 
 
 /// svo includes

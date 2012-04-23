@@ -67,8 +67,6 @@
 			<Add directory="../../../libsvo/lib" />
 		</Linker>
 		<Unit filename="../src/octree_builder.cpp" />
-		<Unit filename="../../../src/attribute_generators/Ag_colorAndNormalsFromTextures.cpp" />
-		<Unit filename="../../../src/attribute_generators/Ag_colorAndNormalsFromTextures.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

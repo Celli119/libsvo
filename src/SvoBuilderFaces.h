@@ -34,12 +34,12 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
-#include <Mesh.h>
-#include <Vector3.h>
-#include <Point3.h>
-#include <MatrixStack.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
+#include <gloost/Mesh.h>
+#include <gloost/Vector3.h>
+#include <gloost/Point3.h>
+#include <gloost/MatrixStack.h>
 
 
 /// cpp includes
@@ -80,7 +80,6 @@ class SvoBuilderFaces
     Svo*                _svo;
     gloost::Mesh*       _mesh;
     gloost::MatrixStack _matrixStack;
-
 };
 
 
