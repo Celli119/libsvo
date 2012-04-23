@@ -30,7 +30,7 @@
 
 
 /// gloost system includes
-#include <TextureManager.h>
+#include <gloost/TextureManager.h>
 
 
 /// cpp includes

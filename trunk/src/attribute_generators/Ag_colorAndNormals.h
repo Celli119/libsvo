@@ -34,8 +34,8 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
 
 
 /// cpp includes
@@ -58,7 +58,7 @@ namespace svo
   class Svo;
 
 
-  //  generates attributes per voxel
+  //  Retrieves colors and normals from Triangles of a Mesh
 
 class Ag_colorAndNormals: public AttributeGenerator
 {
@@ -71,7 +71,7 @@ class Ag_colorAndNormals: public AttributeGenerator
 	  virtual ~Ag_colorAndNormals();
 
     //
-	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials);
+	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials = 0);
 
 	  //
 	  gloost::InterleavedAttributes* getAttributeBuffer();

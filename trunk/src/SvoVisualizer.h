@@ -30,10 +30,10 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
-#include <MatrixStack.h>
-#include <BoundingBox.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
+#include <gloost/MatrixStack.h>
+#include <gloost/BoundingBox.h>
 
 
 /// cpp includes

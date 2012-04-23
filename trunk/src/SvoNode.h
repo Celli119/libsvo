@@ -30,13 +30,13 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
+#include <gloost/UniformTypes.h>
 
 
-/// gloost system includes
+/// svo system includes
 #include <BitMask8.h>
-#include <UniformTypes.h>
 
 
 /// cpp includes

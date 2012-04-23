@@ -369,7 +369,7 @@ CpuRaycasterSingleRay::start2(const gloost::Ray& ray, Svo* svo)
   gloost::BoundingBox svoBoundingBox(gloost::Point3(-0.5,-0.5,-0.5),
                                      gloost::Point3(0.5,0.5,0.5));
 
-  float tMin, tMax;
+  gloost::mathType tMin, tMax;
 
   if (svoBoundingBox.intersect(ray, tMin, tMax))
   {

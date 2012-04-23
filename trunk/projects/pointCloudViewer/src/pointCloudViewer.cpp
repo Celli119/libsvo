@@ -50,21 +50,21 @@ unsigned int g_frameCounter = 0;
 
 /// this header includes many nice shapes to draw and helpers
 
-#include <gloostRenderGoodies.h>
+#include <gloost/gloostRenderGoodies.h>
 
 
-#include <TextureText.h>
+#include <gloost/TextureText.h>
 gloost::TextureText* g_texter = 0;
 double g_timePerFrame = 0;
 
 std::string g_gloostFolder = "../../gloost/";
 std::string g_dataPath     = "../data/";
 
-#include <Matrix.h>
-#include <Mouse.h>
+#include <gloost/Matrix.h>
+#include <gloost/Mouse.h>
 gloost::Mouse g_mouse;
 
-#include <FirstPersonCamera.h>
+#include <gloost/FirstPersonCamera.h>
 gloost::FirstPersonCamera*   g_camera;
 
 
@@ -75,18 +75,18 @@ float          g_cameraDistance = 4.0;
 
 
 gloost::Ray g_ray;
-#include <BinaryFile.h>
-#include <Mesh.h>
-#include <GbmWriter.h>
-#include <GbmLoader.h>
-#include <Vbo.h>
+#include <gloost/BinaryFile.h>
+#include <gloost/Mesh.h>
+#include <gloost/GbmWriter.h>
+#include <gloost/GbmLoader.h>
+#include <gloost/Vbo.h>
 gloost::Vbo* g_drawAxisVbo = 0;
 gloost::Vbo* g_pointsVbo   = 0;
 
 
 std::vector<gloost::Matrix> _offsetMatrices;
 
-#include <Shader.h>
+#include <gloost/Shader.h>
 gloost::Shader*     g_SvoVisualizingShader = 0;
 
 // info

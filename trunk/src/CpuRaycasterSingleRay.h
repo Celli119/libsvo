@@ -35,9 +35,9 @@
 
 
 /// gloost system includes
-#include <gloostConfig.h>
-#include <gloostMath.h>
-#include <Ray.h>
+#include <gloost/gloostConfig.h>
+#include <gloost/gloostMath.h>
+#include <gloost/Ray.h>
 
 
 /// cpp includes

@@ -31,8 +31,8 @@
 
 
 /// gloost system includes
-#include <TextureManager.h>
-#include <MatrixStack.h>
+#include <gloost/TextureManager.h>
+#include <gloost/MatrixStack.h>
 
 
 /// cpp includes
@@ -108,7 +108,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
   std::vector<gloost::vec4>&         colors    = mesh->getColors();
 
-#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
+//#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
     std::cerr << std::endl;
     std::cerr << std::endl << "Message from SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh):";
     std::cerr << std::endl << "             Building Octree from triangle faces:";
@@ -116,7 +116,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     std::cerr << std::endl << "               min voxelsize              " << pow(2, -(int)_svo->getMaxDepth());
     std::cerr << std::endl << "               resolution                 " << pow(2, (int)_svo->getMaxDepth());
     std::cerr << std::endl << "               triangles.size():          " << triangles.size();
-#endif
+//#endif
 
   // take start time
   auto t0 = std::chrono::high_resolution_clock::now();
@@ -126,7 +126,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   for (unsigned int i=0; i!=triangles.size(); ++i)
   {
     const BuilderTriangleFace triFace(_mesh, i);
-//    if (triFace.getCenter()[0] > 0.0 && triFace.getCenter()[2] > 0.0)
+//    if (triFace.getCenter()[0] > 0.0 && triFace.getCenter()[1] > 0.0)
     if (triFace.intersectAABB(svo->getBoundingBox()))
     {
       buildRecursive(0, triFace);
@@ -140,7 +140,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   auto t1 = std::chrono::high_resolution_clock::now();
   std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
-#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
+//#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Number of leaves:          " << _svo->getNumLeaves();
   std::cerr << std::endl << "               Number of nodes:           " << _svo->getNumNodes();
   std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
@@ -154,7 +154,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl;
-#endif
+//#endif
 
 
 }
@@ -205,7 +205,9 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
         leafNode->setAttribPosition(_svo->createDiscreteSampleList());
       }
 
-      _svo->getDiscreteSampleList(leafNode->getAttribPosition()).push_back(DiscreteSample(triangle._id, u, v));
+//      if (_svo->getDiscreteSampleList(leafNode->getAttribPosition()).size() < 1)
+        _svo->getDiscreteSampleList(leafNode->getAttribPosition()).push_back(DiscreteSample(triangle._id, u, v));
+
     }
     return;
   }

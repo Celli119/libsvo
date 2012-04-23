@@ -31,11 +31,11 @@
 
 
 /// gloost system includes
-#include <Mesh.h>
-#include <Vbo.h>
-#include <MatrixStack.h>
-#include <GbmWriter.h>
-#include <InterleavedAttributes.h>
+#include <gloost/Mesh.h>
+#include <gloost/Vbo.h>
+#include <gloost/MatrixStack.h>
+#include <gloost/GbmWriter.h>
+#include <gloost/InterleavedAttributes.h>
 
 
 /// cpp includes

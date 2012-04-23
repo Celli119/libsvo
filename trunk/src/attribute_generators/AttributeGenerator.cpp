@@ -29,8 +29,9 @@
 #include <Svo.h>
 
 // gloost includes
-#include <Mesh.h>
-#include <ObjMatFile.h>
+#include <gloost/Mesh.h>
+#include <gloost/ObjMatFile.h>
+#include <gloost/TextureManager.h>
 
 
 /// cpp includes
@@ -60,7 +61,8 @@ namespace svo
   \remarks ...
 */
 
-AttributeGenerator::AttributeGenerator()
+AttributeGenerator::AttributeGenerator():
+    _attributeTextureIds()
 {
 	// insert your code here
 }
@@ -76,10 +78,26 @@ AttributeGenerator::AttributeGenerator()
 
 AttributeGenerator::~AttributeGenerator()
 {
-	// insert your code here
+	for (unsigned i=0; i!=_attributeTextureIds.size(); ++i)
+	{
+	  gloost::TextureManager::get()->dropReference(_attributeTextureIds[i]);
+	}
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a vector of texture ids, textures containing serialized attribute data
+  \remarks ...
+*/
+
+std::vector<unsigned>&
+AttributeGenerator::getAttribTextures()
+{
+	return _attributeTextureIds;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

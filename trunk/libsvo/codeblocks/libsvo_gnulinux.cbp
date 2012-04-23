@@ -72,6 +72,8 @@
 		<Unit filename="../../data/shaders/meshlab_zbrush.vs" />
 		<Unit filename="../../data/shaders/showSvoTexture.fs" />
 		<Unit filename="../../data/shaders/showSvoTexture.vs" />
+		<Unit filename="../../data/shaders/simpleFragmentShader.fs" />
+		<Unit filename="../../data/shaders/simpleVertexShader.vs" />
 		<Unit filename="../../src/BitMask8.cpp" />
 		<Unit filename="../../src/BitMask8.h" />
 		<Unit filename="../../src/BuilderTriangleFace.cpp" />
@@ -94,6 +96,8 @@
 		<Unit filename="../../src/SvoVisualizer.h" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormals.cpp" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormals.h" />
+		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.cpp" />
+		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.h" />
 		<Unit filename="../../src/trinangleAABBIntersect.h" />
