@@ -108,7 +108,7 @@ svo::SvoVisualizer* g_svoVisualizerNodes  = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
 #include <chrono>
-#include <attribute_generators/Ag_colorAndNormals.h>
+#include <attribute_generators/Ag_colorAndNormalsTriangles.h>
 #include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
 
 
@@ -135,6 +135,9 @@ void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
 
 
+unsigned g_nodesVisDepth = 5;
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -146,18 +149,15 @@ void init()
   #define DRAW_MESH
 
   #define BUILD_SVO
-//  #define BUILD_VISUALIZATION_NODES
+  #define BUILD_VISUALIZATION_NODES
   #define BUILD_VISUALIZATION_LEAVES
 //  #define WRITE_VISUALIZATIONS
 
   #define SERIALIZE_BUFFERS
   //#define WRITE_SERIALIZED_BUFFERS
 
-
   unsigned int maxSvoDepth = 8;
-
   {
-
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
@@ -227,18 +227,32 @@ void init()
 //  g_meshFilename = "fancy_art_high.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
   g_meshFilename = "frog2_seperated.ply";
+//  g_meshFilename = "blue_quad.ply";
+//  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
 //  g_meshFilename = "triplane.ply";
 //  g_meshFilename = "Infinite-Level_02.ply";
 //  g_meshFilename = "steppos_kueche_01.ply";
-
   }
 
 
   gloost::PlyLoader ply(g_plyPath + g_meshFilename);
   g_mesh = ply.getMesh();
+
+
+  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
+  gloost::Mesh* mesh2 = ply2.getMesh();
+
+  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
+  {
+    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
+    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
+    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
+  }
+
+
 
 //  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
 //  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
@@ -307,15 +321,15 @@ void init()
   g_modelUniforms = new gloost::UniformSet();
   g_modelUniforms->set_sampler("environmentMap",
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/bensFrontyard_blured.jpg"));
-//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
-                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
+                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/probe.jpg"));
+//                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/cedarCity.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/sphere_01.png"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/skies.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection",  0.1);
-  g_modelUniforms->set_float("shininess",  60.0);
+  g_modelUniforms->set_float("reflection",  0.15);
+  g_modelUniforms->set_float("shininess",  80.0);
   g_modelUniforms->set_float("specular",    0.3);
 
 
@@ -337,7 +351,7 @@ void init()
   /// apply generator to retrieve attributes
 //  svo::Ag_colorAndNormalsFromTextures generator;
 //  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
-  svo::Ag_colorAndNormals generator;
+  svo::Ag_colorAndNormalsTriangles generator;
   generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
 
   buildSvoVisualization(generator.getAttributeBuffer());
@@ -372,7 +386,7 @@ void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
 #ifdef BUILD_VISUALIZATION_NODES
   if (g_svoVisualizerNodes == 0)
   {
-    g_svoVisualizerNodes = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_WIRED_NODES);
+    g_svoVisualizerNodes = new svo::SvoVisualizer(g_nodesVisDepth, SVO_VISUALIZER_MODE_WIRED_NODES);
     g_svoVisualizerNodes->build(g_svo, attributes);
   }
 #endif
@@ -380,7 +394,7 @@ void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
 #ifdef BUILD_VISUALIZATION_LEAVES
   if (g_svoVisualizerLeaves == 0)
   {
-    g_svoVisualizerLeaves = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_BOXED_LEAFES);
+    g_svoVisualizerLeaves = new svo::SvoVisualizer(g_nodesVisDepth, SVO_VISUALIZER_MODE_BOXED_LEAFES);
     g_svoVisualizerLeaves->build(g_svo, attributes);
   }
 #endif
@@ -864,7 +878,7 @@ int main(int argc, char *argv[])
 
   // Open an OpenGL window
 //  glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE);
-  glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+//  glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 //  glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 
@@ -877,7 +891,7 @@ int main(int argc, char *argv[])
   }
 
 
-  glfwSetWindowPos( 700, 100);
+  glfwSetWindowPos( 600, 100);
   glfwSetWindowSizeCallback(resize);
   glfwSetKeyCallback(key);
 

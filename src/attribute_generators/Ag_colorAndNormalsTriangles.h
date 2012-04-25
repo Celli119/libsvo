@@ -60,26 +60,25 @@ namespace svo
 
   //  Retrieves colors and normals from Triangles of a Mesh
 
-class Ag_colorAndNormals: public AttributeGenerator
+class Ag_colorAndNormalsTriangles: public AttributeGenerator
 {
 	public:
 
     // class constructor
-    Ag_colorAndNormals();
+    Ag_colorAndNormalsTriangles();
 
     // class destructor
-	  virtual ~Ag_colorAndNormals();
+	  virtual ~Ag_colorAndNormalsTriangles();
 
     //
 	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials = 0);
 
-	  //
-	  gloost::InterleavedAttributes* getAttributeBuffer();
+
+	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth);
+
+	protected:
 
 
-	private:
-
-   gloost::InterleavedAttributes* _interleavedAttributBuffer;
 
 };
 

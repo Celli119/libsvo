@@ -68,7 +68,7 @@ namespace svo
   \remarks ...
 */
 
-SvoVisualizer::SvoVisualizer(unsigned int maxDepth, unsigned int mode):
+SvoVisualizer::SvoVisualizer(unsigned maxDepth, unsigned mode):
   _svo(0),
   _maxDepth(maxDepth),
   _matrixStack(),
@@ -166,8 +166,6 @@ SvoVisualizer::build(Svo* svo, gloost::InterleavedAttributes* attributes)
 
 //  _mesh->mergeVertices();
   _mesh->interleave(true);
-
-
 }
 
 
@@ -183,20 +181,14 @@ SvoVisualizer::build(Svo* svo, gloost::InterleavedAttributes* attributes)
 void
 SvoVisualizer::buildRecursive( SvoNode*               node,
                                const gloost::Vector3& offsetToParent,
-                               unsigned int           currentDepth)
+                               unsigned               currentDepth)
 {
 
   // max depth reached
 //  if ( node->isLeaf() )
-  if ( currentDepth  == _maxDepth)
+  if ( currentDepth  == _maxDepth || node->isLeaf())
   {
-//    _matrixStack.push();
-//    {
-//      _matrixStack.translate(offsetToParent[0], offsetToParent[1], offsetToParent[2] );
-//      _matrixStack.scale(0.5);
-
       gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
-
       bbox.transform(_matrixStack.top());
 
       // push a box for each node
@@ -213,8 +205,8 @@ SvoVisualizer::buildRecursive( SvoNode*               node,
                             currentDepth,
                             node->getAttribPosition());
       }
-//    }
-//    _matrixStack.pop();
+
+      return;
   }
 
 
@@ -308,7 +300,7 @@ SvoVisualizer::buildRecursive( SvoNode*               node,
 
 void
 SvoVisualizer::pushWireCubeToMesh(const gloost::BoundingBox& bbox,
-                                  unsigned int currentDepth,
+                                  unsigned currentDepth,
                                   const gloost::vec4& color)
 {
 
@@ -395,7 +387,7 @@ SvoVisualizer::pushWireCubeToMesh(const gloost::BoundingBox& bbox,
 
 void
 SvoVisualizer::pushWireCubeToMesh(const gloost::BoundingBox& bbox,
-                                  unsigned int currentDepth)
+                                  unsigned currentDepth)
 {
 
 
@@ -483,15 +475,17 @@ SvoVisualizer::pushWireCubeToMesh(const gloost::BoundingBox& bbox,
 
 void
 SvoVisualizer::pushSolidCubeToMesh(const gloost::BoundingBox& bbox,
-                                   unsigned int currentDepth,
-                                   unsigned int attributePosition)
+                                   unsigned currentDepth,
+                                   unsigned attributePosition)
 {
 
-  attributePosition*=6;
+
+  attributePosition*=_attributes->getNumElementsPerPackage();
+
   ++_numSolidBoxes;
 
 /*
-      _pMin
+      _pMinattributePosition
             g-----h
            /     /|
           /     / |0

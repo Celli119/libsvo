@@ -199,13 +199,13 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
     if (leafNode)
     {
       // push attribs for a new leaf node
-      if (leafNode->getAttribPosition() == 0)
+      if (leafNode->getAttribPosition() == SVO_SVONODE_EMPTY_ATTRIB_POS)
       {
         //
         leafNode->setAttribPosition(_svo->createDiscreteSampleList());
       }
 
-//      if (_svo->getDiscreteSampleList(leafNode->getAttribPosition()).size() < 1)
+//      if (_svo->getDiscreteSampleList(leafNode->getAttribPosition()).size() < 1) // allow only one sample
         _svo->getDiscreteSampleList(leafNode->getAttribPosition()).push_back(DiscreteSample(triangle._id, u, v));
 
     }

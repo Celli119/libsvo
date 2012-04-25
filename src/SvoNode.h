@@ -43,6 +43,8 @@
 #include <string>
 
 
+#define SVO_SVONODE_EMPTY_ATTRIB_POS 999999999
+
 
 namespace svo
 {
