@@ -61,7 +61,7 @@ SvoNode::SvoNode():
  _children(),
  _validMask(),
  _leafMask(),
- _attribPosition(0)
+ _attribPosition(SVO_SVONODE_EMPTY_ATTRIB_POS)
 {
 	_children[0] = 0;
 	_children[1] = 0;

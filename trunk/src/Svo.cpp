@@ -78,7 +78,7 @@ Svo::Svo(int maxDepth):
   _serializedSvoBuffer(),
   _serializedSvoBufferTextureId(0)
 {
-	// insert your code here
+//	createDiscreteSampleList();
 }
 
 
@@ -192,148 +192,6 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-
-//
-///**
-//  \brief normalizes attribs of voxels which gathered contributions of more than one primitive during creation
-//  \param  ...
-//  \remarks ...
-//*/
-//
-//void
-//Svo::normalizeLeafAttribs()
-//{
-//
-//#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
-//    std::cerr << std::endl;
-//    std::cerr << std::endl << "Message from Svo::normalizeAttribs():";
-//    std::cerr << std::endl << "             Normalizing Attributes for: " << _attribNormalizers.size() << " voxels.";
-//#endif
-//
-//  for (unsigned i=0; i!=_attribNormalizers.size(); ++i)
-//  {
-//    if (_attribNormalizers[i] > 1)
-//    {
-//      float normalizer = 1.0/(_attribNormalizers[i]);
-//
-//      unsigned subAttribPos = i*6;
-//
-//      unsigned runner = 0;
-//      for (; runner!=6; ++runner)
-//      {
-//        if (subAttribPos >= _attributeBuffer.size())
-//        {
-//          std::cerr << std::endl << "word: " << "aaaaaaaaaa";
-//          std::cerr << std::endl << "subAttribPos: " << subAttribPos;
-//          std::cerr << std::endl << "attribs size: " << _attributeBuffer.size();
-//          std::cerr << std::endl;
-//        }
-//        else
-//        {
-//          _attributeBuffer[subAttribPos+runner] *= normalizer;
-//        }
-//
-//
-//      }
-//    }
-//  }
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-//
-///**
-//  \brief generates attributes for inner nodes by averaging child attribs
-//  \param node root node of the (sub)tree
-//  \remarks ...
-//*/
-//
-//void
-//Svo::generateInnerNodesAttributes(SvoNode* node, int currentDepth)
-//{
-//  if (node->isLeaf())
-//  {
-//    return;
-//  }
-//  else
-//  {
-//
-//    // call generateInnerNodesAttributes recursive
-//    std::vector<unsigned int> existingChildren;
-//
-//    for (unsigned int i=0; i!=8; ++i)
-//    {
-//      if (node->getValidMask().getFlag(i))
-//      {
-//        generateInnerNodesAttributes(node->getChild(i), currentDepth+1);
-//        existingChildren.push_back(i);
-//      }
-//    }
-//
-//
-//    // if there is only one child, copy attribute index from child to current node
-//    if (existingChildren.size() == 1)
-//    {
-//      node->setAttribPosition(node->getChild(existingChildren[0])->getAttribPosition());
-//      ++_numOneChildNodes;
-//    }
-//    else
-//    {
-//
-//      // average chid attributes for this node
-//      gloost::Vector3 averageNormal(0.0,0.0,0.0);
-//      gloost::Vector3 averageColor(0.0,0.0,0.0);
-//      unsigned int numChildren = 0;
-//
-//      for (unsigned int i=0; i!=existingChildren.size(); ++i)
-//      {
-//
-//        if (node->getValidMask().getFlag(existingChildren[i]))
-//        {
-//
-//          ++numChildren;
-//
-//
-//          unsigned int attribIndex = node->getChild(existingChildren[i])->getAttribPosition();
-//
-//
-//          averageNormal += gloost::Vector3(_attributeBuffer[attribIndex++],
-//                                           _attributeBuffer[attribIndex++],
-//                                           _attributeBuffer[attribIndex++]);
-//
-//          averageColor += gloost::Vector3(_attributeBuffer[attribIndex++],
-//                                          _attributeBuffer[attribIndex++],
-//                                          _attributeBuffer[attribIndex++]);
-//        }
-//
-//      }
-//
-//      averageNormal /= numChildren;
-//      averageColor  /= numChildren;
-//
-//  //    std::cerr << std::endl << "averageNormal: " << averageNormal;
-//  //    std::cerr << std::endl << "averageColor: " << averageColor;
-//
-////      node->setAttribPosition(getCurrentAttribPosition());
-////      pushAttributeComponent(averageNormal[0]);
-////      pushAttributeComponent(averageNormal[1]);
-////      pushAttributeComponent(averageNormal[2]);
-////
-////      pushAttributeComponent(averageColor[0]);
-////      pushAttributeComponent(averageColor[1]);
-////      pushAttributeComponent(averageColor[2]);
-//
-//
-//    }
-//
-//  }
-//
-//}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -418,7 +276,7 @@ Svo::serializeSvo()
 
         for (unsigned int i=0; i!=8; ++i)
         {
-          packedMasks.setFlag(i, child->getValidMask().getFlag(i));
+          packedMasks.setFlag(i,   child->getValidMask().getFlag(i));
           packedMasks.setFlag(i+8, child->getLeafMask().getFlag(i));
         }
 
@@ -431,7 +289,6 @@ Svo::serializeSvo()
         _serializedSvoBuffer.push_back(child->getAttribPosition());  // attribute position
 
         nodeQueue.push(queuedChild);
-
       }
     }
   }

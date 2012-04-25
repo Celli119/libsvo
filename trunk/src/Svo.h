@@ -63,16 +63,16 @@ namespace svo
   /// struct contains the triangle id and u,v coordinates for an leaf voxel
   struct DiscreteSample
   {
-    DiscreteSample(unsigned triangleId,
+    DiscreteSample(unsigned primitiveId,
                    gloost::mathType u,
                    gloost::mathType v)
     {
-      _triangleId = triangleId;
+      _primitiveId = primitiveId;
       _u          = u;
       _v          = v;
     }
 
-    unsigned _triangleId;
+    unsigned _primitiveId;
 
     gloost::mathType _u;
     gloost::mathType _v;
@@ -115,6 +115,7 @@ class Svo
     void writeSerialBuffersToFile(const std::string& directory, const std::string& basename);
 
 
+
     typedef std::vector< std::list<DiscreteSample> > SampleListVector;
     typedef std::list<DiscreteSample>                SampleList;
 
@@ -129,33 +130,21 @@ class Svo
 
 
 
-//    // pushs an attribute component
-//    void pushAttributeComponent(float component);
-//
-//    // returns current attribute index;
-//    unsigned int getCurrentAttribPosition() const;
-
-    // returns the attribute buffer
-//    std::vector<float>&  getAttributeBuffer();
-
-//    // adds a element to the nomralizer vector
-//    void pushNormalizer();
-//
-//    // increases the node count within the normalizer to normalize attribs for double voxels
-//    void addDoubleNodeToNormalizer(unsigned attribPos);
-
-
     // returns the root node
     SvoNode* getRootNode();
 
     // returns the id of the serializedSvoBufferTexture within the gloost:TextureManager
     unsigned int getSvoBufferTextureId() const;
-    // returns the id of the attributeBufferTexture within the gloost:TextureManager
-//    unsigned int getAttributeBufferTextureId() const;
 
 
     // returns the BoundingBox of the Svo
     const gloost::BoundingBox& getBoundingBox() const;
+
+
+
+
+
+
 
 
     // returns the depth of the svo
@@ -201,7 +190,6 @@ class Svo
     unsigned int       _serializedSvoBufferTextureId;
 
 
-
     // inserts a point in the svo, builds the tree
     SvoNode* insertAndBuild(SvoNode*             currentParent,
                            int                   currentChildIndex,
@@ -211,7 +199,7 @@ class Svo
 
 
     // returns child index (0...7) for a coordinate in the curent voxel space
-    int       getChildIndex(const gloost::Point3& point);
+    int getChildIndex(const gloost::Point3& point);
 
 
 

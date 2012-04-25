@@ -27,11 +27,13 @@
 /// svo system includes
 #include <attribute_generators/AttributeGenerator.h>
 #include <Svo.h>
+#include <SvoNode.h>
 
 // gloost includes
 #include <gloost/Mesh.h>
 #include <gloost/ObjMatFile.h>
 #include <gloost/TextureManager.h>
+#include <gloost/InterleavedAttributes.h>
 
 
 /// cpp includes
@@ -62,7 +64,7 @@ namespace svo
 */
 
 AttributeGenerator::AttributeGenerator():
-    _attributeTextureIds()
+    _attributes()
 {
 	// insert your code here
 }
@@ -78,9 +80,9 @@ AttributeGenerator::AttributeGenerator():
 
 AttributeGenerator::~AttributeGenerator()
 {
-	for (unsigned i=0; i!=_attributeTextureIds.size(); ++i)
+	for (unsigned i=0; i!=_attributes.size(); ++i)
 	{
-	  gloost::TextureManager::get()->dropReference(_attributeTextureIds[i]);
+    _attributes[i]->dropReference();
 	}
 }
 
@@ -93,11 +95,45 @@ AttributeGenerator::~AttributeGenerator()
   \remarks ...
 */
 
-std::vector<unsigned>&
-AttributeGenerator::getAttribTextures()
+gloost::InterleavedAttributes*
+AttributeGenerator::getAttributeBuffer(unsigned id)
 {
-	return _attributeTextureIds;
+	return _attributes[id];
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief generates attributes for inner nodes by averaging child attribs
+  \param node root node of the (sub)tree
+  \remarks ...
+*/
+
+void
+AttributeGenerator::generateInnerNodesAttributesRecursive(SvoNode* node, int currentDepth)
+{
+  if (node->isLeaf())
+  {
+    return;
+  }
+
+  // call generateInnerNodesAttributes recursive
+  std::vector<unsigned int> existingChildren;
+
+  for (unsigned int i=0; i!=8; ++i)
+  {
+    if (node->getValidMask().getFlag(i))
+    {
+      generateInnerNodesAttributesRecursive(node->getChild(i), currentDepth+1);
+    }
+  }
+
+  generateCurrentNodesAttribs(node, currentDepth);
+}
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

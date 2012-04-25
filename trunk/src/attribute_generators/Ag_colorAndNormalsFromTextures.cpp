@@ -123,7 +123,7 @@ Ag_colorAndNormalsFromTextures::generate(Svo* svo,
     // for all samples of a list
     for (; sampleIt!=sampleEndIt; ++sampleIt)
     {
-      svo::BuilderTriangleFace triangle(mesh, (*sampleIt)._triangleId);
+      svo::BuilderTriangleFace triangle(mesh, (*sampleIt)._primitiveId);
 
       gloost::Point3 texCoord = triangle.interpolateTexCoord((*sampleIt)._u, (*sampleIt)._v);
       texCoord[0] *= map_color.getWidth();

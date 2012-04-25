@@ -51,6 +51,7 @@ namespace svo
 {
 
   class Svo;
+  class SvoNode;
 
 
   //  generates attributes per voxel
@@ -68,18 +69,21 @@ class AttributeGenerator
     // init the AttributeGenerator
 	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials){};
 
-	  // returns the generated attribut buffer
-	  virtual gloost::InterleavedAttributes* getAttributeBuffer() = 0;
-
 	  // returns a vector of texture ids, textures containing serialized attribute data
-	  std::vector<unsigned>& getAttribTextures();
+	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
+
+
 
 
 	protected:
 
-    // vector of texture ids of serialized attribute data
-    std::vector<unsigned> _attributeTextureIds;
+	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, int currentDepth);
 
+	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
+
+
+    // vector of texture ids of serialized attribute data
+    std::vector<gloost::InterleavedAttributes*> _attributes;
 };
 
 

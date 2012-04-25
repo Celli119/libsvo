@@ -94,10 +94,10 @@
 		<Unit filename="../../src/SvoNode.h" />
 		<Unit filename="../../src/SvoVisualizer.cpp" />
 		<Unit filename="../../src/SvoVisualizer.h" />
-		<Unit filename="../../src/attribute_generators/Ag_colorAndNormals.cpp" />
-		<Unit filename="../../src/attribute_generators/Ag_colorAndNormals.h" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.cpp" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.h" />
+		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.cpp" />
+		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.h" />
 		<Unit filename="../../src/trinangleAABBIntersect.h" />

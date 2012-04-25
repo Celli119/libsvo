@@ -165,38 +165,6 @@ BuilderTriangleFace::getFaceNormal() const
   \remarks ...
 */
 
-//bool
-//BuilderTriangleFace::intersectTriangleAABB(const gloost::BoundingBox& aabb,
-//                                       gloost::TriangleFace& triangle)
-//{
-//  gloost::Point3 p0 = _mesh->getVertices()[triangle.vertexIndices[0]];
-//  gloost::Point3 p1 = _mesh->getVertices()[triangle.vertexIndices[1]];
-//  gloost::Point3 p2 = _mesh->getVertices()[triangle.vertexIndices[2]];
-//
-//
-//  gloost::Point3 bbCenter = aabb.getCenter();
-//  float boxcenter[3] = {bbCenter[0],bbCenter[1],bbCenter[2]};
-//
-//  gloost::Vector3 bbHalfSize = aabb.getHalfSize();
-//  float boxhalfsize[3] = {/*epsilon +*/ bbHalfSize[0], /*epsilon +*/ bbHalfSize[1], /*epsilon +*/ bbHalfSize[2]};
-//
-//  float triverts[3][3] = {	{p0[0], p0[1],p0[2]},
-//                            {p1[0], p1[1], p1[2]},
-//                            {p2[0], p2[1], p2[2]}};
-//
-//  return (bool) triBoxOverlap(boxcenter, boxhalfsize, triverts);
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief wrapper for triBoxOverlap(boxcenter, boxhalfsize, triverts)
-  \param ...
-  \remarks ...
-*/
-
 bool
 BuilderTriangleFace::intersectAABB(const gloost::BoundingBox& aabb) const
 {

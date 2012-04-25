@@ -69,7 +69,7 @@ class SvoVisualizer
 	public:
 
     // class constructor
-    SvoVisualizer(unsigned int maxDepth, unsigned int mode = SVO_VISUALIZER_MODE_WIRED_NODES);
+    SvoVisualizer(unsigned maxDepth, unsigned mode = SVO_VISUALIZER_MODE_WIRED_NODES);
 
     // class destructor
 	  virtual ~SvoVisualizer();
@@ -90,17 +90,17 @@ class SvoVisualizer
 
     // adds a wireframe cube to the mesh
     void pushWireCubeToMesh(const gloost::BoundingBox& boundingBox,
-                            unsigned int currentDepth);
+                            unsigned currentDepth);
 
     // adds a wireframe cube to the mesh
     void pushWireCubeToMesh(const gloost::BoundingBox& boundingBox,
-                            unsigned int currentDepth,
+                            unsigned currentDepth,
                             const gloost::vec4& color);
 
     // adds a solid cube to the mesh
     void pushSolidCubeToMesh(const gloost::BoundingBox& bbox,
-                             unsigned int currentDepth,
-                             unsigned int attributePosition);
+                             unsigned currentDepth,
+                             unsigned attributePosition);
 
 
 	protected:
@@ -111,7 +111,7 @@ class SvoVisualizer
 	  // builds the visualization from a svo::Svo
 	  void buildRecursive( SvoNode* node,
                          const gloost::Vector3& offsetToParent,
-                         unsigned int currentDepth);
+                         unsigned currentDepth);
 
 
 
@@ -119,18 +119,18 @@ class SvoVisualizer
 
     gloost::InterleavedAttributes* _attributes;
 
-    unsigned int        _maxDepth;
+    unsigned            _maxDepth;
     gloost::MatrixStack _matrixStack;
 
     gloost::Mesh*       _mesh;
     gloost::Vbo*        _vbo;
 
-    unsigned int        _mode;
+    unsigned            _mode;
 
-    unsigned int        _numWireBoxes;
-    unsigned int        _numSolidBoxes;
+    unsigned            _numWireBoxes;
+    unsigned            _numSolidBoxes;
 
-    unsigned int        _vertexIndex;
+    unsigned            _vertexIndex;
 
 };
 
