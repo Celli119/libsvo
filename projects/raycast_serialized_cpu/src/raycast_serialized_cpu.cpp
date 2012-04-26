@@ -98,25 +98,15 @@ void draw2d();
 
 void init()
 {
+  gloost::PlyLoader loader1("../data/meshes/frog2_seperated.ply");
+  gloost::PlyLoader loader2("../data/meshes/frog2_seperated_ao.ply");
 
-//  gloost::PlyLoader loader1("../meshes/skelet.ply");
-  gloost::PlyLoader loader1("../meshes/frog2_seperated.ply");
-//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/fancy_art_high.ply");
-
-  gloost::PlyLoader loader2("../meshes/frog2_seperated_ao.ply");
-//
-//
   for (unsigned i=0; i!=loader1.getMesh()->getVertices().size(); ++i)
   {
     loader1.getMesh()->getColors()[i].r = loader1.getMesh()->getColors()[i].r * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
     loader1.getMesh()->getColors()[i].g = loader1.getMesh()->getColors()[i].g * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
     loader1.getMesh()->getColors()[i].b = loader1.getMesh()->getColors()[i].b * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
   }
-
-
-//  gloost::ObjLoader loader1("/home/otaco/Desktop/obj/frog2.obj");
-//  loader1.getMesh()->getTexCoords().clear();
-
 
   gloost::Mesh* mesh = loader1.getMesh();
   mesh->takeReference();
@@ -126,11 +116,21 @@ void init()
   g_vbo4 = new gloost::Vbo4(new gloost::InterleavedAttributes(mesh));
   g_ibo  = new gloost::Ibo(mesh);
 
-
   // shader
   g_shader = new gloost::ShaderProgram();
   g_shader->attachShader(GLOOST_SHADERPROGRAM_VERTEX_SHADER,   "../data/shaders/simpleVertexShader330.vs");
   g_shader->attachShader(GLOOST_SHADERPROGRAM_FRAGMENT_SHADER, "../data/shaders/simpleFragmentShader330.fs");
+
+
+  //
+
+  int tb_size;
+  glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_ARB, &tb_size);
+  std::cerr << std::endl << "GL_MAX_TEXTURE_BUFFER_SIZE_ARB: " << tb_size;
+
+
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ void draw3d(void)
 
 
   // draw stuff with 2d camera setup
-  draw2d();
+//  draw2d();
 
   /// swap buffers
   glutSwapBuffers();
