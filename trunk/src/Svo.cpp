@@ -505,17 +505,27 @@ Svo::getDiscreteSampleList(unsigned id)
 
 
 /**
-  \brief pushs an attribute component
+  \brief clears all discrete samples to save some mem
   \param ...
   \remarks ...
 */
 
-//void
-//Svo::pushAttributeComponent(float component)
-//{
-//  _attributeBuffer.push_back(component);
-//}
+void
+Svo::clearDiscreteSamples()
+{
+  unsigned freedMemory = 0;
 
+  for (unsigned i=0; i!=_discreteSamples.size(); ++i)
+  {
+    freedMemory += _discreteSamples[i].size()*sizeof(DiscreteSample);
+    _discreteSamples[i].clear();
+  }
+  _discreteSamples.clear();
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Svo::clearDiscreteSamples(): ";
+  std::cerr << std::endl << "  " << freedMemory/1024.0/1024.0 << " MB freed.";
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

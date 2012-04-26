@@ -96,8 +96,9 @@ Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
 
 void
 Ag_colorAndNormalsTriangles::generate(Svo* svo,
-                             gloost::Mesh* mesh,
-                             gloost::ObjMatFile* materials)
+                                      gloost::Mesh* mesh,
+                                      gloost::ObjMatFile* materials,
+                                      bool freeDiscreteSamplesAfterwards)
 {
 
   std::cerr << std::endl << "  Num Lists of samples: " << svo->getDiscreteSampleLists().size();
@@ -133,6 +134,11 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
     attribBundle.putFloat(color[0]);
     attribBundle.putFloat(color[1]);
     attribBundle.putFloat(color[2]);
+	}
+
+	if (freeDiscreteSamplesAfterwards)
+	{
+	  svo->clearDiscreteSamples();
 	}
 
 

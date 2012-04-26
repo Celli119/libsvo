@@ -132,6 +132,9 @@ class Svo
     // returns a lists of DiscreteSamples
     std::list<DiscreteSample>& getDiscreteSampleList(unsigned id);
 
+    // clears all discrete samples to save some mem
+    void clearDiscreteSamples();
+
 
 
     // returns the root node
