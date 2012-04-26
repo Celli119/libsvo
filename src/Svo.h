@@ -44,6 +44,10 @@
 #include <list>
 #include <vector>
 
+namespace
+{
+  class BinaryBundle;
+}
 
 
 namespace svo
@@ -112,7 +116,7 @@ class Svo
     unsigned int serializeAttributeBuffer();
 
     // writes the serialized svo and attributes to a file
-    void writeSerialBuffersToFile(const std::string& directory, const std::string& basename);
+    bool writeSerializedSvoToFile(const std::string& filePath);
 
 
 
@@ -139,11 +143,6 @@ class Svo
 
     // returns the BoundingBox of the Svo
     const gloost::BoundingBox& getBoundingBox() const;
-
-
-
-
-
 
 
 
@@ -186,8 +185,10 @@ class Svo
 
 
     // serialized svo nodes
-    std::vector<float> _serializedSvoBuffer;
-    unsigned int       _serializedSvoBufferTextureId;
+    std::vector<unsigned> _serializedSvoBuffer;
+    unsigned int          _serializedSvoBufferTextureId;
+    gloost::BinaryBundle* _serializedSvoBundle;
+
 
 
     // inserts a point in the svo, builds the tree

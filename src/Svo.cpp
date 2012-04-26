@@ -29,6 +29,7 @@
 #include <gloost/BitMask.h>
 #include <gloost/MatrixStack.h>
 #include <gloost/BinaryFile.h>
+#include <gloost/BinaryBundle.h>
 
 
 #include <Svo.h>
@@ -76,7 +77,8 @@ Svo::Svo(int maxDepth):
   _discreteSamples(),
   _discreteSampleIndex(0),
   _serializedSvoBuffer(),
-  _serializedSvoBufferTextureId(0)
+  _serializedSvoBufferTextureId(0),
+  _serializedSvoBundle(0)
 {
 //	createDiscreteSampleList();
 }
@@ -214,6 +216,7 @@ Svo::serializeSvo()
 
   int textureSize = floor(sqrt((float)numTexels)+1);
 
+  std::cerr << std::endl;
   std::cerr << std::endl << "Message from Svo::serializeSvo():";
   std::cerr << std::endl << "             Serialize SVO:";
   std::cerr << std::endl << "               Components per Texel:      " << numComponentsPerTexel;
@@ -234,7 +237,7 @@ Svo::serializeSvo()
 
   for (unsigned int i=0; i!=8; ++i)
   {
-    packedMasks.setFlag(i, _root->getValidMask().getFlag(i));
+    packedMasks.setFlag(i,   _root->getValidMask().getFlag(i));
     packedMasks.setFlag(i+8, _root->getLeafMask().getFlag(i));
   }
 
@@ -263,6 +266,7 @@ Svo::serializeSvo()
       if (currentParent.node->getValidMask().getFlag(i))
       {
         ++childCount;
+
         // if this is the first child, put its position into parents childPointer field in the buffer
         if (childCount == 1)
         {
@@ -293,6 +297,8 @@ Svo::serializeSvo()
     }
   }
 
+  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedSvoBuffer.front(), _serializedSvoBuffer.size()*sizeof(unsigned));
+
 
   // fill up buffer to fit square texture size
   int fillTexels = 0;
@@ -313,7 +319,7 @@ Svo::serializeSvo()
                                                 (unsigned char*)&_serializedSvoBuffer.front(),
                                                 12,
                                                 GL_TEXTURE_2D,
-                                                GL_RGB32F,
+                                                GL_RGB32UI,
                                                 GL_RGB,
                                                 GL_FLOAT);
 
@@ -397,16 +403,16 @@ Svo::serializeSvo()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//
-///**
-//  \brief writes the serialized svo and attributes to a file
-//  \param ...
-//  \remarks ...
-//*/
-//
-//void
-//Svo::writeSerialBuffersToFile(const std::string& directory, const std::string& basename)
-//{
+
+/**
+  \brief writes the serialized svo and attributes to a file
+  \param ...
+  \remarks ...
+*/
+
+bool
+Svo::writeSerializedSvoToFile(const std::string& filePath)
+{
 //  // svo
 //  if (_serializedSvoBufferTextureId)
 //  {
@@ -431,7 +437,19 @@ Svo::serializeSvo()
 //      svoFile.close();
 //    }
 //  }
-//}
+
+  if (!_serializedSvoBundle)
+  {
+    serializeSvo();
+  }
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Svo::writeSerializedSvoToFile():";
+  std::cerr << std::endl << "  Writing SVO to:";
+  std::cerr << std::endl << "    " << filePath;
+
+  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

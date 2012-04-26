@@ -66,6 +66,7 @@ class AttributeGenerator
     // class destructor
 	  virtual ~AttributeGenerator();
 
+
     // init the AttributeGenerator
 	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials){};
 
@@ -73,12 +74,16 @@ class AttributeGenerator
 	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
 
 
+	  // writes one attribute buffer to a *.ia file
+	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
+                                            unsigned id = 0) = 0;
 
 
 	protected:
 
 	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, int currentDepth);
 
+    // generates the attributes for one partucular node
 	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
 
 
