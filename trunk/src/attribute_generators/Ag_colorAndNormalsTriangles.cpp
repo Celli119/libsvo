@@ -100,8 +100,8 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
                              gloost::ObjMatFile* materials)
 {
 
-  std::cerr << std::endl << "  lists:  " << svo->getDiscreteSampleLists().size();
-  std::cerr << std::endl << "  leaves: " << svo->getNumLeaves();
+  std::cerr << std::endl << "  Num Lists of samples: " << svo->getDiscreteSampleLists().size();
+  std::cerr << std::endl << "  Num of leaves:        " << svo->getNumLeaves();
 
 
   gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
@@ -143,8 +143,8 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
 	_attributes[0]->addInterleavedAttrib(3, 12, "normals");
 	_attributes[0]->addInterleavedAttrib(3, 12, "colors");
 
-
-  std::cerr << std::endl << "  generating attributes for inner nodes: ";
+  std::cerr << std::endl;
+  std::cerr << std::endl << "  -> Generating attributes for inner nodes: ";
 	generateInnerNodesAttributesRecursive(svo->getRootNode(), 0);
 
 }
@@ -153,7 +153,7 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
-  \brief   ...
+  \brief   generates the attributes for one partucular node
   \remarks ...
 */
 
@@ -178,25 +178,6 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
       // reading attribs of children
       unsigned childAttribIndex  = node->getChild(c)->getAttribPosition();
       unsigned elementIndex = attribs->getPackageIndex(childAttribIndex);
-
-//      std::cerr << std::endl;
-//      std::cerr << std::endl << "Reading:";
-//      std::cerr << std::endl << "from Package: " << childAttribIndex;
-//      std::cerr << std::endl << "At Element:   " << elementIndex;
-//      std::cerr << std::endl << "probe:        " << (*attribs).getVector()[elementIndex];
-//
-//      if (elementIndex % 6 != 0)
-//      {
-//        std::cerr << std::endl << "aaaaaaaaaaaaaaaaaaaaa: ";
-//      }
-//
-//
-//      if (elementIndex >= (*attribs).getVector().size())
-//      {
-//        std::cerr << std::endl << "elementIndex >= (*attribs).size(): ";
-//        std::cerr << std::endl << "elementIndex = " << elementIndex;
-//        std::cerr << std::endl;
-//      }
 
       // reading and accumulating
       float nx = (*attribs).getVector()[elementIndex];
@@ -225,20 +206,10 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
   // averaging
   averageNormal /= numChildren;
   averageNormal.normalize();
-
   averageColor  /= numChildren;
 
-//      std::cerr << std::endl;
-  //    std::cerr << std::endl << "averageNormal: " << averageNormal;
-//      std::cerr << std::endl << "averageColor: " << averageColor;
-
-//  std::cerr << std::endl << "position: " << attribs->getVector().size()/6.0;
-//  std::cerr << std::endl << "packages: " << attribs->getNumPackages();
-//  std::cerr << std::endl << "index:    " << attribs->getVector().size();
-
+  // set attribute position and push attributes
   node->setAttribPosition(attribs->getNumPackages());
-
-//  std::cerr << std::endl << "attribs->getNumPackages(): " << attribs->getNumPackages();
 
   attribs->getVector().push_back(averageNormal[0]);
   attribs->getVector().push_back(averageNormal[1]);
@@ -248,6 +219,38 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
   attribs->getVector().push_back(averageColor[1]);
   attribs->getVector().push_back(averageColor[2]);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+  \brief   writes one attribute buffer to a *.ia file
+  \remarks ...
+*/
+
+/*virtual*/
+bool
+Ag_colorAndNormalsTriangles::writeAttributeBufferToFile(const std::string& filePath,
+                                                        unsigned id)
+{
+  // if buffer id is not valid
+  if ( !(id < _attributes.size()) )
+  {
+    return false;
+  }
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::writeAttributeBufferToFile():";
+  std::cerr << std::endl << "  Writing attribute buffer " << id << " to:";
+  std::cerr << std::endl << "    " << filePath;
+
+  return _attributes[id]->writeToFile(filePath);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 } // namespace svo

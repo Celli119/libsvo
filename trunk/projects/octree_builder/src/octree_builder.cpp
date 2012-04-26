@@ -121,6 +121,7 @@ bool g_showOctreeLeaves            = true;
 bool g_showSerializedSvoTexture    = false;
 bool g_showSerializedAttribTexture = false;
 
+////////////////////////////////////////////////////////////////////////////////
 
 void init();
 void buildSvoVisualization(gloost::InterleavedAttributes* attributes);
@@ -134,8 +135,10 @@ void key(unsigned char key, int x, int y);
 void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
 
+////////////////////////////////////////////////////////////////////////////////
 
-unsigned g_nodesVisDepth = 5;
+unsigned g_maxSvoDepth   = 11;
+unsigned g_nodesVisDepth = 11;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,17 +149,15 @@ unsigned g_nodesVisDepth = 5;
 void init()
 {
   #define OPEN_GL_WINDOW
-  #define DRAW_MESH
+//  #define DRAW_MESH
 
   #define BUILD_SVO
-  #define BUILD_VISUALIZATION_NODES
-  #define BUILD_VISUALIZATION_LEAVES
-//  #define WRITE_VISUALIZATIONS
+//  #define BUILD_VISUALIZATION_NODES
+//  #define BUILD_VISUALIZATION_LEAVES
+  #define WRITE_VISUALIZATIONS
 
-  #define SERIALIZE_BUFFERS
-  //#define WRITE_SERIALIZED_BUFFERS
+  #define SERIALIZE_AND_WRITE_BUFFERS
 
-  unsigned int maxSvoDepth = 8;
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "leaves.ply";
@@ -297,7 +298,7 @@ void init()
 
 #ifdef OPEN_GL_WINDOW
 #ifdef DRAW_MESH
-  std::cerr << std::endl << "vbo: " << "created";
+//  std::cerr << std::endl << "vbo: " << "created";
   g_vbo = new gloost::Vbo(g_mesh);
 #endif
 
@@ -344,29 +345,41 @@ void init()
 
 
 #ifdef BUILD_SVO
-  g_svo = new svo::Svo(maxSvoDepth);
+  // SVO builder
+  g_svo = new svo::Svo(g_maxSvoDepth);
   svo::SvoBuilderFaces fromFaceBuilder;
   fromFaceBuilder.build(g_svo, g_mesh);
 
-  /// apply generator to retrieve attributes
-//  svo::Ag_colorAndNormalsFromTextures generator;
-//  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
+  // attribute generator
   svo::Ag_colorAndNormalsTriangles generator;
   generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
 
+
+#ifdef SERIALIZE_AND_WRITE_BUFFERS
+  generator.writeAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
+                                       + gloost::pathToBasename(g_meshFilename)
+                                       + "_" + gloost::toString(g_maxSvoDepth)
+                                       + ".ia" );
+
+
+
+//  g_svo->serializeSvo();
+  g_svo->writeSerializedSvoToFile("/home/otaco/Desktop/SVO_DATA/"
+                                   + gloost::pathToBasename(g_meshFilename)
+                                   + "_" + gloost::toString(g_maxSvoDepth)
+                                   + ".svo" );
+#endif
+
   buildSvoVisualization(generator.getAttributeBuffer());
 
+  // clear attribute buffer to save some mem
   generator.getAttributeBuffer()->getVector().clear();
   generator.getAttributeBuffer()->getVector().resize(1);
 
-#ifdef SERIALIZE_BUFFERS
-  g_svo->serializeSvo();
-
 #ifdef OPEN_GL_WINDOW
-  g_SvoTextureUniforms->set_sampler("svoTexture" ,g_svo->getSvoBufferTextureId());
-  g_SvoTextureUniforms->set_float("numNodes"     ,g_svo->getNumNodes());
+  g_SvoTextureUniforms->set_sampler("svoTexture", g_svo->getSvoBufferTextureId());
+  g_SvoTextureUniforms->set_float("numNodes"    , g_svo->getNumNodes());
 //  g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
-#endif
 #endif
 #endif
 
@@ -380,8 +393,6 @@ void init()
 
 void buildSvoVisualization(gloost::InterleavedAttributes* attributes)
 {
-
-  int maxDepth = 80;
 
 #ifdef BUILD_VISUALIZATION_NODES
   if (g_svoVisualizerNodes == 0)
@@ -479,10 +490,6 @@ void frameStep()
     g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
     g_cameraDistance = gloost::clamp(g_cameraDistance, 0.1f, 4.0f);
   }
-
-
-
-
 
 }
 

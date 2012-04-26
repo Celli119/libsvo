@@ -74,9 +74,16 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
 	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials = 0);
 
 
-	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth);
+
+	  // writes one attribute buffer to a *.ia file
+	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
+                                            unsigned id = 0);
+
 
 	protected:
+
+    // generates the attributes for one partucular node
+	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth);
 
 
 
