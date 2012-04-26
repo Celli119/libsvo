@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="raycast_serialized_cpu" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="../../../bin/raycast_serialized_cpu" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../bin" />
+				<Option object_output="../o_files/release" />
+				<Option external_deps="../../../libsvo/lib/libsvo.a;../../../../gloost/gnulinux/bin/libgloost.a;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-O2" />
+					<Add option="-O1" />
+					<Add option="-O" />
+					<Add option="-Wall" />
+					<Add option="-W" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="libsvo" />
+					<Add library="gloost" />
+				</Linker>
+			</Target>
+			<Target title="Debug">
+				<Option output="../../../bin/raycast_serialized_cpu_db" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../bin" />
+				<Option object_output="../o_files/debug" />
+				<Option external_deps="../../../libsvo/lib/libsvo_db.a;../../../../gloost/gnulinux/bin/libgloost_db.a;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-W" />
+				</Compiler>
+				<Linker>
+					<Add library="libsvo_db" />
+					<Add library="gloost_db" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-std=gnu++0x" />
+			<Add option="-DGLOOST_GNULINUX" />
+			<Add directory="../src" />
+			<Add directory="../../../src" />
+			<Add directory="../../../../gloost/src" />
+		</Compiler>
+		<Linker>
+			<Add library="GL" />
+			<Add library="GLEW" />
+			<Add library="glut" />
+			<Add library="GLU" />
+			<Add library="libtinyxml" />
+			<Add library="freeimage" />
+			<Add directory="../../../../gloost/gnulinux/bin" />
+			<Add directory="../../../libsvo/lib" />
+		</Linker>
+		<Unit filename="../src/raycast_serialized_cpu.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+			<lib_finder>
+				<lib name="glew" />
+			</lib_finder>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -137,8 +137,8 @@ void idle(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-unsigned g_maxSvoDepth   = 11;
-unsigned g_nodesVisDepth = 11;
+unsigned g_maxSvoDepth   = 6;
+unsigned g_nodesVisDepth = 6;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -148,26 +148,22 @@ unsigned g_nodesVisDepth = 11;
 
 void init()
 {
-  #define OPEN_GL_WINDOW
+//  #define OPEN_GL_WINDOW
 //  #define DRAW_MESH
 
   #define BUILD_SVO
 //  #define BUILD_VISUALIZATION_NODES
 //  #define BUILD_VISUALIZATION_LEAVES
-  #define WRITE_VISUALIZATIONS
-
   #define SERIALIZE_AND_WRITE_BUFFERS
-
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
-//  g_meshFilename = "leaves.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
 //  g_meshFilename = "omotondo500k-manifold.ply";
 //  g_meshFilename = "david_2mm_final_ao.ply";
 //  g_meshFilename = "Hitachi_FH200.ply";
 //  g_meshFilename = "xyzrgb_statuette.ply";
 //  g_meshFilename = "xyzrgb_dragon_low.ply";
-//  g_meshFilename = "xyzrgb_dragon.ply";
+  g_meshFilename = "xyzrgb_dragon.ply";
 //  g_meshFilename = "dragon_vrip_verylow.ply";
 //  g_meshFilename = "dragon_vrip_low.ply";
 //  g_meshFilename = "dragon_vrip.ply";
@@ -227,7 +223,7 @@ void init()
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
-  g_meshFilename = "frog2_seperated.ply";
+//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
 //  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
@@ -243,15 +239,15 @@ void init()
   g_mesh = ply.getMesh();
 
 
-  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
-  gloost::Mesh* mesh2 = ply2.getMesh();
-
-  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
-  {
-    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
-    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
-    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
-  }
+//  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
+//  gloost::Mesh* mesh2 = ply2.getMesh();
+//
+//  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
+//  {
+//    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
+//    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
+//    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
+//  }
 
 
 

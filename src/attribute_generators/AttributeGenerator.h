@@ -68,7 +68,10 @@ class AttributeGenerator
 
 
     // init the AttributeGenerator
-	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials){};
+	  void generate(Svo* svo,
+                  gloost::Mesh* mesh,
+                  gloost::ObjMatFile* materials,
+                  bool freeDiscreteSamplesAfterwards = true){};
 
 	  // returns a vector of texture ids, textures containing serialized attribute data
 	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);

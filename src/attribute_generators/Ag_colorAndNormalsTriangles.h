@@ -71,7 +71,10 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
 	  virtual ~Ag_colorAndNormalsTriangles();
 
     //
-	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials = 0);
+	  void generate(Svo* svo,
+                  gloost::Mesh* mesh,
+                  gloost::ObjMatFile* materials = 0,
+                  bool freeDiscreteSamplesAfterwards = true);
 
 
 
