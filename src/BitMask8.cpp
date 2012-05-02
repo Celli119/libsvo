@@ -190,7 +190,7 @@ BitMask8::inverted() const
 
   /// returns the value of the mask as unsigned int
 
-unsigned int
+unsigned char
 BitMask8::getValue() const
 {
   return _mask;

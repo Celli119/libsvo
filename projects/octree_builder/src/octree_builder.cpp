@@ -107,7 +107,7 @@ svo::Svo* g_svo = 0;
 svo::SvoVisualizer* g_svoVisualizerNodes  = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
-#include <chrono>
+//#include <chrono>
 #include <attribute_generators/Ag_colorAndNormalsTriangles.h>
 #include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
 
@@ -137,8 +137,9 @@ void idle(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-unsigned g_maxSvoDepth   = 6;
-unsigned g_nodesVisDepth = 6;
+
+unsigned g_maxSvoDepth   = 8;
+unsigned g_nodesVisDepth = 8;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -148,12 +149,12 @@ unsigned g_nodesVisDepth = 6;
 
 void init()
 {
-//  #define OPEN_GL_WINDOW
-//  #define DRAW_MESH
+  #define OPEN_GL_WINDOW
+  #define DRAW_MESH
 
   #define BUILD_SVO
 //  #define BUILD_VISUALIZATION_NODES
-//  #define BUILD_VISUALIZATION_LEAVES
+  #define BUILD_VISUALIZATION_LEAVES
   #define SERIALIZE_AND_WRITE_BUFFERS
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
@@ -163,7 +164,7 @@ void init()
 //  g_meshFilename = "Hitachi_FH200.ply";
 //  g_meshFilename = "xyzrgb_statuette.ply";
 //  g_meshFilename = "xyzrgb_dragon_low.ply";
-  g_meshFilename = "xyzrgb_dragon.ply";
+//  g_meshFilename = "xyzrgb_dragon.ply";
 //  g_meshFilename = "dragon_vrip_verylow.ply";
 //  g_meshFilename = "dragon_vrip_low.ply";
 //  g_meshFilename = "dragon_vrip.ply";
@@ -225,7 +226,7 @@ void init()
 //  g_meshFilename = "frog2_vertex_ao.ply";
 //  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
-//  g_meshFilename = "frog2_seperated_ao.ply";
+  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary_low.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -325,9 +326,9 @@ void init()
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection",  0.15);
+  g_modelUniforms->set_float("reflection",  0.2);
   g_modelUniforms->set_float("shininess",  80.0);
-  g_modelUniforms->set_float("specular",    0.3);
+  g_modelUniforms->set_float("specular",    0.2);
 
 
   g_SvoTextureUniforms = new gloost::UniformSet();
@@ -371,12 +372,6 @@ void init()
   // clear attribute buffer to save some mem
   generator.getAttributeBuffer()->getVector().clear();
   generator.getAttributeBuffer()->getVector().resize(1);
-
-#ifdef OPEN_GL_WINDOW
-  g_SvoTextureUniforms->set_sampler("svoTexture", g_svo->getSvoBufferTextureId());
-  g_SvoTextureUniforms->set_float("numNodes"    , g_svo->getNumNodes());
-//  g_SvoTextureUniforms->set_float("numAttribs"     ,g_svo->getCurrentAttribPosition()/2.0);
-#endif
 #endif
 
 //  g_mesh->interleave(true);
@@ -588,29 +583,6 @@ void draw3d(void)
 
       glPopAttrib();
     }
-
-
-    // draw ray visualization
-//    if (g_rayVisDrawable)
-//    {
-//      glPushAttrib(GL_ALL_ATTRIB_BITS);
-//      glPushMatrix();
-//      {
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//
-//        glEnable(GL_COLOR_MATERIAL);
-//
-//
-//        g_rayVisDrawable->updateAndDraw();
-//      }
-//      glPopMatrix();
-//
-//      glPopAttrib();
-//    }
-
-
-
   }
   glPopMatrix();
 
@@ -651,48 +623,6 @@ void draw2d()
 
       // color
       glColor4f(1.0f, 1.0f, 1.0f, 1.0);
-
-
-      // show svo texture
-      if (g_svo && g_showSerializedSvoTexture)
-      {
-        g_SvoTextureShader->set();
-        g_SvoTextureUniforms->applyToShader(g_SvoTextureShader);
-
-        gloost::Texture* svoBuffer = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(g_svo->getSvoBufferTextureId());
-
-        svoBuffer->bind();
-        glPushMatrix();
-        {
-//          glTranslatef(100.0, 100.0, 0.0);
-          glScalef(svoBuffer->getWidth()*1.0,
-                   svoBuffer->getHeight()*1.0,
-                   1.0f);
-          gloost::drawQuad();
-        }
-        glPopMatrix();
-        svoBuffer->unbind();
-        g_SvoTextureShader->disable();
-      }
-
-
-      // show attribute texture
-//      if (g_svo && g_showSerializedAttribTexture)
-//      {
-//        gloost::Texture* attributeBuffer = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(g_svo->getAttributeBufferTextureId());
-//
-//        attributeBuffer->bind();
-//        glPushMatrix();
-//        {
-//          glTranslatef(g_screenWidth-attributeBuffer->getWidth()*1.0, 0.0, 0.0);
-//          glScalef(attributeBuffer->getWidth()*1.0,
-//                   attributeBuffer->getHeight()*1.0,
-//                   1.0f);
-//          gloost::drawQuad();
-//        }
-//        glPopMatrix();
-//        attributeBuffer->unbind();
-//      }
 
       // info text
       if (g_showTextInfo)

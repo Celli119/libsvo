@@ -24,15 +24,18 @@
 
 
 
+
+/// svo system includes
+#include <Svo.h>
+#include <CpuSvoNode.h>
+
+
 /// gloost system includes
 #include <gloost/TextureManager.h>
 #include <gloost/BitMask.h>
 #include <gloost/MatrixStack.h>
 #include <gloost/BinaryFile.h>
 #include <gloost/BinaryBundle.h>
-
-
-#include <Svo.h>
 
 /// cpp includes
 #include <string>
@@ -76,8 +79,7 @@ Svo::Svo(int maxDepth):
   _numOneChildNodes(0),
   _discreteSamples(),
   _discreteSampleIndex(0),
-  _serializedSvoBuffer(),
-  _serializedSvoBufferTextureId(0),
+  _serializedCpuSvoNodes(),
   _serializedSvoBundle(0)
 {
 //	createDiscreteSampleList();
@@ -206,52 +208,23 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 unsigned int
 Svo::serializeSvo()
 {
-  // assuming RGB32 Texture
-  // node = 3 x 32 Bit
-  float numComponentsPerTexel = 3.0f; // RGB
-  float bitsPerCoponent       = 32.0f;
 
-  // assuming node size of 3 x 32 bit
-  int   numTexels             = _numNodes;
-
-  int textureSize = floor(sqrt((float)numTexels)+1);
-
-  std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Svo::serializeSvo():";
-  std::cerr << std::endl << "             Serialize SVO:";
-  std::cerr << std::endl << "               Components per Texel:      " << numComponentsPerTexel;
-  std::cerr << std::endl << "               Bits per component:        " << bitsPerCoponent << " Bit";
-  std::cerr << std::endl << "               Number of texels:          " << numTexels;
-  std::cerr << std::endl << "               Texture size:              " << textureSize << " x " << textureSize << " pix";
-  std::cerr << std::endl << "               Texture memory size        " << (textureSize*textureSize * numComponentsPerTexel * bitsPerCoponent) / 8.0f / 1024.0f/ 1024.0f << " MB";
-
-
-  if (textureSize > 8192)
-  {
-    std::cerr << std::endl << "SERIALIZED TEXTURE TO BIG!: " << textureSize;
-    return 0;
-  }
-
-  // Add the root to the buffer
-  gloost::BitMask packedMasks;
-
-  for (unsigned int i=0; i!=8; ++i)
-  {
-    packedMasks.setFlag(i,   _root->getValidMask().getFlag(i));
-    packedMasks.setFlag(i+8, _root->getLeafMask().getFlag(i));
-  }
+  std::queue<QueuedNode> nodeQueue;
 
   QueuedNode queuedNode;
   queuedNode.node     = _root;
-  queuedNode.position = _serializedSvoBuffer.size();
-
-  _serializedSvoBuffer.push_back(0);                           // child pointer (unknown for now)
-  _serializedSvoBuffer.push_back(packedMasks.getValue());      // packed masks
-  _serializedSvoBuffer.push_back(_root->getAttribPosition());  // attribute position
-
-
-  std::queue<QueuedNode> nodeQueue;
+  queuedNode.position = _serializedCpuSvoNodes.size();
   nodeQueue.push(queuedNode);
+
+
+  CpuSvoNode cpuNode(0,
+                     _root->getValidMask(),
+                     _root->getLeafMask(),
+                     _root->getAttribPosition());
+
+  _serializedCpuSvoNodes.push_back(cpuNode);                     // child pointer (unknown for now)
+
+
 
   // add all nodes to the queue in a width search style
   while (nodeQueue.size())
@@ -270,135 +243,31 @@ Svo::serializeSvo()
         // if this is the first child, put its position into parents childPointer field in the buffer
         if (childCount == 1)
         {
-          _serializedSvoBuffer[currentParent.position] = _serializedSvoBuffer.size();
+          _serializedCpuSvoNodes[currentParent.position].setFirstChildIndex(_serializedCpuSvoNodes.size());
         }
 
         SvoNode* child = currentParent.node->getChild(i);
 
-        // serialize child and add it to the queue and the serialized buffer
-        gloost::BitMask packedMasks;
-
-        for (unsigned int i=0; i!=8; ++i)
-        {
-          packedMasks.setFlag(i,   child->getValidMask().getFlag(i));
-          packedMasks.setFlag(i+8, child->getLeafMask().getFlag(i));
-        }
-
         QueuedNode queuedChild;
         queuedChild.node     = child;
-        queuedChild.position = _serializedSvoBuffer.size();
-
-        _serializedSvoBuffer.push_back(0);                           // child pointer (unknown for now)
-        _serializedSvoBuffer.push_back(packedMasks.getValue());      // packed masks
-        _serializedSvoBuffer.push_back(child->getAttribPosition());  // attribute position
-
+        queuedChild.position = _serializedCpuSvoNodes.size();
         nodeQueue.push(queuedChild);
+
+        CpuSvoNode cpuNode(0,
+                           child->getValidMask(),
+                           child->getLeafMask(),
+                           child->getAttribPosition());
+
+        _serializedCpuSvoNodes.push_back(cpuNode);
+
       }
     }
   }
 
-  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedSvoBuffer.front(), _serializedSvoBuffer.size()*sizeof(unsigned));
+  std::cerr << std::endl << "sizeof(CpuSvoNode): " << sizeof(CpuSvoNode);
 
-
-  // fill up buffer to fit square texture size
-  int fillTexels = 0;
-  while (_serializedSvoBuffer.size()/(float)numComponentsPerTexel < textureSize*textureSize)
-  {
-    _serializedSvoBuffer.push_back(0);
-    ++fillTexels;
-  }
-
-
-  std::cerr << std::endl << "               Empty texel in texture     " << fillTexels/3.0;
-
-
-  // create a texture from the buffer
-  gloost::Texture* buffer = new gloost::Texture(textureSize,
-                                                textureSize,
-                                                1,
-                                                (unsigned char*)&_serializedSvoBuffer.front(),
-                                                12,
-                                                GL_TEXTURE_2D,
-                                                GL_RGB32UI,
-                                                GL_RGB,
-                                                GL_FLOAT);
-
-  _serializedSvoBufferTextureId = gloost::TextureManager::getInstance()->addTexture(buffer);
-
-
-
-  std::cerr << std::endl << "               Texture id                 " << _serializedSvoBufferTextureId;
-  std::cerr << std::endl;
-
+  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(), _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-//
-///**
-//  \brief serializes the attribute buffer and returns TextureManager id of resulting texture
-//  \param ...
-//  \remarks ...
-//*/
-//
-//unsigned int
-//Svo::serializeAttributeBuffer()
-//{
-//  // assuming RG32 Texture
-//  // normal = 3 x 32 Bit
-//  // color  = 3 x 32 Bit
-//
-//  float numComponentsPerTexel = 3.0f;  // RGB
-//  float bitsPerCoponent       = 32.0f;
-//  int   numTexels             = _attributeBuffer.size()/numComponentsPerTexel;  // 6 components for each voxel
-//
-//  int textureSize = floor(sqrt((float)numTexels)+1);
-//
-//
-//  if (textureSize > 8192)
-//  {
-//    std::cerr << std::endl << "SERIALIZED TEXTURE TO BIG!: " << textureSize;
-//    return 0;
-//  }
-//
-//
-//  // fill up buffer to fit square texture size
-//  int fillTexels = 0;
-//  while (_attributeBuffer.size()/(float)numComponentsPerTexel < textureSize*textureSize)
-//  {
-//    _attributeBuffer.push_back(0.0);
-//    ++fillTexels;
-//  }
-//
-//  std::cerr << std::endl << "Message from Svo::serializeAttributeBuffer():";
-//  std::cerr << std::endl << "             Serialize attribute buffer:";
-//  std::cerr << std::endl << "               Components per Texel:      " << numComponentsPerTexel;
-//  std::cerr << std::endl << "               Bits per component:        " << bitsPerCoponent << " Bit";
-//  std::cerr << std::endl << "               Number of texels:          " << numTexels;
-//  std::cerr << std::endl << "               Texture size:              " << textureSize << " x " << textureSize << " pix";
-//  std::cerr << std::endl << "               Texture memory size        " << textureSize*textureSize * numComponentsPerTexel * bitsPerCoponent / 8.0f / 1024.0f/ 1024.0f << " MB";
-//  std::cerr << std::endl << "               Empty texel in texture     " << fillTexels/3.0;
-//
-//
-//  // create a texture from the buffer
-//  gloost::Texture* buffer = new gloost::Texture(textureSize,
-//                                                textureSize,
-//                                                1,
-//                                                (unsigned char*)&_attributeBuffer.front(),
-//                                                12,
-//                                                GL_TEXTURE_2D,
-//                                                GL_RGB32F,
-//                                                GL_RGB,
-//                                                GL_FLOAT);
-//
-//  _attributeBufferTextureId = gloost::TextureManager::getInstance()->addTexture(buffer);
-//
-//  std::cerr << std::endl << "               Texture id                 " << _attributeBufferTextureId;
-//
-//
-//  return _attributeBufferTextureId;
-//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -413,30 +282,6 @@ Svo::serializeSvo()
 bool
 Svo::writeSerializedSvoToFile(const std::string& filePath)
 {
-//  // svo
-//  if (_serializedSvoBufferTextureId)
-//  {
-//    // getting the texture for width and height
-//    gloost::Texture* svoBufferTexture = gloost::TextureManager::getInstance()->getTextureWithoutRefcount(_serializedSvoBufferTextureId);
-//
-//    gloost::BinaryFile svoFile;
-//    if (svoFile.openToWrite(directory + "/" + basename + "_svo.gbi"))
-//    {
-//      // header
-//      svoFile.writeString("GBI ");
-//      svoFile.writeString("components 3 ");
-//      svoFile.writeString("format float ");
-//      svoFile.writeString("sizex " + gloost::toString(svoBufferTexture->getWidth()) + " ");
-//      svoFile.writeString("sizey " + gloost::toString(svoBufferTexture->getHeight()) + " ");
-////      svoFile.writeString("sizez " + "0");//gloost::toString(svoBufferTexture->get()) + " ");
-//      svoFile.writeString("order RGB ");
-//
-//      // data
-//      svoFile.writeBuffer((unsigned char*)&_serializedSvoBuffer.front(), _serializedSvoBuffer.size()*sizeof(float));
-//
-//      svoFile.close();
-//    }
-//  }
 
   if (!_serializedSvoBundle)
   {
@@ -448,7 +293,22 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
   std::cerr << std::endl << "  Writing SVO to:";
   std::cerr << std::endl << "    " << filePath;
 
-  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
+//  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
+
+  gloost::BinaryFile outfile;
+  if (!outfile.openToWrite(filePath))
+  {
+    return false;
+  }
+
+  std::cerr << std::endl << "_maxDepth: " << gloost::toString(_maxDepth);
+
+  outfile.writeString(gloost::toString(_maxDepth) + " ");                 // write maxDepth
+  outfile.writeString(gloost::toString(_numNodes) + " ");                 // write numNodes
+  outfile.writeBuffer((unsigned char*)&_serializedCpuSvoNodes.front(),    // write Nodes
+                      _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
+
+  outfile.close();
 }
 
 
@@ -605,35 +465,6 @@ Svo::getRootNode()
   return _root;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns the id of the attributeBufferTexture within the gloost:TextureManager
-  \param ...
-  \remarks You have to call Svo::serializeSvo() to create the texture first
-*/
-
-unsigned int
-Svo::getSvoBufferTextureId() const
-{
-  return _serializedSvoBufferTextureId;
-}
-//
-//////////////////////////////////////////////////////////////////////////////////
-//
-//
-///**
-//  \brief returns the id of the attributeBufferTexture within the gloost:TextureManager
-//  \param ...
-//  \remarks You have to call Svo::serializeAttributeBuffer() to create the texture first
-//*/
-//
-//unsigned int
-//Svo::getAttributeBufferTextureId() const
-//{
-//  return _attributeBufferTextureId;
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 

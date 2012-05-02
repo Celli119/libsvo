@@ -38,7 +38,8 @@
 /// cpp includes
 #include <string>
 #include <iostream>
-#include <chrono>
+#include <boost/thread.hpp>
+//#include <chrono>
 
 
 
@@ -67,7 +68,9 @@ namespace svo
 SvoBuilderFaces::SvoBuilderFaces():
     _svo(0),
     _mesh(0),
-    _matrixStack()
+    _numBuildThreads(16),
+    _modifySvoMutex(),
+    _matrixStacks(_numBuildThreads, gloost::MatrixStack())
 {
 	// insert your code here
 }
@@ -102,7 +105,6 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   _svo  = svo;
   _mesh = mesh;
 
-
   std::vector<gloost::TriangleFace>& triangles = mesh->getTriangles();
   std::vector<gloost::Point3>&       vertices  = mesh->getVertices();
   std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
@@ -119,26 +121,27 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
 //#endif
 
   // take start time
-  auto t0 = std::chrono::high_resolution_clock::now();
+//  auto t0 = std::chrono::high_resolution_clock::now();
 
+
+  unsigned range = triangles.size()/_numBuildThreads;
+
+  boost::thread_group threadGroup;
 
   // seperate component data
-  for (unsigned int i=0; i!=triangles.size(); ++i)
+  for (unsigned int t=0; t!=_numBuildThreads; ++t)
   {
-    const BuilderTriangleFace triFace(_mesh, i);
-//    if (triFace.getCenter()[0] > 0.0 && triFace.getCenter()[1] > 0.0)
-    if (triFace.intersectAABB(svo->getBoundingBox()))
-    {
-      buildRecursive(0, triFace);
-    }
+    threadGroup.create_thread(boost::bind(&SvoBuilderFaces::runThreadOnRange, this, t, t*range, (t+1)*range ));
   }
+
+  threadGroup.join_all();
 
 //  svo->normalizeLeafAttribs();
 //  svo->generateInnerNodesAttributes(svo->getRootNode());
 
 
-  auto t1 = std::chrono::high_resolution_clock::now();
-  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+//  auto t1 = std::chrono::high_resolution_clock::now();
+//  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
 //#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Number of leaves:          " << _svo->getNumLeaves();
@@ -146,7 +149,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
   std::cerr << std::endl << "               Number of double Points:   " << _svo->getNumDoublePoints();
   std::cerr << std::endl << "               Octree memory real CPU:    " << _svo->getNumNodes()*sizeof(svo::SvoNode)/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
+//  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
   std::cerr << std::endl;
   std::cerr << std::endl << "             Creating attributes for inner nodes: ";
   std::cerr << std::endl << "               Octree memory serialized:  " << _svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
@@ -164,13 +167,42 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
 
 
 /**
+  \brief ...
+  \param ...
+  \remarks ...
+*/
+
+void
+SvoBuilderFaces::runThreadOnRange(unsigned threadId,
+                                  unsigned startIndex,
+                                  unsigned endIndex)
+{
+  // seperate component data
+  for (unsigned i = startIndex; i!=endIndex; ++i)
+  {
+    const BuilderTriangleFace triFace(_mesh, i);
+    if (triFace.intersectAABB(_svo->getBoundingBox()))
+    {
+      buildRecursive(threadId, 0, triFace);
+    }
+  }
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief builds the svo recursive from triangle faces
   \param ...
   \remarks ...
 */
 
 void
-SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangleFace& triangle)
+SvoBuilderFaces::buildRecursive(unsigned                   threadId,
+                                unsigned                   currentDepth,
+                                const BuilderTriangleFace& triangle)
 {
 
   // max depth reached
@@ -179,9 +211,7 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
     gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5),
                              gloost::Point3( 0.5, 0.5, 0.5));
 
-    bbox.transform(_matrixStack.top());
-    gloost::Point3 voxelCenter = _matrixStack.top() * gloost::Point3(0.0,0.0,0.0);
-
+    bbox.transform(_matrixStacks[threadId].top());
 
     // validate voxel by firing a ray in the direction of the triangles normal through the center
     // of the AABB. Only if it hits the triangle (and get a normal and a color)
@@ -193,22 +223,22 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
 
     if (triangle.calculateUAndV( bbox.getCenter(), u, v))
     {
-      leafNode = _svo->insert(voxelCenter);
-    }
 
-    if (leafNode)
-    {
-      // push attribs for a new leaf node
-      if (leafNode->getAttribPosition() == SVO_SVONODE_EMPTY_ATTRIB_POS)
+      _modifySvoMutex.lock();
       {
-        //
-        leafNode->setAttribPosition(_svo->createDiscreteSampleList());
-      }
+        leafNode = _svo->insert(bbox.getCenter());
 
-//      if (_svo->getDiscreteSampleList(leafNode->getAttribPosition()).size() < 1) // allow only one sample
+        // push attribs for a new leaf node
+        if (leafNode->getAttribPosition() == SVO_SVONODE_EMPTY_ATTRIB_POS)
+        {
+          leafNode->setAttribPosition(_svo->createDiscreteSampleList());
+        }
+
         _svo->getDiscreteSampleList(leafNode->getAttribPosition()).push_back(DiscreteSample(triangle._id, u, v));
-
+      }
+      _modifySvoMutex.unlock();
     }
+
     return;
   }
 
@@ -252,22 +282,23 @@ SvoBuilderFaces::buildRecursive(unsigned int currentDepth, const BuilderTriangle
           childOffset[2] -= offset;
         }
 
-        _matrixStack.push();
+        _matrixStacks[threadId].push();
         {
-          _matrixStack.translate(childOffset[0], childOffset[1], childOffset[2] );
-          _matrixStack.scale(0.5);
+          _matrixStacks[threadId].translate(childOffset[0], childOffset[1], childOffset[2] );
+          _matrixStacks[threadId].scale(0.5);
 
           gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
 
-          bbox.transform(_matrixStack.top());
+          bbox.transform(_matrixStacks[threadId].top());
 
           if (triangle.intersectAABB(bbox))
           {
-            buildRecursive(currentDepth+1,
+            buildRecursive(threadId,
+                           currentDepth+1,
                            triangle);
           }
         }
-        _matrixStack.pop();
+        _matrixStacks[threadId].pop();
 
       }
     }
