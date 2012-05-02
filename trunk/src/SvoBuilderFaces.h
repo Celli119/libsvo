@@ -44,14 +44,13 @@
 
 /// cpp includes
 #include <string>
+#include <boost/thread/mutex.hpp>
 
 namespace svo
 {
 
   class Svo;
   class SvoNode;
-
-
 
 
   //  generates the svo structure by discretising faces
@@ -72,14 +71,23 @@ class SvoBuilderFaces
 
 	protected:
 
+	  void runThreadOnRange(unsigned threadId,
+                          unsigned startIndex,
+                          unsigned endIndex);
+
     // builds the svo recursive from triangle faces
-    void buildRecursive(unsigned int           currentDepth,
-                        const BuilderTriangleFace&  triangle);
+    void buildRecursive(unsigned                   threadId,
+                        unsigned                   currentDepth,
+                        const BuilderTriangleFace& triangle);
 
 
     Svo*                _svo;
     gloost::Mesh*       _mesh;
-    gloost::MatrixStack _matrixStack;
+
+    unsigned     _numBuildThreads;
+    boost::mutex _modifySvoMutex;;
+
+    std::vector<gloost::MatrixStack> _matrixStacks;
 };
 
 

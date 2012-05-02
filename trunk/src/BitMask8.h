@@ -88,7 +88,7 @@ class BitMask8
 
 
 	  /// returns the value of the mask as unsigned int
-	  unsigned int getValue() const;
+	  unsigned char getValue() const;
 
 
 	  /// returns true if at least one flag in mask is identical to this one

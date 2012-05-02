@@ -49,7 +49,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-std=gnu++0x" />
 			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../../src" />
 			<Add directory="../../../gloost/src" />
@@ -80,6 +79,8 @@
 		<Unit filename="../../src/BuilderTriangleFace.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
+		<Unit filename="../../src/CpuSvoNode.cpp" />
+		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />
 		<Unit filename="../../src/ImageToPointcloud.h" />
 		<Unit filename="../../src/Svo.cpp" />
@@ -90,6 +91,8 @@
 		<Unit filename="../../src/SvoBuilderHeightmap.h" />
 		<Unit filename="../../src/SvoBuilderVertices.cpp" />
 		<Unit filename="../../src/SvoBuilderVertices.h" />
+		<Unit filename="../../src/SvoLoader.cpp" />
+		<Unit filename="../../src/SvoLoader.h" />
 		<Unit filename="../../src/SvoNode.cpp" />
 		<Unit filename="../../src/SvoNode.h" />
 		<Unit filename="../../src/SvoVisualizer.cpp" />

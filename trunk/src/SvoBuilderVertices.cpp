@@ -36,7 +36,7 @@
 /// cpp includes
 #include <string>
 #include <iostream>
-#include <chrono>
+//#include <chrono>
 
 
 
@@ -111,7 +111,7 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
 
 
 
-  auto t0 = std::chrono::high_resolution_clock::now();
+//  auto t0 = std::chrono::high_resolution_clock::now();
 
 
 
@@ -210,8 +210,8 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
   svo->generateInnerNodesAttributes(svo->getRootNode());
 
 
-  auto t1 = std::chrono::high_resolution_clock::now();
-  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+//  auto t1 = std::chrono::high_resolution_clock::now();
+//  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
   std::cerr << std::endl << "               Number of leaves:          " << svo->getNumLeaves();
@@ -219,7 +219,7 @@ SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl << "               Number of OOB Points:      " << svo->getNumOutOfBoundPoints();
   std::cerr << std::endl << "               Number of double Points:   " << svo->getNumDoublePoints() << " ( " << (100.0f*svo->getNumDoublePoints())/(float)vertices.size() << " % )";
   std::cerr << std::endl << "               Octree memory real CPU:    " << svo->getNumNodes()*sizeof(svo::SvoNode)/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
+//  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
   std::cerr << std::endl;
   std::cerr << std::endl << "             Creating attributes for inner nodes: ";
 #endif

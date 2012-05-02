@@ -37,6 +37,7 @@
 
 /// svo includes
 #include <SvoNode.h>
+#include <CpuSvoNode.h>
 
 
 /// cpp includes
@@ -140,9 +141,6 @@ class Svo
     // returns the root node
     SvoNode* getRootNode();
 
-    // returns the id of the serializedSvoBufferTexture within the gloost:TextureManager
-    unsigned int getSvoBufferTextureId() const;
-
 
     // returns the BoundingBox of the Svo
     const gloost::BoundingBox& getBoundingBox() const;
@@ -188,9 +186,8 @@ class Svo
 
 
     // serialized svo nodes
-    std::vector<unsigned> _serializedSvoBuffer;
-    unsigned int          _serializedSvoBufferTextureId;
-    gloost::BinaryBundle* _serializedSvoBundle;
+    std::vector<CpuSvoNode> _serializedCpuSvoNodes;
+    gloost::BinaryBundle*   _serializedSvoBundle;
 
 
 

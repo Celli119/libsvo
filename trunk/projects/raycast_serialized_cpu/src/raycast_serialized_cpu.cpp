@@ -82,6 +82,8 @@ gloost::ShaderProgram* g_shader = 0;
 #include <chrono>
 #include <thread>
 
+#include <SvoLoader.h>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +94,6 @@ void draw2d();
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
 
   /// load and initialize resources for our demo
 
@@ -116,6 +117,7 @@ void init()
   g_vbo4 = new gloost::Vbo4(new gloost::InterleavedAttributes(mesh));
   g_ibo  = new gloost::Ibo(mesh);
 
+
   // shader
   g_shader = new gloost::ShaderProgram();
   g_shader->attachShader(GLOOST_SHADERPROGRAM_VERTEX_SHADER,   "../data/shaders/simpleVertexShader330.vs");
@@ -123,12 +125,13 @@ void init()
 
 
   //
-
   int tb_size;
   glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_ARB, &tb_size);
   std::cerr << std::endl << "GL_MAX_TEXTURE_BUFFER_SIZE_ARB: " << tb_size;
 
 
+
+  svo::SvoLoader cpuSvo("/home/otaco/Desktop/SVO_DATA/frog2_seperated_ao_8");
 
 
 }
