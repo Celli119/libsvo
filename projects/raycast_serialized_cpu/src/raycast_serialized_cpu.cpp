@@ -30,22 +30,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/// general setup
-static unsigned int g_screenWidth  = 1280;
-static unsigned int g_screenHeight = 640;
-
-/// frameCounter
-float g_frameCounter = 0;
-
-
-/// includes and globals for this demo /////////////////////////////////////////
-
-
-/// this header includes many nice shapes to draw and helpers
-
-#include <gloost/gloostRenderGoodies.h>
-
 void init();
 void cleanup();
 void draw3d(void);
@@ -66,23 +50,30 @@ gloost::Ibo* g_ibo = 0;
 #include <gloost/Mesh.h>
 #include <gloost/InterleavedAttributes.h>
 #include <gloost/PlyLoader.h>
-#include <gloost/GbmLoader.h>
-#include <gloost/ObjLoader.h>
 
 #include <gloost/ShaderProgram.h>
-gloost::ShaderProgram* g_shader = 0;
+gloost::ShaderProgram* g_raycastShader = 0;
 
 #include <gloost/MatrixStack.h>
-
-
 #include <gloost/gloostGlUtil.h>
 #include <gloost/UniformSet.h>
-#include <gloost/serializers.h>
+static gloost::UniformSet g_raycastUniforms;
+
+#include <gloost/MeshFactory.h>
+#include <SvoLoader.h>
+svo::SvoLoader* g_cpu_svo = 0;
 
 #include <chrono>
 #include <thread>
 
-#include <SvoLoader.h>
+
+
+/// general setup
+static unsigned int g_screenWidth  = 1280;
+static unsigned int g_screenHeight = 640;
+
+/// frameCounter
+float g_frameCounter = 0;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,29 +90,20 @@ void draw2d();
 
 void init()
 {
-  gloost::PlyLoader loader1("../data/meshes/frog2_seperated.ply");
-  gloost::PlyLoader loader2("../data/meshes/frog2_seperated_ao.ply");
 
-  for (unsigned i=0; i!=loader1.getMesh()->getVertices().size(); ++i)
-  {
-    loader1.getMesh()->getColors()[i].r = loader1.getMesh()->getColors()[i].r * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
-    loader1.getMesh()->getColors()[i].g = loader1.getMesh()->getColors()[i].g * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
-    loader1.getMesh()->getColors()[i].b = loader1.getMesh()->getColors()[i].b * loader2.getMesh()->getColors()[i].r* loader2.getMesh()->getColors()[i].r;
-  }
-
-  gloost::Mesh* mesh = loader1.getMesh();
+  gloost::Mesh* mesh = gloost::MeshFactory::createQuadBox(1.0, gloost::vec4(1.0,1.0,0.0,1.0));
   mesh->takeReference();
   mesh->center();
-  mesh->scaleToSize(2.0);
+//  mesh->scaleToSize(2.0);
 
   g_vbo4 = new gloost::Vbo4(new gloost::InterleavedAttributes(mesh));
   g_ibo  = new gloost::Ibo(mesh);
 
 
   // shader
-  g_shader = new gloost::ShaderProgram();
-  g_shader->attachShader(GLOOST_SHADERPROGRAM_VERTEX_SHADER,   "../data/shaders/simpleVertexShader330.vs");
-  g_shader->attachShader(GLOOST_SHADERPROGRAM_FRAGMENT_SHADER, "../data/shaders/simpleFragmentShader330.fs");
+  g_raycastShader = new gloost::ShaderProgram();
+  g_raycastShader->attachShader(GLOOST_SHADERPROGRAM_VERTEX_SHADER,   "../data/shaders/svo_tbo_test_330.vs");
+  g_raycastShader->attachShader(GLOOST_SHADERPROGRAM_FRAGMENT_SHADER, "../data/shaders/svo_tbo_test_330.fs");
 
 
   //
@@ -129,11 +111,14 @@ void init()
   glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_ARB, &tb_size);
   std::cerr << std::endl << "GL_MAX_TEXTURE_BUFFER_SIZE_ARB: " << tb_size;
 
+//  g_cpu_svo = new svo::SvoLoader("/home/otaco/Desktop/SVO_DATA/sphere_4");
+  g_cpu_svo = new svo::SvoLoader("/home/otaco/Desktop/SVO_DATA/Decimated_Head_10");
+  g_raycastUniforms.set_sampler("tbo_child_pointers",     g_cpu_svo->getChildPointersTextureId());
+  g_raycastUniforms.set_sampler("tbo_bitmasks",           g_cpu_svo->getBitMasksTextureId());
+  g_raycastUniforms.set_sampler("tbo_attribute_pointers", g_cpu_svo->getAttributePointersTextureId());
+  g_raycastUniforms.set_sampler("tbo_attributes",         g_cpu_svo->getAttributeTextureId(0));
 
-
-  svo::SvoLoader cpuSvo("/home/otaco/Desktop/SVO_DATA/frog2_seperated_ao_8");
-
-
+  std::cerr << std::endl << "g_cpu_svo->getAttributesTextureId(0): " << g_cpu_svo->getAttributeTextureId(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -145,6 +130,15 @@ void cleanup()
 {
   g_ibo->dropReference();
   g_vbo4->dropReference();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+unsigned framestep()
+{
+
 }
 
 
@@ -165,7 +159,6 @@ draw()
   glViewport(0, 0, g_screenWidth, g_screenHeight);
 
   draw3d();
-  draw2d();
 }
 
 
@@ -176,9 +169,9 @@ draw()
 
 void draw3d(void)
 {
-  // uniform set
-  static gloost::UniformSet uniforms;
-  uniforms.set_float("time", g_frameCounter);
+
+
+  g_raycastUniforms.set_float("time", g_frameCounter);
 
 
   /// projection
@@ -191,7 +184,7 @@ void draw3d(void)
                              0.1f,                                   /// dist. to near plane
                              120.0f);                                /// dist. to far plane
 
-  uniforms.set_mat4("ProjectionMatrix", projectionMatrix);
+  g_raycastUniforms.set_mat4("ProjectionMatrix", projectionMatrix);
 
 
   // view matrix
@@ -210,16 +203,16 @@ void draw3d(void)
 
 
   /// set the shader
-  g_shader->use();
+  g_raycastShader->use();
 
   matrixStack.push();
   {
     matrixStack.rotate(g_frameCounter*0.01, 0.0, 1.0, 0.0);
 
-    uniforms.set_mat4("ModelViewMatrix", matrixStack.top());
-    uniforms.set_mat4("NormalMatrix", gloost::modelViewMatrixToNormalMatrix(matrixStack.top()));
+    g_raycastUniforms.set_mat4("ModelViewMatrix", matrixStack.top());
+    g_raycastUniforms.set_mat4("NormalMatrix", gloost::modelViewMatrixToNormalMatrix(matrixStack.top()));
 
-    uniforms.applyToShader(g_shader->getHandle());
+    g_raycastUniforms.applyToShader(g_raycastShader->getHandle());
 
     g_vbo4->bind();
     g_ibo->bind();
@@ -229,11 +222,8 @@ void draw3d(void)
   }
   matrixStack.pop();
 
-  g_shader->disable();
+  g_raycastShader->disable();
 
-
-  // draw stuff with 2d camera setup
-//  draw2d();
 
   /// swap buffers
   glutSwapBuffers();
@@ -288,28 +278,28 @@ void draw2d()
 //    matrixStack.loadMatrix(viewMatrix);
 
     /// set the shader
-    g_shader->use();
+    g_raycastShader->use();
 
-    matrixStack.push();
-    {
-      matrixStack.translate(100.0, 100.0, 0.0);
-      matrixStack.rotate(g_frameCounter*0.01, 0.0, 1.0, 0.0);
-      matrixStack.scale(100.0);
+//    matrixStack.push();
+//    {
+//      matrixStack.translate(100.0, 100.0, 0.0);
+//      matrixStack.rotate(g_frameCounter*0.01, 0.0, 1.0, 0.0);
+//      matrixStack.scale(100.0);
+//
+//      uniforms.set_mat4("ModelViewMatrix", matrixStack.top());
+//      uniforms.set_mat4("NormalMatrix", gloost::modelViewMatrixToNormalMatrix(matrixStack.top()));
+//      uniforms.applyToShader(g_shader->getHandle());
+//
+//      g_vbo4->bind();
+//      g_ibo->bind();
+//        g_ibo->draw();
+//      g_ibo->unbind();
+//      g_vbo4->unbind();
+//    }
+//    matrixStack.pop();
 
-      uniforms.set_mat4("ModelViewMatrix", matrixStack.top());
-      uniforms.set_mat4("NormalMatrix", gloost::modelViewMatrixToNormalMatrix(matrixStack.top()));
-      uniforms.applyToShader(g_shader->getHandle());
 
-      g_vbo4->bind();
-      g_ibo->bind();
-        g_ibo->draw();
-      g_ibo->unbind();
-      g_vbo4->unbind();
-    }
-    matrixStack.pop();
-
-
-    g_shader->disable();
+    g_raycastShader->disable();
 
   }
   glPopAttrib();
@@ -350,7 +340,7 @@ void key(unsigned char key, int x, int y)
         break;
 
     case 'r':
-        g_shader->reloadShaders();
+        g_raycastShader->reloadShaders();
         break;
     case 'a':
         g_vbo4->removeFromContext();
@@ -358,7 +348,7 @@ void key(unsigned char key, int x, int y)
 
     /// press f for fullscreen mode
     case 'f':
-        glutFullScreen();
+        glutFullScreenToggle();
         break;
   }
 }
