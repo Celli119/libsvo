@@ -138,8 +138,8 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned g_maxSvoDepth   = 8;
-unsigned g_nodesVisDepth = 8;
+unsigned g_maxSvoDepth   = 10;
+unsigned g_nodesVisDepth = 9;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +194,7 @@ void init()
 //  g_meshFilename = "malaysia.ply";
 //  g_meshFilename = "incendia.ply";
 //  g_meshFilename = "julia.ply";
-//  g_meshFilename = "quaternion_julia.ply";
+  g_meshFilename = "quaternion_julia.ply";
 //  g_meshFilename = "venus.ply";
 //  g_meshFilename = "venus_medium.ply";
 //  g_meshFilename = "face_figurine.ply";
@@ -218,6 +218,7 @@ void init()
 //  g_meshFilename = "box.ply";
 //  g_meshFilename = "Women_hair_undressed_low.ply";
 //  g_meshFilename = "sphere.ply";
+//  g_meshFilename = "wacky_planet.ply";
 //  g_meshFilename = "plane.ply";
 //  g_meshFilename = "baahm_toroid.ply";
 //  g_meshFilename = "gg_logo.ply";
@@ -226,9 +227,9 @@ void init()
 //  g_meshFilename = "frog2_vertex_ao.ply";
 //  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
-  g_meshFilename = "frog2_seperated_ao.ply";
+//  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
-//  g_meshFilename = "human/secretary_low.ply";
+//  g_meshFilename = "human/secretary.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
 //  g_meshFilename = "triplane.ply";
 //  g_meshFilename = "Infinite-Level_02.ply";

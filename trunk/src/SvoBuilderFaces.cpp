@@ -187,6 +187,8 @@ SvoBuilderFaces::runThreadOnRange(unsigned threadId,
     }
   }
 
+  std::cerr << std::endl << "   thread: " << threadId << " done.";
+
 }
 
 
