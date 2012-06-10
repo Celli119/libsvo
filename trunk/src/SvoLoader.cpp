@@ -39,6 +39,8 @@
 #include <string>
 #include <iostream>
 
+//#define SVO_SVOLOADER_CREATE_TBOS
+
 
 
 namespace svo
@@ -105,6 +107,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
          numNodes*sizeof(CpuSvoNode));
 
 
+#ifdef SVO_SVOLOADER_CREATE_TBOS
   // create and fill 3 buffers: 1. Child pointers, 2. Bitmasks, 3. Attribute pointers
   _svoChildPointersBundle  = new gloost::BinaryBundle(numNodes*sizeof(unsigned));
   _svoBitMasksBundle       = new gloost::BinaryBundle(numNodes*sizeof(unsigned char) * 2);
@@ -158,7 +161,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
 
   std::cerr << std::endl << "                 texId: " << _svoAttributePointersTexId;
 
-
+#endif
 
 
 
@@ -175,6 +178,11 @@ SvoLoader::SvoLoader(const std::string& basePath):
   _attributeData.push_back(attributes);
 
   std::cerr << std::endl << "Svo attribute layout: " << attributes->getLayoutString();
+
+
+
+#ifdef SVO_SVOLOADER_CREATE_TBOS
+
 
   gloost::BinaryBundle* attributeBundle = new gloost::BinaryBundle(attributes->getNumPackages() * 8 * sizeof(float));
 
@@ -207,8 +215,6 @@ SvoLoader::SvoLoader(const std::string& basePath):
       std::cerr << std::endl << "attribute bundle is full !!!: ";
       std::cerr << std::endl;
     }
-
-
   }
 
   std::cerr << std::endl << "             Creating attribute TBO ";
@@ -222,7 +228,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
 
   std::cerr << std::endl << "                 texId: " << _attributeDataTextureIds[0];
 
-
+#endif
 
 }
 

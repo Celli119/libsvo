@@ -61,6 +61,7 @@ namespace svo
 */
 
 CpuRaycasterSingleRay::CpuRaycasterSingleRay(bool verboseMode):
+  _pushCounter(0),
   _stack(),
   _tMin(0),
   _tMax(0),
@@ -357,7 +358,7 @@ CpuRaycasterSingleRay::~CpuRaycasterSingleRay()
 */
 
 SvoNode*
-CpuRaycasterSingleRay::start2(const gloost::Ray& ray, Svo* svo)
+CpuRaycasterSingleRay::start(const gloost::Ray& ray, Svo* svo)
 {
   _svo = svo;
 
@@ -373,7 +374,7 @@ CpuRaycasterSingleRay::start2(const gloost::Ray& ray, Svo* svo)
 
   if (svoBoundingBox.intersect(ray, tMin, tMax))
   {
-    return traversSvo2(ray, tMin, tMax);
+    return traversSvo(ray, tMin, tMax);
   }
   else
   {
@@ -393,7 +394,7 @@ CpuRaycasterSingleRay::start2(const gloost::Ray& ray, Svo* svo)
 */
 
 SvoNode*
-CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMax)
+CpuRaycasterSingleRay::traversSvo(const gloost::Ray& ray, float tMin, float tMax)
 {
   CpuRaycastStackElement element;
   element.parentNode       = _svo->getRootNode();
@@ -427,11 +428,13 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
 
 
   CpuRaycastStackElement newStackElements[4];
-  unsigned newElementsCounter = 0;
+  unsigned               newElementsCounter = 0;
 
   /////////////////// LOOP ///////////////////////////////
   while (_stack.size())
   {
+
+    ++_whileCounter;
 
     newElementsCounter = 0;
 
@@ -443,6 +446,12 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     int              depth              = _stack.top().parentDepth + 1;
 
     _stack.pop();
+    ++_popCounter;
+
+    if (parentTMax < 0.0)
+    {
+      continue;
+    }
 
 
     /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
@@ -460,7 +469,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     */
 
 
-    //////////////////////////////////// FIRST CHILD of THREE ////////////////////
+    //////////////////////////////////// FIRST CHILD of FOUR ////////////////////
 
     // in parent voxel coordinates
     gloost::Point3 firstChildEntryPoint = (ray.getOrigin() + parentTMin * ray.getDirection()) - parentCenter;
@@ -498,8 +507,8 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     gloost::swapToIncreasing(tz0, tz1);
 
 
-    gloost::mathType tcMin = gloost::max(tx0, ty0, tz0);
-    gloost::mathType tcMax = gloost::min(tx1, ty1, tz1);
+    gloost::mathType tcMin = gloost::max(tx0, ty0, tz0); // <- you can only enter once
+    gloost::mathType tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
 
@@ -525,7 +534,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
 
 
     //////////////////////////////////// SECOND CHILD of FOUR ////////////////////
-    if(tcMax <= parentTMax)
+    if(tcMax < parentTMax)
     {
       // in parent voxel coordinates
       gloost::Point3 secondChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
@@ -589,7 +598,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
     } // if still in parentNode
 
     //////////////////////////////////// THIRD CHILD of FOUR ////////////////////
-    if(tcMax <= parentTMax)
+    if(tcMax < parentTMax)
     {
       // in parent voxel coordinates
       gloost::Point3 thirdChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
@@ -655,7 +664,7 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
 
 
     //////////////////////////////////// FOURTH CHILD of FOUR ////////////////////
-    if(tcMax <= parentTMax){
+    if(tcMax < parentTMax){
       // in parent voxel coordinates
       gloost::Point3 fourthChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
       unsigned int   fourthChildIndex =  4*(fourthChildEntryPoint[0] >= 0)
@@ -800,9 +809,11 @@ CpuRaycasterSingleRay::traversSvo2(const gloost::Ray& ray, float tMin, float tMa
 //    }
 
     --newElementsCounter;
+
     for (int i = newElementsCounter; i!=-1; --i)
     {
       _stack.push(newStackElements[i]);
+      ++_pushCounter;
     }
   }
 

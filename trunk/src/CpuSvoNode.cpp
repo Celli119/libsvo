@@ -170,6 +170,22 @@ CpuSvoNode::getValidMask()
 
 
 /**
+  \brief returns valid mask
+  \param ...
+  \remarks ...
+*/
+
+const BitMask8&
+CpuSvoNode::getValidMask() const
+{
+  return _validMask;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief returns leaf mask
   \param ...
   \remarks ...
@@ -177,6 +193,22 @@ CpuSvoNode::getValidMask()
 
 BitMask8&
 CpuSvoNode::getLeafMask()
+{
+  return _leafMask;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns leaf mask
+  \param ...
+  \remarks ...
+*/
+
+const BitMask8&
+CpuSvoNode::getLeafMask() const
 {
   return _leafMask;
 }
@@ -208,7 +240,7 @@ CpuSvoNode::isLeaf() const
 */
 
 unsigned int
-CpuSvoNode::getAttribPosition()
+CpuSvoNode::getAttribPosition() const
 {
   return _attribPosition;
 }
