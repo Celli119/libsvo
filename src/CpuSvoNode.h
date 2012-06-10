@@ -78,9 +78,11 @@ class CpuSvoNode
 
     // returns valid mask
     BitMask8& getValidMask();
+    const BitMask8& getValidMask() const;
 
     // returns leaf mask
     BitMask8& getLeafMask();
+    const BitMask8& getLeafMask() const;
 
 
     // returns true if node is a leaf
@@ -88,7 +90,7 @@ class CpuSvoNode
 
 
     // returns attribute position in attrib buffer
-    unsigned int getAttribPosition();
+    unsigned int getAttribPosition() const;
 
     // sets the attribute position within the attribute buffer
     void setAttribPosition(unsigned int i);

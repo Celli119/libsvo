@@ -24,8 +24,8 @@
 
 
 
-#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY
-#define H_SVO_CPU_RAYCASTER_SINGLE_RAY
+#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY2
+#define H_SVO_CPU_RAYCASTER_SINGLE_RAY2
 
 
 
@@ -50,44 +50,44 @@ namespace svo
 {
 
 
-struct AxisAndTValue
-{
-  float _t;
-  int   _axis;
+//struct AxisAndTValue
+//{
+//  float _t;
+//  int   _axis;
+//
+//  bool operator<(const AxisAndTValue& a)
+//  {
+//    return a._t < this->_t;
+//  }
+//
+//};
 
-  bool operator<(const AxisAndTValue& a)
-  {
-    return a._t < this->_t;
-  }
-
-};
 
 
+  //  CpuRaycasterSingleRay2
 
-  //  CpuRaycasterSingleRay
-
-class CpuRaycasterSingleRay
+class CpuRaycasterSingleRay2
 {
 	public:
 
     // class constructor
-    CpuRaycasterSingleRay(bool verboseMode = false);
+    CpuRaycasterSingleRay2(bool verboseMode = false);
 
     // class destructor
-	  virtual ~CpuRaycasterSingleRay();
+	  ~CpuRaycasterSingleRay2();
 
 
     // traverses a Svo with a single ray
 //	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
-	  virtual SvoNode* start(const gloost::Ray& ray, Svo* svo);
+	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  virtual SvoNode* traversSvo(const gloost::Ray& ray, float tMin, float tMax);
+	  SvoNode* traversSvo(const gloost::Ray& ray, float tMin, float tMax);
 
 
 	  // intersects the Svo BoundingBox and writes to _tMin and _tMax
-	  virtual bool intersectBoundingBox(const gloost::Ray& ray);
+	  bool intersectBoundingBox(const gloost::Ray& ray);
 
 
     struct CpuRaycastStackElement
@@ -97,16 +97,18 @@ class CpuRaycasterSingleRay
         parentTMin(0),
         parentTMax(0),
         parentCenter(),
-        parentDepth(0)
+        parentDepth(0),
+        nextChild(0)
       {}
 
       SvoNode*         parentNode;
-
       gloost::mathType parentTMin;
       gloost::mathType parentTMax;
 
       gloost::Point3   parentCenter;
-      int              parentDepth;
+      unsigned         parentDepth;
+
+      char nextChild;
     };
 
 
@@ -118,7 +120,7 @@ class CpuRaycasterSingleRay
 	private:
 
 
-	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
+//	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
 
    std::stack<CpuRaycastStackElement> _stack;
 
