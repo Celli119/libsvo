@@ -338,7 +338,7 @@ Svo::createDiscreteSampleList()
   \remarks ...
 */
 
-std::vector< std::list<DiscreteSample> >&
+std::vector< Svo::SampleList >&
 Svo::getDiscreteSampleLists()
 {
   return _discreteSamples;
@@ -354,12 +354,35 @@ Svo::getDiscreteSampleLists()
   \remarks ...
 */
 
-std::list<DiscreteSample>&
+Svo::SampleList&
 Svo::getDiscreteSampleList(unsigned id)
 {
   return _discreteSamples[id];
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns the number of discrete samples currently stored
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+Svo::getNumDiscreteSamples() const
+{
+
+  unsigned count = 0;
+
+  for (unsigned i=0; i!=_discreteSamples.size(); ++i)
+  {
+    count += _discreteSamples[i].size();
+  }
+
+  return count;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -65,10 +65,10 @@ namespace svo
   \remarks ...
 */
 
-SvoBuilderFaces::SvoBuilderFaces():
+SvoBuilderFaces::SvoBuilderFaces(unsigned numThreads):
     _svo(0),
     _mesh(0),
-    _numBuildThreads(16),
+    _numBuildThreads(numThreads),
     _modifySvoMutex(),
     _matrixStacks(_numBuildThreads, gloost::MatrixStack())
 {
@@ -134,11 +134,9 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     threadGroup.create_thread(boost::bind(&SvoBuilderFaces::runThreadOnRange, this, t, t*range, (t+1)*range ));
   }
 
+  std::cerr << std::endl << "waiting for threads: ";
+
   threadGroup.join_all();
-
-//  svo->normalizeLeafAttribs();
-//  svo->generateInnerNodesAttributes(svo->getRootNode());
-
 
 //  auto t1 = std::chrono::high_resolution_clock::now();
 //  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
@@ -149,12 +147,10 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
   std::cerr << std::endl << "               Number of double Points:   " << _svo->getNumDoublePoints();
   std::cerr << std::endl << "               Octree memory real CPU:    " << _svo->getNumNodes()*sizeof(svo::SvoNode)/1024.0/1024.0 << " MB";
-//  std::cerr << std::endl << "               Build time:                " << duration.count()/1000.0 << " sec";
-  std::cerr << std::endl;
-  std::cerr << std::endl << "             Creating attributes for inner nodes: ";
+  std::cerr << std::endl << "               Discrete samples count:    " << _svo->getNumDiscreteSamples();
+  std::cerr << std::endl << "               Discrete samples memory:   " << _svo->getNumDiscreteSamples()*sizeof(DiscreteSample)/1024.0/1024.0 << " MB";
   std::cerr << std::endl << "               Octree memory serialized:  " << _svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
 //  std::cerr << std::endl << "               Attribs memory serialized: " << _svo->getCurrentAttribPosition()*sizeof(float)/1024.0/1024.0 << " MB";
-  std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
   std::cerr << std::endl;
 //#endif
@@ -181,13 +177,14 @@ SvoBuilderFaces::runThreadOnRange(unsigned threadId,
   for (unsigned i = startIndex; i!=endIndex; ++i)
   {
     const BuilderTriangleFace triFace(_mesh, i);
+//    if (triFace.getCenter()[0] > 0.25)
     if (triFace.intersectAABB(_svo->getBoundingBox()))
     {
       buildRecursive(threadId, 0, triFace);
     }
   }
 
-  std::cerr << std::endl << "   thread: " << threadId << " done.";
+  std::cerr << threadId << " done, ";
 
 }
 

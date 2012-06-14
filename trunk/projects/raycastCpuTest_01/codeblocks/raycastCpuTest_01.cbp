@@ -26,6 +26,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="libsvo" />
 					<Add library="libgloost" />
 					<Add library="tinyxml" />
 				</Linker>
@@ -42,6 +43,7 @@
 					<Add option="-W" />
 				</Compiler>
 				<Linker>
+					<Add library="libsvo_db" />
 					<Add library="libgloost_db" />
 					<Add library="tinyxml" />
 				</Linker>
@@ -60,7 +62,6 @@
 			<Add library="GLEW" />
 			<Add library="glfw" />
 			<Add library="GLU" />
-			<Add library="libsvo" />
 			<Add library="boost_thread" />
 			<Add library="freeimage" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
