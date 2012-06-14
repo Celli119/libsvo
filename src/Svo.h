@@ -128,10 +128,13 @@ class Svo
     unsigned createDiscreteSampleList();
 
     // returns the vector of lists with DiscreteSamples
-    std::vector< std::list<DiscreteSample> >& getDiscreteSampleLists();
+    std::vector< SampleList >& getDiscreteSampleLists();
 
     // returns a lists of DiscreteSamples
-    std::list<DiscreteSample>& getDiscreteSampleList(unsigned id);
+    SampleList& getDiscreteSampleList(unsigned id);
+
+    // returns the number of discrete samples currently stored
+    unsigned getNumDiscreteSamples() const;
 
     // clears all discrete samples to save some mem
     void clearDiscreteSamples();

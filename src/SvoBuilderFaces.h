@@ -60,7 +60,7 @@ class SvoBuilderFaces
 	public:
 
     // class constructor
-    SvoBuilderFaces();
+    SvoBuilderFaces(unsigned numThreads = 16);
 
     // class destructor
 	  virtual ~SvoBuilderFaces();

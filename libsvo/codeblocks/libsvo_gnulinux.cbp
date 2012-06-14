@@ -58,7 +58,6 @@
 			<Add library="GLEW" />
 			<Add library="glut" />
 			<Add library="GLU" />
-			<Add library="boost_thread" />
 			<Add directory="../../../gloost/gnulinux/bin" />
 		</Linker>
 		<Unit filename="../../data/shaders/color_only.fs" />
@@ -79,6 +78,8 @@
 		<Unit filename="../../src/BuilderTriangleFace.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
+		<Unit filename="../../src/CpuRaycasterSingleRay2.cpp" />
+		<Unit filename="../../src/CpuRaycasterSingleRay2.h" />
 		<Unit filename="../../src/CpuSvoNode.cpp" />
 		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />
