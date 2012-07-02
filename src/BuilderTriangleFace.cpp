@@ -152,7 +152,7 @@ BuilderTriangleFace::getCenter() const
 gloost::Vector3
 BuilderTriangleFace::getFaceNormal() const
 {
-  return (_normal0+_normal1+_normal2)*0.3333333333;
+  return (_normal0+_normal1+_normal2)*0.333333333333333;
 }
 
 

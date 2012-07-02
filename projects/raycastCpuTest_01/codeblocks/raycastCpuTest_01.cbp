@@ -29,6 +29,7 @@
 					<Add library="libsvo" />
 					<Add library="libgloost" />
 					<Add library="tinyxml" />
+					<Add library="freeimage" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -46,6 +47,7 @@
 					<Add library="libsvo_db" />
 					<Add library="libgloost_db" />
 					<Add library="tinyxml" />
+					<Add library="freeimage" />
 				</Linker>
 			</Target>
 		</Build>
@@ -63,7 +65,6 @@
 			<Add library="glfw" />
 			<Add library="GLU" />
 			<Add library="boost_thread" />
-			<Add library="freeimage" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>

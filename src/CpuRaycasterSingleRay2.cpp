@@ -195,6 +195,7 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
 
 
   gloost::mathType tcMin;
+  gloost::mathType tcMax;
 
 
 
@@ -213,7 +214,6 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
     gloost::Point3   parentCenter       = parent.parentCenter;
     int              depth              = parent.parentDepth + 1;
     unsigned         nextChild          = parent.nextChild;
-//    _stack.pop();
 
     if (parentTMax < 0.0)
     {
@@ -235,7 +235,6 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
        Depth = 3:
         parentScale = 0.25;
     */
-
 
     //////////////////////////////////// FIRST CHILD of FOUR ////////////////////
 
@@ -278,51 +277,50 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
 
 
       tcMin = gloost::max(tx0, ty0, tz0); // <- you can only enter once
-        //tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
-        parentTMin = gloost::min(tx1, ty1, tz1); // <- you can only leave once
+      tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
 
-        // handle firstChild
-        if (parentNode->getValidMask().getFlag(firstChildIndex))
+      // handle firstChild
+      if (parentNode->getValidMask().getFlag(firstChildIndex))
+      {
+        if (parentNode->getLeafMask().getFlag(firstChildIndex))
         {
-          if (parentNode->getLeafMask().getFlag(firstChildIndex))
-          {
-            return parentNode->getChild(firstChildIndex);
-          }
-          else
-          {
-            CpuRaycastStackElement firstNodeElement;
-            firstNodeElement.parentNode   = parentNode->getChild(firstChildIndex);
-            firstNodeElement.parentTMin   = tcMin;
-            firstNodeElement.parentTMax   = parentTMin;
-            firstNodeElement.parentCenter = firstChildCenter;
-            firstNodeElement.parentDepth  = depth;
-            firstNodeElement.nextChild    = 0;
-
-  //          newStackElements[newElementsCounter++] = firstNodeElement;
-            _stack.top().nextChild  = 1;
-            _stack.top().parentTMin = parentTMin;
-
-            _stack.push(firstNodeElement);
-
-
-            ++_pushCounter;
-
-            continue;
-          }
+          return parentNode->getChild(firstChildIndex);
         }
         else
         {
-          ++nextChild;
+          CpuRaycastStackElement firstNodeElement;
+          firstNodeElement.parentNode   = parentNode->getChild(firstChildIndex);
+          firstNodeElement.parentTMin   = tcMin;
+          firstNodeElement.parentTMax   = tcMax;
+          firstNodeElement.parentCenter = firstChildCenter;
+          firstNodeElement.parentDepth  = depth;
+          firstNodeElement.nextChild    = 0;
+
+//          newStackElements[newElementsCounter++] = firstNodeElement;
+          _stack.top().nextChild  = 1;
+          _stack.top().parentTMin = tcMax;
+
+          _stack.push(firstNodeElement);
+
+
+          ++_pushCounter;
+
+          continue;
         }
+      }
+      else
+      {
+        ++nextChild;
+      }
     }
 
     //////////////////////////////////// SECOND CHILD of FOUR ////////////////////
-    if(nextChild == 1 && parentTMin < parentTMax)
+    if(nextChild == 1 && tcMax < parentTMax)
     {
       // in parent voxel coordinates
-      gloost::Point3 secondChildEntryPoint = (ray.getOrigin() + (parentTMin + 0.0001) * ray.getDirection()) - parentCenter;
+      gloost::Point3 secondChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
       unsigned int   secondChildIndex = 4*(secondChildEntryPoint[0] > 0)
                                       + 2*(secondChildEntryPoint[1] > 0)
                                       +   (secondChildEntryPoint[2] > 0);
@@ -359,47 +357,47 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
 
       tcMin = gloost::max(tx0, ty0, tz0);
 
-        //tcMax = gloost::min(tx1, ty1, tz1);
-        parentTMin = gloost::min(tx1, ty1, tz1);
+      //tcMax = gloost::min(tx1, ty1, tz1);
+      tcMax = gloost::min(tx1, ty1, tz1);
 
 
-        // handle firstChild
-        if (parentNode->getValidMask().getFlag(secondChildIndex))
+      // handle firstChild
+      if (parentNode->getValidMask().getFlag(secondChildIndex))
+      {
+        if (parentNode->getLeafMask().getFlag(secondChildIndex))
         {
-          if (parentNode->getLeafMask().getFlag(secondChildIndex))
-          {
-            return parentNode->getChild(secondChildIndex);
-          }
-          else
-          {
-            CpuRaycastStackElement secondNodeElement;
-            secondNodeElement.parentNode   = parentNode->getChild(secondChildIndex);
-            secondNodeElement.parentTMin   = tcMin;
-            secondNodeElement.parentTMax   = parentTMin;
-            secondNodeElement.parentCenter = secondChildCenter;
-            secondNodeElement.parentDepth  = depth;
-
-            //newStackElements[newElementsCounter++] = (secondNodeElement);
-            _stack.top().nextChild  = 2;
-            _stack.top().parentTMin = parentTMin;
-
-            _stack.push(secondNodeElement);
-
-            ++_pushCounter;
-
-            continue;
-          }
+          return parentNode->getChild(secondChildIndex);
         }
-        else{
-          ++nextChild;
+        else
+        {
+          CpuRaycastStackElement secondNodeElement;
+          secondNodeElement.parentNode   = parentNode->getChild(secondChildIndex);
+          secondNodeElement.parentTMin   = tcMin;
+          secondNodeElement.parentTMax   = tcMax;
+          secondNodeElement.parentCenter = secondChildCenter;
+          secondNodeElement.parentDepth  = depth;
+
+          //newStackElements[newElementsCounter++] = (secondNodeElement);
+          _stack.top().nextChild  = 2;
+          _stack.top().parentTMin = tcMax;
+
+          _stack.push(secondNodeElement);
+
+          ++_pushCounter;
+
+          continue;
         }
+      }
+      else{
+        ++nextChild;
+      }
     } // if still in parentNode
 
     //////////////////////////////////// THIRD CHILD of FOUR ////////////////////
-    if(nextChild == 2 && parentTMin < parentTMax)
+    if(nextChild == 2 && tcMax < parentTMax)
     {
       // in parent voxel coordinates
-      gloost::Point3 thirdChildEntryPoint = (ray.getOrigin() + (parentTMin + 0.0001) * ray.getDirection()) - parentCenter;
+      gloost::Point3 thirdChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
       unsigned int   thirdChildIndex =  4*(thirdChildEntryPoint[0] > 0)
                                       + 2*(thirdChildEntryPoint[1] > 0)
                                       +   (thirdChildEntryPoint[2] > 0);
@@ -437,7 +435,7 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
       tcMin = gloost::max(tx0, ty0, tz0);
 
       //tcMax = gloost::min(tx1, ty1, tz1);
-      parentTMin = gloost::min(tx1, ty1, tz1);
+      tcMax = gloost::min(tx1, ty1, tz1);
 
 
         // handle firstChild
@@ -452,13 +450,13 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
             CpuRaycastStackElement thirdNodeElement;
             thirdNodeElement.parentNode   = parentNode->getChild(thirdChildIndex);
             thirdNodeElement.parentTMin   = tcMin;
-            thirdNodeElement.parentTMax   = parentTMin;
+            thirdNodeElement.parentTMax   = tcMax;
             thirdNodeElement.parentCenter = thirdChildCenter;
             thirdNodeElement.parentDepth  = depth;
 
             //newStackElements[newElementsCounter++] = (thirdNodeElement);
             _stack.top().nextChild  = 3;
-            _stack.top().parentTMin = parentTMin;
+            _stack.top().parentTMin = tcMax;
 
             _stack.push(thirdNodeElement);
 
@@ -477,10 +475,10 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
     ++_popCounter;
 
     //////////////////////////////////// FOURTH CHILD of FOUR ////////////////////
-    if(nextChild == 3 && parentTMin < parentTMax)
+    if(nextChild == 3 && tcMax < parentTMax)
     {
       // in parent voxel coordinates
-      gloost::Point3 fourthChildEntryPoint = (ray.getOrigin() + (parentTMin + 0.0001) * ray.getDirection()) - parentCenter;
+      gloost::Point3 fourthChildEntryPoint = (ray.getOrigin() + (tcMax + 0.0001) * ray.getDirection()) - parentCenter;
       unsigned int   fourthChildIndex =  4*(fourthChildEntryPoint[0] > 0)
                                        + 2*(fourthChildEntryPoint[1] > 0)
                                        +   (fourthChildEntryPoint[2] > 0);
@@ -518,7 +516,7 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
       tcMin = gloost::max(tx0, ty0, tz0);
 
         //tcMax = gloost::min(tx1, ty1, tz1);
-        parentTMin = gloost::min(tx1, ty1, tz1);
+        tcMax = gloost::min(tx1, ty1, tz1);
 
 
         // handle
@@ -533,7 +531,7 @@ CpuRaycasterSingleRay2::traversSvo(const gloost::Ray& ray, float tMin, float tMa
             CpuRaycastStackElement fourthNodeElement;
             fourthNodeElement.parentNode   = parentNode->getChild(fourthChildIndex);
             fourthNodeElement.parentTMin   = tcMin;
-            fourthNodeElement.parentTMax   = parentTMin;
+            fourthNodeElement.parentTMax   = tcMax;
             fourthNodeElement.parentCenter = fourthChildCenter;
             fourthNodeElement.parentDepth  = depth;
 

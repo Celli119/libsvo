@@ -177,8 +177,7 @@ SvoBuilderFaces::runThreadOnRange(unsigned threadId,
   for (unsigned i = startIndex; i!=endIndex; ++i)
   {
     const BuilderTriangleFace triFace(_mesh, i);
-//    if (triFace.getCenter()[0] > 0.25)
-    if (triFace.intersectAABB(_svo->getBoundingBox()))
+//    if (triFace.intersectAABB(_svo->getBoundingBox()))
     {
       buildRecursive(threadId, 0, triFace);
     }

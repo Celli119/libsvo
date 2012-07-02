@@ -177,12 +177,12 @@ void init()
 //#define BUILD_VISUALIZATION_LEAVES
 
 
-  g_numThreads = 16;
+  g_numThreads = 8;
 
-  g_bufferWidth  = 1920*0.25;
-  g_bufferHeight = 1200*0.25;
+  g_bufferWidth  = g_screenWidth/1;
+  g_bufferHeight = g_screenHeight/1;
 
-  const unsigned maxDepth = 10;
+  const unsigned maxDepth = 12;
 
 
   // create screencoords
@@ -267,6 +267,11 @@ void init()
   gloost::Mesh* mesh = loader.getMesh();
   mesh->center();
   mesh->scaleToSize(1.0);
+
+  mesh->transform(gloost::Matrix::createTransMatrix(0.0, 0.0, -0.8));
+
+
+
 #else
   gloost::Mesh* mesh = new gloost::Mesh();
   mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, 0.25));
@@ -386,7 +391,6 @@ void init()
 
     for (unsigned i=0; i!=g_numThreads; ++i)
     {
-
       std::cerr << std::endl << "Thread :" << i;
       std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
       std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
@@ -466,13 +470,11 @@ void buildSvoVisualization()
 
 
 #ifdef BUILD_VISUALIZATION_LEAVES
-
   if (g_svoVisualizerLeaves == 0)
   {
     g_svoVisualizerLeaves = new svo::SvoVisualizer(maxDepth, SVO_VISUALIZER_MODE_BOXED_LEAFES);
     g_svoVisualizerLeaves->build(g_svo);
   }
-
 #endif
 
 }
@@ -611,13 +613,14 @@ void frameStep()
 //  }
 
 
-  if (g_frameCounter % 10 == 0)
+  if (g_frameCounter % 3 == 0)
   {
-
-    boost::mutex::scoped_lock(g_bufferAccessMutex);
-    memcpy(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels(),
-           g_renderBuffer,
-           g_bufferWidth*g_bufferHeight*3*sizeof(float));
+    {
+      boost::mutex::scoped_lock(g_bufferAccessMutex);
+      memcpy(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels(),
+             g_renderBuffer,
+             g_bufferWidth*g_bufferHeight*3*sizeof(float));
+    }
 
     gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->removeFromContext();
     gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
@@ -681,6 +684,8 @@ raycastIntoFrameBuffer(unsigned startIndex,
 
       if (node)
       {
+
+        boost::mutex::scoped_lock(g_bufferAccessMutex);
         unsigned attribPos   = node->getAttribPosition();
         unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
         g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
@@ -689,6 +694,8 @@ raycastIntoFrameBuffer(unsigned startIndex,
       }
       else
       {
+
+        boost::mutex::scoped_lock(g_bufferAccessMutex);
         g_renderBuffer[pixelIndex++] = 0.2;
         g_renderBuffer[pixelIndex++] = 0.2;
         g_renderBuffer[pixelIndex++] = 0.25;
