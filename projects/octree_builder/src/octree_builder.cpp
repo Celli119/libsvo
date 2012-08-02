@@ -173,7 +173,7 @@ void init()
 //  g_meshFilename = "DecileafNodemated_Head_low.ply";
 //  g_meshFilename = "Decimated_Head.ply";
 //  g_meshFilename = "skelet.ply";
-//  g_meshFilename = "Decimated_Head_high.ply";
+  g_meshFilename = "Decimated_Head.ply";
 //  g_meshFilename = "alligator_head.ply";
 //  g_meshFilename = "furniture_leg_color.ply";
 //  g_meshFilename = "GlenRoseTrack.ply";
@@ -225,7 +225,7 @@ void init()
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
-  g_meshFilename = "frog2_seperated.ply";
+//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
 //  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
@@ -241,15 +241,15 @@ void init()
   g_mesh = ply.getMesh();
 
 
-  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
-  gloost::Mesh* mesh2 = ply2.getMesh();
-
-  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
-  {
-    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
-    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
-    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
-  }
+//  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
+//  gloost::Mesh* mesh2 = ply2.getMesh();
+//
+//  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
+//  {
+//    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
+//    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
+//    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
+//  }
 
 
 

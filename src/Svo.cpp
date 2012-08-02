@@ -209,6 +209,10 @@ unsigned int
 Svo::serializeSvo()
 {
 
+  std::cerr << std::endl << "Message from Svo::serializeSvo(): ";
+  std::cerr << std::endl << "             serializing svo nodes structure";
+
+
   std::queue<QueuedNode> nodeQueue;
 
   QueuedNode queuedNode;
@@ -266,7 +270,8 @@ Svo::serializeSvo()
 
   std::cerr << std::endl << "sizeof(CpuSvoNode): " << sizeof(CpuSvoNode);
 
-  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(), _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
+  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(),
+                                                  _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 }
 
 
@@ -309,6 +314,22 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
                       _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 
   outfile.close();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns a serialized SvoNode for an index
+  \param ...
+  \remarks ...
+*/
+
+CpuSvoNode
+Svo::getSerializedNodeForIndex(unsigned index)
+{
+  return _serializedCpuSvoNodes[index];
 }
 
 

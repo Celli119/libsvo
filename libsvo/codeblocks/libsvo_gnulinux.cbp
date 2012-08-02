@@ -80,6 +80,8 @@
 		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay2.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay2.h" />
+		<Unit filename="../../src/CpuRaycasterSingleRay3.cpp" />
+		<Unit filename="../../src/CpuRaycasterSingleRay3.h" />
 		<Unit filename="../../src/CpuSvoNode.cpp" />
 		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />

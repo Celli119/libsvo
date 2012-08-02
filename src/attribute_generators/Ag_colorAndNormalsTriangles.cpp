@@ -146,8 +146,8 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
 	_attributes[0] = new gloost::InterleavedAttributes(attribBundle);
 	_attributes[0]->takeReference();
 
-	_attributes[0]->addInterleavedAttrib(3, 12, "normals");
-	_attributes[0]->addInterleavedAttrib(3, 12, "colors");
+	_attributes[0]->addAttribute(3, 12, "normals");
+	_attributes[0]->addAttribute(3, 12, "colors");
 
   std::cerr << std::endl;
   std::cerr << std::endl << "  -> Generating attributes for inner nodes: ";
