@@ -120,6 +120,10 @@ class Svo
     bool writeSerializedSvoToFile(const std::string& filePath);
 
 
+    // returns a serialized SvoNode for an index
+    CpuSvoNode getSerializedNodeForIndex(unsigned index);
+
+
 
     typedef std::vector< std::list<DiscreteSample> > SampleListVector;
     typedef std::list<DiscreteSample>                SampleList;

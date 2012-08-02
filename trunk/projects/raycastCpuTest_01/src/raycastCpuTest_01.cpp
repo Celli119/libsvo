@@ -91,7 +91,7 @@ svo::Svo* g_svo = 0;
 svo::SvoVisualizer* g_svoVisualizerNodes     = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves    = 0;
 #include <CpuRaycasterSingleRay.h>
-#include <CpuRaycasterSingleRay2.h>
+#include <CpuRaycasterSingleRay3.h>
 int g_maxRayCastDepth = 1;
 
 
@@ -111,6 +111,7 @@ gloost::Shader*     g_SvoVisualizingShader = 0;
 #include <gloost/Texture.h>
 
 unsigned g_framebufferTextureId = 0;
+#include <gloost/gloostHelper.h>
 
 
 #include <boost/thread.hpp>
@@ -153,17 +154,15 @@ bool  g_toggle_run_raycasting = true;
 boost::mutex g_bufferAccessMutex;
 
 
-bool g_toggle_renderer = false;
-unsigned g_numThreads = 1;
-
-
+bool     g_toggle_renderer = false;
+unsigned g_num_building_Threads = 8;
+unsigned g_num_render_Threads   = 1;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
-  /// load and initialize resources for our demo
 
 void init()
 {
@@ -177,12 +176,12 @@ void init()
 //#define BUILD_VISUALIZATION_LEAVES
 
 
-  g_numThreads = 8;
+  g_num_render_Threads = 1;
 
-  g_bufferWidth  = g_screenWidth/1;
-  g_bufferHeight = g_screenHeight/1;
+  g_bufferWidth  = g_screenWidth/16;
+  g_bufferHeight = g_screenHeight/16;
 
-  const unsigned maxDepth = 12;
+  const unsigned maxDepth = 5;
 
 
   // create screencoords
@@ -268,7 +267,7 @@ void init()
   mesh->center();
   mesh->scaleToSize(1.0);
 
-  mesh->transform(gloost::Matrix::createTransMatrix(0.0, 0.0, -0.8));
+//  mesh->transform(gloost::Matrix::createTransMatrix(0.0, 0.0, -0.8));
 
 
 
@@ -379,33 +378,33 @@ void init()
 
   // raycast into framebuffer
 
-  static unsigned currentScreenCoordIndex      = 0;
-  static unsigned samplesPerThreadAnditeration = (g_bufferWidth*g_bufferHeight)/g_numThreads;
-
-  std::cerr << std::endl << "g_numThreads:                 " << g_numThreads;
-  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
-  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
-
-//  if (g_showRayCastImage)
-  {
-
-    for (unsigned i=0; i!=g_numThreads; ++i)
-    {
-      std::cerr << std::endl << "Thread :" << i;
-      std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
-      std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
-
-
-      g_threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
-                                                currentScreenCoordIndex,
-                                                samplesPerThreadAnditeration,
-                                                i) );
-
-      currentScreenCoordIndex += samplesPerThreadAnditeration;
-    }
-
-//    g_threadGroup.join_all();
-  }
+//  static unsigned currentScreenCoordIndex      = 0;
+//  static unsigned samplesPerThreadAnditeration = (g_bufferWidth*g_bufferHeight)/g_num_render_Threads;
+//
+//  std::cerr << std::endl << "g_num_render_Threads:                 " << g_num_render_Threads;
+//  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
+//  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
+//
+////  if (g_showRayCastImage)
+//  {
+//
+//    for (unsigned i=0; i!=g_num_render_Threads; ++i)
+//    {
+//      std::cerr << std::endl << "Thread :" << i;
+//      std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
+//      std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
+//
+//
+//      g_threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
+//                                                currentScreenCoordIndex,
+//                                                samplesPerThreadAnditeration,
+//                                                i) );
+//
+//      currentScreenCoordIndex += samplesPerThreadAnditeration;
+//    }
+//
+////    g_threadGroup.join_all();
+//  }
 
 
 }
@@ -432,12 +431,13 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
   }
 
 #ifdef LOAD_MESH_AS_TESTDATA
-  svo::SvoBuilderFaces builder(16);
+  svo::SvoBuilderFaces builder(g_num_building_Threads);
 #else
   svo::SvoBuilderVertices builder;
 #endif
 
   builder.build(g_svo, mesh);
+  g_svo->serializeSvo();
 
   //
   svo::Ag_colorAndNormalsTriangles generator;
@@ -587,30 +587,38 @@ void frameStep()
 
 
   unsigned currentScreenCoordIndex      = 0;
-  unsigned samplesPerThreadAnditeration = (g_bufferHeight*g_bufferWidth)/g_numThreads;
+  unsigned samplesPerThreadAnditeration = (g_bufferHeight*g_bufferWidth)/g_num_render_Threads;
 
-//  std::cerr << std::endl << "g_numThreads:                 " << g_numThreads;
+//  std::cerr << std::endl << "g_num_render_Threads:                 " << g_num_render_Threads;
 //  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
 //  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
 
 
-//  boost::thread_group threadGroup;
+  boost::thread_group threadGroup;
 
-//  if (g_showRayCastImage)
-//  {
-//
-//    for (unsigned i=0; i!=g_numThreads; ++i)
-//    {
-//      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
-//                                                currentScreenCoordIndex,
-//                                                samplesPerThreadAnditeration,
-//                                                i) );
-//
-//      currentScreenCoordIndex += samplesPerThreadAnditeration;
-//    }
-//
-//    threadGroup.join_all();
-//  }
+
+#ifdef USE_THREADED_RENDERING
+
+  if (g_showRayCastImage)
+  {
+
+    for (unsigned i=0; i!=g_num_render_Threads; ++i)
+    {
+      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
+                                                currentScreenCoordIndex,
+                                                samplesPerThreadAnditeration,
+                                                i) );
+
+      currentScreenCoordIndex += samplesPerThreadAnditeration;
+    }
+
+    threadGroup.join_all();
+  }
+#else
+
+  raycastIntoFrameBuffer(0,g_bufferHeight*g_bufferWidth,0);
+
+#endif
 
 
   if (g_frameCounter % 3 == 0)
@@ -641,7 +649,7 @@ raycastIntoFrameBuffer(unsigned startIndex,
                        unsigned threadId)
 {
   svo::CpuRaycasterSingleRay  raycaster1;
-  svo::CpuRaycasterSingleRay2 raycaster2;
+  svo::CpuRaycasterSingleRay3 raycaster3;
   //    float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
 //  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
 
@@ -651,7 +659,7 @@ raycastIntoFrameBuffer(unsigned startIndex,
 
 
 
-  while (g_toggle_run_raycasting)
+//  while (g_toggle_run_raycasting)
   {
     for (unsigned i=startIndex; i!=startIndex+count; ++i)
     {
@@ -667,63 +675,88 @@ raycastIntoFrameBuffer(unsigned startIndex,
       ray.getOrigin() += g_modelOffset;
 
 
-
       svo::SvoNode* node = 0;
+
+
       if (g_toggle_renderer == 0)
       {
         node = raycaster1.start(ray, g_svo);
+
+        unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
+
+        if (node)
+        {
+
+          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          unsigned attribPos   = node->getAttribPosition();
+          unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+        }
+        else
+        {
+          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          g_renderBuffer[pixelIndex++] = 0.2;
+          g_renderBuffer[pixelIndex++] = 0.2;
+          g_renderBuffer[pixelIndex++] = 0.25;
+        }
       }
-      else
+      else // raycaster3
       {
-        node = raycaster2.start(ray, g_svo);
+        svo::CpuSvoNode cpuNode = raycaster3.start(ray, g_svo);
+
+        unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
+
+//        if (node)
+        {
+
+          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          unsigned attribPos   = cpuNode.getAttribPosition();
+          unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+        }
+//        else
+//        {
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
+//          g_renderBuffer[pixelIndex++] = 0.3;
+//          g_renderBuffer[pixelIndex++] = 0.2;
+//          g_renderBuffer[pixelIndex++] = 0.2;
+//        }
+
       }
 
-      unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
 
-//      boost::mutex::scoped_lock(g_bufferAccessMutex);
 
-      if (node)
-      {
-
-        boost::mutex::scoped_lock(g_bufferAccessMutex);
-        unsigned attribPos   = node->getAttribPosition();
-        unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
-        g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
-        g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
-        g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
-      }
-      else
-      {
-
-        boost::mutex::scoped_lock(g_bufferAccessMutex);
-        g_renderBuffer[pixelIndex++] = 0.2;
-        g_renderBuffer[pixelIndex++] = 0.2;
-        g_renderBuffer[pixelIndex++] = 0.25;
-      }
     }
 
   }
 
-  if (g_toggle_renderer == 0)
-  {
-    std::cerr << std::endl << "raycaster 1 pushes: " << raycaster1._pushCounter;
-    std::cerr << std::endl << "raycaster 1 pop:    " << raycaster1._popCounter;
-    std::cerr << std::endl << "raycaster 1 while:  " << raycaster1._whileCounter;
-    std::cerr << std::endl;
-    raycaster1._pushCounter  = 0;
-    raycaster1._popCounter   = 0;
-    raycaster1._whileCounter = 0;
-  }
-  else
-  {
-    std::cerr << std::endl << "raycaster 2 pushes: " << raycaster2._pushCounter;
-    std::cerr << std::endl << "raycaster 2 pop:    " << raycaster2._popCounter;
-    std::cerr << std::endl << "raycaster 2 while:  " << raycaster2._whileCounter;
-    std::cerr << std::endl;
-    raycaster2._pushCounter  = 0;
-    raycaster2._popCounter   = 0;
-    raycaster2._whileCounter = 0;
-  }
+
+
+
+//  if (g_toggle_renderer == 0)
+//  {
+//    std::cerr << std::endl << "raycaster 1 pushes: " << raycaster1._pushCounter;
+//    std::cerr << std::endl << "raycaster 1 pop:    " << raycaster1._popCounter;
+//    std::cerr << std::endl << "raycaster 1 while:  " << raycaster1._whileCounter;
+//    std::cerr << std::endl;
+//    raycaster1._pushCounter  = 0;
+//    raycaster1._popCounter   = 0;
+//    raycaster1._whileCounter = 0;
+//  }
+//  else
+//  {
+//    std::cerr << std::endl << "raycaster 2 pushes: " << raycaster3._pushCounter;
+//    std::cerr << std::endl << "raycaster 2 pop:    " << raycaster3._popCounter;
+//    std::cerr << std::endl << "raycaster 2 while:  " << raycaster3._whileCounter;
+//    std::cerr << std::endl;
+//    raycaster3._pushCounter  = 0;
+//    raycaster3._popCounter   = 0;
+//    raycaster3._whileCounter = 0;
+//  }
 
 
 

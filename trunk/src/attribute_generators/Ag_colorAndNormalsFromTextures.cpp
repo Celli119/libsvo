@@ -154,8 +154,8 @@ Ag_colorAndNormalsFromTextures::generate(Svo* svo,
 	_interleavedAttributBuffer = new gloost::InterleavedAttributes(attribBundle);
 	_interleavedAttributBuffer->takeReference();
 
-	_interleavedAttributBuffer->addInterleavedAttrib(3, 12, "normals");
-	_interleavedAttributBuffer->addInterleavedAttrib(3, 12, "colors");
+	_interleavedAttributBuffer->addAttribute(3, 12, "normals");
+	_interleavedAttributBuffer->addAttribute(3, 12, "colors");
 }
 
 
