@@ -91,6 +91,7 @@ svo::Svo* g_svo = 0;
 svo::SvoVisualizer* g_svoVisualizerNodes     = 0;
 svo::SvoVisualizer* g_svoVisualizerLeaves    = 0;
 #include <CpuRaycasterSingleRay.h>
+#include <CpuRaycasterSingleRay2.h>
 #include <CpuRaycasterSingleRay3.h>
 int g_maxRayCastDepth = 1;
 
@@ -169,19 +170,18 @@ void init()
 
 #define OPEN_GL_WINDOW
 //#define DRAW_MESH
-#define LOAD_MESH_AS_TESTDATA
 
 #define BUILD_SVO
 //#define BUILD_VISUALIZATION_NODES
 //#define BUILD_VISUALIZATION_LEAVES
 
+#define USE_THREADED_RENDERING
+  g_num_render_Threads = 12;
 
-  g_num_render_Threads = 1;
+  g_bufferWidth  = g_screenWidth/8;
+  g_bufferHeight = g_screenHeight/8;
 
-  g_bufferWidth  = g_screenWidth/16;
-  g_bufferHeight = g_screenHeight/16;
-
-  const unsigned maxDepth = 5;
+  const unsigned maxDepth = 9;
 
 
   // create screencoords
@@ -195,15 +195,15 @@ void init()
     }
 
   // mix screen coords
-  for (unsigned i=0; i!=g_screenCoords.size()*12; ++i)
-  {
-    unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
-    unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
-
-    gloost::Vector2 tmp    = g_screenCoords[index1];
-    g_screenCoords[index1] = g_screenCoords[index2];
-    g_screenCoords[index2] = tmp;
-  }
+//  for (unsigned i=0; i!=g_screenCoords.size()*12; ++i)
+//  {
+//    unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
+//    unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
+//
+//    gloost::Vector2 tmp    = g_screenCoords[index1];
+//    g_screenCoords[index1] = g_screenCoords[index2];
+//    g_screenCoords[index2] = tmp;
+//  }
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
 
@@ -214,7 +214,6 @@ void init()
 
   // points to build an example svo
 
-#ifdef LOAD_MESH_AS_TESTDATA
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/baahm_toroid.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Hitachi_FH200.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/lucy_0.25.ply");
@@ -252,57 +251,10 @@ void init()
     loader.getMesh()->getColors()[i].b = loader.getMesh()->getColors()[i].b * loader1.getMesh()->getColors()[i].r;
   }
 
-//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Car_BMW_X5_N030711.ply");
-//  gloost::PlyLoader loader1("/home/otaco/Desktop/ply/Car_BMW_X5_N030711_ao.ply");
-//
-//  for (unsigned i=0; i!=loader.getMesh()->getVertices().size(); ++i)
-//  {
-//    loader.getMesh()->getColors()[i].r = loader.getMesh()->getColors()[i].r * loader1.getMesh()->getColors()[i].r;
-//    loader.getMesh()->getColors()[i].g = loader.getMesh()->getColors()[i].g * loader1.getMesh()->getColors()[i].r;
-//    loader.getMesh()->getColors()[i].b = loader.getMesh()->getColors()[i].b * loader1.getMesh()->getColors()[i].r;
-//  }
-
 
   gloost::Mesh* mesh = loader.getMesh();
   mesh->center();
   mesh->scaleToSize(1.0);
-
-//  mesh->transform(gloost::Matrix::createTransMatrix(0.0, 0.0, -0.8));
-
-
-
-#else
-  gloost::Mesh* mesh = new gloost::Mesh();
-  mesh->getVertices().push_back(gloost::Point3(0.25, 0.25, 0.25));
-  mesh->getVertices().push_back(gloost::Point3(0.5, 0.5, 0.5));
-  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, 0.25));
-  mesh->getVertices().push_back(gloost::Point3(0.25, -0.25, -0.25));
-  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, 0.25));
-  mesh->getVertices().push_back(gloost::Point3(-0.25, 0.25, -0.25));
-  mesh->getVertices().push_back(gloost::Point3(-0.4, -0.3, 0.2));
-  mesh->getVertices().push_back(gloost::Point3(-0.25, -0.25, -0.25));
-
-
-  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, 0.25));
-  mesh->getNormals().push_back(gloost::Vector3(0.25, 0.25, -0.25));
-  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, 0.25));
-  mesh->getNormals().push_back(gloost::Vector3(0.25, -0.25, -0.25));
-  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, 0.25));
-  mesh->getNormals().push_back(gloost::Vector3(-0.25, 0.25, -0.25));
-  mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, 0.25));
-  mesh->getNormals().push_back(gloost::Vector3(-0.25, -0.25, -0.25));
-
-
-  mesh->getColors().push_back(gloost::vec4(0.0,0.0,0.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(0.0,0.0,1.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(0.0,1.0,0.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(0.0,1.0,1.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(1.0,0.0,0.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(1.0,0.0,1.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(1.0,1.0,0.0,1.0));
-  mesh->getColors().push_back(gloost::vec4(1.0,1.0,1.0,1.0));
-#endif
-
   mesh->takeReference();
 
 
@@ -368,7 +320,7 @@ void init()
                                            0.01,
                                            20.0);
 
-  g_camera->lookAt(gloost::Point3(0.0f, 1.0f, 3.0f),
+  g_camera->lookAt(gloost::Point3(0.0f, 1.0f, -3.0f),
                    gloost::Point3(0.0f, 0.0f, 0.0f),
                    gloost::Vector3(0.0f, 1.0f, 0.0f));
 
@@ -430,11 +382,7 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
     g_svo = new svo::Svo(maxSvoDepth);
   }
 
-#ifdef LOAD_MESH_AS_TESTDATA
   svo::SvoBuilderFaces builder(g_num_building_Threads);
-#else
-  svo::SvoBuilderVertices builder;
-#endif
 
   builder.build(g_svo, mesh);
   g_svo->serializeSvo();
@@ -621,7 +569,7 @@ void frameStep()
 #endif
 
 
-  if (g_frameCounter % 3 == 0)
+//  if (g_frameCounter % 3 == 0)
   {
     {
       boost::mutex::scoped_lock(g_bufferAccessMutex);
@@ -649,7 +597,7 @@ raycastIntoFrameBuffer(unsigned startIndex,
                        unsigned threadId)
 {
   svo::CpuRaycasterSingleRay  raycaster1;
-  svo::CpuRaycasterSingleRay3 raycaster3;
+  svo::CpuRaycasterSingleRay2 raycaster2;
   //    float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
 //  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
 
@@ -673,21 +621,19 @@ raycastIntoFrameBuffer(unsigned startIndex,
 
 //      ray = offset * ray;
       ray.getOrigin() += g_modelOffset;
-
-
       svo::SvoNode* node = 0;
 
+      unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
 
       if (g_toggle_renderer == 0)
       {
         node = raycaster1.start(ray, g_svo);
 
-        unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
 
         if (node)
         {
 
-          boost::mutex::scoped_lock(g_bufferAccessMutex);
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
           unsigned attribPos   = node->getAttribPosition();
           unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
@@ -696,36 +642,32 @@ raycastIntoFrameBuffer(unsigned startIndex,
         }
         else
         {
-          boost::mutex::scoped_lock(g_bufferAccessMutex);
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          g_renderBuffer[pixelIndex++] = 0.3;
           g_renderBuffer[pixelIndex++] = 0.2;
           g_renderBuffer[pixelIndex++] = 0.2;
-          g_renderBuffer[pixelIndex++] = 0.25;
         }
       }
-      else // raycaster3
+      else // raycaster2
       {
-        svo::CpuSvoNode cpuNode = raycaster3.start(ray, g_svo);
+        node = raycaster2.start(ray, g_svo);
 
-        unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
-
-//        if (node)
+        if (node)
         {
-
-          boost::mutex::scoped_lock(g_bufferAccessMutex);
-          unsigned attribPos   = cpuNode.getAttribPosition();
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          unsigned attribPos   = node->getAttribPosition();
           unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
         }
-//        else
-//        {
+        else
+        {
 //          boost::mutex::scoped_lock(g_bufferAccessMutex);
-//          g_renderBuffer[pixelIndex++] = 0.3;
-//          g_renderBuffer[pixelIndex++] = 0.2;
-//          g_renderBuffer[pixelIndex++] = 0.2;
-//        }
-
+          g_renderBuffer[pixelIndex++] = 0.2;
+          g_renderBuffer[pixelIndex++] = 0.3;
+          g_renderBuffer[pixelIndex++] = 0.2;
+        }
       }
 
 
@@ -739,13 +681,15 @@ raycastIntoFrameBuffer(unsigned startIndex,
 
 //  if (g_toggle_renderer == 0)
 //  {
-//    std::cerr << std::endl << "raycaster 1 pushes: " << raycaster1._pushCounter;
-//    std::cerr << std::endl << "raycaster 1 pop:    " << raycaster1._popCounter;
-//    std::cerr << std::endl << "raycaster 1 while:  " << raycaster1._whileCounter;
-//    std::cerr << std::endl;
-//    raycaster1._pushCounter  = 0;
-//    raycaster1._popCounter   = 0;
-//    raycaster1._whileCounter = 0;
+//////    std::cerr << std::endl << "raycaster 1 pushes: " << raycaster1._pushCounter;
+//////    std::cerr << std::endl << "raycaster 1 pop:    " << raycaster1._popCounter;
+//////    std::cerr << std::endl << "raycaster 1 while:  " << raycaster1._whileCounter;
+////    std::cerr << std::endl << "raycaster 1 max stack depth:  " << raycaster2._max_stack_size;
+//////    std::cerr << std::endl;
+//////    raycaster1._pushCounter  = 0;
+//////    raycaster1._popCounter   = 0;
+//////    raycaster1._whileCounter = 0;
+////    raycaster2._max_stack_size = 0;
 //  }
 //  else
 //  {
@@ -782,8 +726,8 @@ void draw3d(void)
   g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
                                    g_cameraRotateX,
                                    cos(g_cameraRotateY)).normalized() * g_cameraDistance,
-                                     gloost::Point3(0.0f, 0.0f, 0.0f),
-                                     gloost::Vector3(0.0f, 1.0f, 0.0f));
+                                   gloost::Point3(0.0f, 0.0f, 0.0f),
+                                   gloost::Vector3(0.0f, 1.0f, 0.0f));
 
   g_camera->set();
 
@@ -1103,14 +1047,6 @@ void key(int key, int state)
 
 int main(int argc, char *argv[])
 {
-//  glfwCreateThread( pollEvents, NULL);
-
-  /// enable sync to vblank on linux to control the demo fps
-#ifdef GLOOST_GNULINUX
-  setenv("__GL_SYNC_TO_VBLANK","1",true);
-#endif
-
-
 
   /// load and intialize stuff for our demo
   init();

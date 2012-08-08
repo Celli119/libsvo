@@ -83,11 +83,10 @@ class CpuRaycasterSingleRay2
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  SvoNode* traversSvo(const gloost::Ray& ray, float tMin, float tMax);
-
-
-	  // intersects the Svo BoundingBox and writes to _tMin and _tMax
-	  bool intersectBoundingBox(const gloost::Ray& ray);
+	  SvoNode* traversSvo(gloost::Point3 origin,
+                        gloost::Vector3 direction,
+                        float tMin,
+                        float tMax);
 
 
     struct CpuRaycastStackElement
@@ -97,7 +96,6 @@ class CpuRaycasterSingleRay2
         parentTMin(0),
         parentTMax(0),
         parentCenter(),
-        parentDepth(0),
         nextChild(0)
       {}
 
@@ -106,15 +104,11 @@ class CpuRaycasterSingleRay2
       gloost::mathType parentTMax;
 
       gloost::Point3   parentCenter;
-      unsigned         parentDepth;
 
       char nextChild;
     };
 
-
-    unsigned _pushCounter;
-    unsigned _popCounter;
-    unsigned _whileCounter;
+    int _max_stack_size;
 
 
 	private:
@@ -122,7 +116,8 @@ class CpuRaycasterSingleRay2
 
 //	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
 
-   std::stack<CpuRaycastStackElement> _stack;
+   std::vector<CpuRaycastStackElement> _stack;
+   int                                 _currentDepth;
 
 
    gloost::mathType _tMin;
