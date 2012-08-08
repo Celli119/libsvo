@@ -83,7 +83,7 @@ class CpuRaycasterSingleRay
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  virtual SvoNode* traversSvo(const gloost::Ray& ray, float tMin, float tMax);
+	  virtual SvoNode* traversSvo(gloost::Ray ray, float tMin, float tMax);
 
 
 	  // intersects the Svo BoundingBox and writes to _tMin and _tMax
@@ -113,6 +113,7 @@ class CpuRaycasterSingleRay
     unsigned _pushCounter;
     unsigned _popCounter;
     unsigned _whileCounter;
+    unsigned _maxStackDepth;
 
 
 	private:

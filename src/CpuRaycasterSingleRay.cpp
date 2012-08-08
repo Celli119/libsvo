@@ -62,6 +62,9 @@ namespace svo
 
 CpuRaycasterSingleRay::CpuRaycasterSingleRay(bool verboseMode):
   _pushCounter(0),
+  _popCounter(0),
+  _whileCounter(0),
+  _maxStackDepth(0),
   _stack(),
   _tMin(0),
   _tMax(0),
@@ -394,7 +397,7 @@ CpuRaycasterSingleRay::start(const gloost::Ray& ray, Svo* svo)
 */
 
 SvoNode*
-CpuRaycasterSingleRay::traversSvo(const gloost::Ray& ray, float tMin, float tMax)
+CpuRaycasterSingleRay::traversSvo(gloost::Ray ray, float tMin, float tMax)
 {
   CpuRaycastStackElement element;
   element.parentNode       = _svo->getRootNode();
@@ -407,14 +410,13 @@ CpuRaycasterSingleRay::traversSvo(const gloost::Ray& ray, float tMin, float tMax
   _stack.push(element);
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
-  const float epsilon = 0.0000001;
+  static float epsilon = 0.00001;
 
-  if ( ( gloost::abs(ray.getDirection()[0]) < epsilon) ||
-       ( gloost::abs(ray.getDirection()[1]) < epsilon) ||
-       ( gloost::abs(ray.getDirection()[2]) < epsilon) )
-      {
-        return 0;
-      }
+  if ( gloost::abs(ray.getDirection()[0]) < epsilon) ray.getDirection()[0] = epsilon;
+  if ( gloost::abs(ray.getDirection()[1]) < epsilon) ray.getDirection()[1] = epsilon;
+  if ( gloost::abs(ray.getDirection()[2]) < epsilon) ray.getDirection()[2] = epsilon;
+
+
 
   gloost::mathType dxReziprok = 1.0/ray.getDirection()[0];
   gloost::mathType minusPx_dx = -ray.getOrigin()[0]/ray.getDirection()[0];
@@ -433,11 +435,9 @@ CpuRaycasterSingleRay::traversSvo(const gloost::Ray& ray, float tMin, float tMax
   /////////////////// LOOP ///////////////////////////////
   while (_stack.size())
   {
-
     ++_whileCounter;
 
     newElementsCounter = 0;
-
 
     SvoNode*         parentNode         = _stack.top().parentNode;
     gloost::mathType parentTMin         = _stack.top().parentTMin;
@@ -733,6 +733,12 @@ CpuRaycasterSingleRay::traversSvo(const gloost::Ray& ray, float tMin, float tMax
       _stack.push(newStackElements[i]);
       ++_pushCounter;
     }
+
+    if (_maxStackDepth < _stack.size())
+    {
+      _maxStackDepth = _stack.size();
+    }
+
   }
 
 
