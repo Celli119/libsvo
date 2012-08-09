@@ -97,8 +97,6 @@ class CpuRaycasterSingleRay2
 //	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
 
    std::vector<CpuRaycastStackElement> _stack;
-   int                                 _currentDepth;
-
 
    gloost::mathType _tMin;
    gloost::mathType _tMax;

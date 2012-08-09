@@ -63,7 +63,6 @@ namespace svo
 CpuRaycasterSingleRay2::CpuRaycasterSingleRay2(bool verboseMode):
   _max_stack_size(0),
   _stack(),
-  _currentDepth(),
   _tMin(0),
   _tMax(0),
   _svo(0),
@@ -149,6 +148,22 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
                                     float tMax)
 {
 
+  // STACK INIT
+  static const int scaleMax = _svo->getMaxDepth();
+  int              scale    = scaleMax-1;
+  float scale_exp2          = 0.5f;// exp2f(scale - s_max)
+
+  _stack.resize(scaleMax+1);
+
+
+  CpuRaycastStackElement element;
+  element.parentNode   = _svo->getRootNode();
+  element.parentTMin   = tMin;
+  element.parentTMax   = tMax;
+  element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
+  element.nextChild    = 0;
+
+  _stack[scale] = element;
 
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -193,27 +208,13 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
 
 
-  static const int scaleMax = _svo->getMaxDepth()+1;
-  int              scale    = scaleMax-1;
-  float scale_exp2          = 0.5f;// exp2f(scale - s_max)
-
-  _currentDepth = 0;
-
-  CpuRaycastStackElement element;
-  element.parentNode   = _svo->getRootNode();
-  element.parentTMin   = tMin;
-  element.parentTMax   = tMax;
-  element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
-  element.nextChild    = 0;
-
-  _stack.push_back(element);
 
 
 
   /////////////////// LOOP ///////////////////////////////
   while (scale < scaleMax)
   {
-    CpuRaycastStackElement parent = _stack[_currentDepth];
+    CpuRaycastStackElement parent = _stack[scale];
 
     SvoNode*         parentNode   = parent.parentNode;
     gloost::mathType parentTMin   = parent.parentTMin;
@@ -221,13 +222,9 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
     gloost::Point3   parentCenter = parent.parentCenter;
     unsigned         nextChild    = parent.nextChild;
 
-    int              depth        = _currentDepth + 1;
-
 
     if (nextChild == 4 || parentTMax < 0.0)
     {
-      _stack.pop_back();
-      --_currentDepth;
       ++scale;
       continue;
     }
@@ -250,7 +247,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
     */
 
     //////////////////////////////////// FIRST CHILD of FOUR ////////////////////
-    if (nextChild == 0 && tcMax < parentTMax)
+    if (tcMax < parentTMax)
     {
       // in parent voxel coordinates
       childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
@@ -290,7 +287,6 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
       tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
-
       // handle firstChild
       if (parentNode->getValidMask().getFlag(childIndex))
       {
@@ -300,6 +296,11 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         }
         else
         {
+          // update parent
+          _stack[scale].nextChild  = nextChild+1;
+          _stack[scale].parentTMin = tcMax;
+
+          // PUSH
           CpuRaycastStackElement newStackElement;
           newStackElement.parentNode   = parentNode->getChild(childIndex);
           newStackElement.parentTMin   = tcMin;
@@ -307,12 +308,8 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentCenter = childCenter;
           newStackElement.nextChild    = 0;
 
-          _stack[_currentDepth].nextChild  = nextChild+1;
-          _stack[_currentDepth].parentTMin = tcMax;
-
-          ++_currentDepth;
-          _stack.push_back(newStackElement);
           --scale;
+          _stack[scale] = (newStackElement);
           continue;
         }
       }
@@ -321,6 +318,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         ++nextChild;
       }
     }
+
 
     //////////////////////////////////// SECOND CHILD of FOUR ////////////////////
     if(nextChild == 1 && tcMax < parentTMax)
@@ -371,18 +369,19 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         }
         else
         {
+          // update parent
+          _stack[scale].nextChild  = nextChild+1;
+          _stack[scale].parentTMin = tcMax;
+
+          // PUSH
           CpuRaycastStackElement newStackElement;
           newStackElement.parentNode   = parentNode->getChild(childIndex);
           newStackElement.parentTMin   = tcMin;
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-          _stack[_currentDepth].nextChild  = nextChild+1;
-          _stack[_currentDepth].parentTMin = tcMax;
-
-          ++_currentDepth;
-          _stack.push_back(newStackElement);
           --scale;
+          _stack[scale] = (newStackElement);
           continue;
         }
       }
@@ -443,18 +442,19 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         }
         else
         {
+          // update parent
+          _stack[scale].nextChild  = nextChild+1;
+          _stack[scale].parentTMin = tcMax;
+
+          // PUSH
           CpuRaycastStackElement newStackElement;
           newStackElement.parentNode   = parentNode->getChild(childIndex);
           newStackElement.parentTMin   = tcMin;
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-          _stack[_currentDepth].nextChild  = nextChild+1;
-          _stack[_currentDepth].parentTMin = tcMax;
-
-          ++_currentDepth;
-          _stack.push_back(newStackElement);
           --scale;
+          _stack[scale] = (newStackElement);
           continue;
         }
       }
@@ -514,29 +514,24 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         }
         else
         {
+          // update parent
+          _stack[scale].nextChild  = nextChild+1;
+          _stack[scale].parentTMin = tcMax;
+
+          // PUSH
           CpuRaycastStackElement newStackElement;
           newStackElement.parentNode   = parentNode->getChild(childIndex);
           newStackElement.parentTMin   = tcMin;
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-//          if (_stack.size())
-          {
-            _stack[_currentDepth].nextChild  = nextChild+1;
-            _stack[_currentDepth].parentTMin = tcMax;
-          }
-
-          ++_currentDepth;
-          _stack.push_back(newStackElement);
           --scale;
+          _stack[scale] = (newStackElement);
           continue;
         }
       }
     } // if still in parentNode
 
-
-    _stack.pop_back();
-    --_currentDepth;
     ++scale;
   }
 
