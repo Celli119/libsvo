@@ -76,12 +76,7 @@ class CpuRaycasterSingleRay2
 
     struct CpuRaycastStackElement
     {
-      CpuRaycastStackElement():
-        parentNode(0),
-        parentTMin(0),
-        parentTMax(0),
-        parentCenter(),
-        nextChild(0)
+      CpuRaycastStackElement()
       {}
 
       SvoNode*         parentNode;
