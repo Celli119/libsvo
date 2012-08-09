@@ -181,7 +181,7 @@ void init()
   g_bufferWidth  = g_screenWidth/8;
   g_bufferHeight = g_screenHeight/8;
 
-  const unsigned maxDepth = 6;
+  const unsigned maxDepth = 8;
 
 
   // create screencoords
@@ -351,6 +351,9 @@ void init()
 ////    g_threadGroup.join_all();
 //  }
 
+
+  //
+  std::cerr << std::endl << std::endl << std::endl << "STARTING RENDERER: ";
 
 }
 
