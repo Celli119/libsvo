@@ -71,7 +71,7 @@ gloost::PerspectiveCamera*   g_camera;
 gloost::Point3 g_modelOffset;
 float          g_cameraRotateY  = 0;
 float          g_cameraRotateX  = 0;
-float          g_cameraDistance = 2.0;
+float          g_cameraDistance = 1.0;
 
 
 gloost::Ray g_ray;
@@ -157,7 +157,7 @@ boost::mutex g_bufferAccessMutex;
 
 bool     g_toggle_renderer = false;
 unsigned g_num_building_Threads = 8;
-unsigned g_num_render_Threads   = 1;
+unsigned g_num_render_Threads   = 8;
 
 
 
@@ -175,7 +175,7 @@ void init()
 //#define BUILD_VISUALIZATION_NODES
 //#define BUILD_VISUALIZATION_LEAVES
 
-//#define USE_THREADED_RENDERING
+#define USE_THREADED_RENDERING
   g_num_render_Threads = 8;
 
   g_bufferWidth  = g_screenWidth/8;
@@ -319,13 +319,6 @@ void init()
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);
-
-  g_camera->lookAt(gloost::Point3(0.0f, 1.0f, -3.0f),
-                   gloost::Point3(0.0f, 0.0f, 0.0f),
-                   gloost::Vector3(0.0f, 1.0f, 0.0f));
-
-
-
 
 
   // raycast into framebuffer
@@ -890,6 +883,18 @@ void draw2d()
 
       }
 
+      static double timeAccum           = 0;
+      static double avarageTimePerFrame = 1.0;
+
+      timeAccum += g_timePerFrame;
+
+      if (g_frameCounter % 20 == 0)
+      {
+        avarageTimePerFrame = timeAccum / 20.0;
+        timeAccum = 0;
+      }
+
+
 
       glColor4f(1.0f, 1.0f, 1.0f, 1.0);
 
@@ -900,8 +905,8 @@ void draw2d()
         {
           g_texter->renderTextLine(20, g_screenHeight -20, "glfw + VBO test");
           g_texter->renderFreeLine();
-          g_texter->renderTextLine("Time per frame: " + gloost::toString(g_timePerFrame));
-          g_texter->renderTextLine("fps: " + gloost::toString(1.0/g_timePerFrame));
+          g_texter->renderTextLine("Time per frame: " + gloost::toString(avarageTimePerFrame));
+          g_texter->renderTextLine("fps: " + gloost::toString(1.0/avarageTimePerFrame));
           g_texter->renderFreeLine();
           glColor4f(1.0f, 1.0f, 1.0f, 0.5);
           g_texter->renderTextLine("(h) Show text info:      " + gloost::toString( g_showTextInfo )) ;

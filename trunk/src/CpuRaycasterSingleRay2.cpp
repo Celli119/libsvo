@@ -70,14 +70,14 @@ CpuRaycasterSingleRay2::CpuRaycasterSingleRay2(bool verboseMode):
   _idToPositionLookUp(8),
   _verboseMode(verboseMode)
 {
-  _idToPositionLookUp[0] = gloost::Point3(-0.25, -0.25, -0.25);
-  _idToPositionLookUp[1] = gloost::Point3(-0.25, -0.25,  0.25);
-  _idToPositionLookUp[2] = gloost::Point3(-0.25,  0.25, -0.25);
-  _idToPositionLookUp[3] = gloost::Point3(-0.25,  0.25,  0.25);
-  _idToPositionLookUp[4] = gloost::Point3( 0.25, -0.25, -0.25);
-  _idToPositionLookUp[5] = gloost::Point3( 0.25, -0.25,  0.25);
-  _idToPositionLookUp[6] = gloost::Point3( 0.25,  0.25, -0.25);
-  _idToPositionLookUp[7] = gloost::Point3( 0.25,  0.25,  0.25);
+  _idToPositionLookUp[0] = gloost::Point3(-0.5, -0.5, -0.5);
+  _idToPositionLookUp[1] = gloost::Point3(-0.5, -0.5,  0.5);
+  _idToPositionLookUp[2] = gloost::Point3(-0.5,  0.5, -0.5);
+  _idToPositionLookUp[3] = gloost::Point3(-0.5,  0.5,  0.5);
+  _idToPositionLookUp[4] = gloost::Point3( 0.5, -0.5, -0.5);
+  _idToPositionLookUp[5] = gloost::Point3( 0.5, -0.5,  0.5);
+  _idToPositionLookUp[6] = gloost::Point3( 0.5,  0.5, -0.5);
+  _idToPositionLookUp[7] = gloost::Point3( 0.5,  0.5,  0.5);
 }
 
 
@@ -98,7 +98,6 @@ CpuRaycasterSingleRay2::~CpuRaycasterSingleRay2()
 ////////////////////////////////////////////////////////////////////////////////
 
 
-//#define TEXTOUTPUTWHILETRAVERSAL
 
 /**
   \brief traverses a Svo with a single ray
@@ -150,23 +149,14 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
                                     float tMax)
 {
 
-  _currentDepth = 0;
-
-  CpuRaycastStackElement element;
-  element.parentNode   = _svo->getRootNode();
-  element.parentTMin   = tMin;
-  element.parentTMax   = tMax;
-  element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
-
-  _stack.push_back(element);
 
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
   static float epsilon = 0.00001;
 
-  if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon;
-  if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon;
-  if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon;
+  if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]);
+  if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]);
+  if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]);
 
 
   gloost::mathType dxReziprok = 1.0/direction[0];
@@ -203,56 +193,74 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
 
 
-  /////////////////// LOOP ///////////////////////////////
-  while (_currentDepth > -1)
-  {
-//    _max_stack_size = gloost::max(_max_stack_size, (int)_stack.size());
+  static const int scaleMax = _svo->getMaxDepth()+1;
+  int              scale    = scaleMax-1;
+  float scale_exp2          = 0.5f;// exp2f(scale - s_max)
 
+  _currentDepth = 0;
+
+  CpuRaycastStackElement element;
+  element.parentNode   = _svo->getRootNode();
+  element.parentTMin   = tMin;
+  element.parentTMax   = tMax;
+  element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
+  element.nextChild    = 0;
+
+  _stack.push_back(element);
+
+
+
+  /////////////////// LOOP ///////////////////////////////
+  while (scale < scaleMax)
+  {
     CpuRaycastStackElement parent = _stack[_currentDepth];
 
     SvoNode*         parentNode   = parent.parentNode;
     gloost::mathType parentTMin   = parent.parentTMin;
     gloost::mathType parentTMax   = parent.parentTMax;
     gloost::Point3   parentCenter = parent.parentCenter;
-    int              depth        = _currentDepth + 1;
     unsigned         nextChild    = parent.nextChild;
+
+    int              depth        = _currentDepth + 1;
 
 
     if (nextChild == 4 || parentTMax < 0.0)
     {
       _stack.pop_back();
       --_currentDepth;
+      ++scale;
       continue;
     }
 
+    tcMax = parentTMin;
 
     /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
     /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
     /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
-    gloost::mathType parentScale   = pow(2, -depth+1);
-    gloost::mathType childSizeHalf = pow(2, -depth-1);
+    scale_exp2 = pow(2, scale - scaleMax);
+    gloost::mathType childOffsetScale = scale_exp2;
+    gloost::mathType childSizeHalf    = childOffsetScale*0.5;
 
     /* Depth = 1 (child of root)
-        parentScale = 1.0;
+        childOffsetScale = 1.0;
        Depth = 2:
-        parentScale = 0.5;
+        childOffsetScale = 0.5;
        Depth = 3:
-        parentScale = 0.25;
+        childOffsetScale = 0.25;
     */
 
     //////////////////////////////////// FIRST CHILD of FOUR ////////////////////
-
-    if (nextChild == 0 && parentTMin < parentTMax)
+    if (nextChild == 0 && tcMax < parentTMax)
     {
       // in parent voxel coordinates
-      childEntryPoint = (origin + parentTMin * direction) - parentCenter;
+      childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
       childIndex      =   4*(childEntryPoint[0] > 0)
                         + 2*(childEntryPoint[1] > 0)
                         +   (childEntryPoint[2] > 0);
 
 
       // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*parentScale + parentCenter;
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;
@@ -304,7 +312,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
+          --scale;
           continue;
         }
       }
@@ -325,7 +333,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
 
       // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*parentScale + parentCenter;
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;
@@ -374,7 +382,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
+          --scale;
           continue;
         }
       }
@@ -397,7 +405,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
 
       // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*parentScale + parentCenter;
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;
@@ -446,7 +454,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
+          --scale;
           continue;
         }
       }
@@ -467,7 +475,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
                         +   (childEntryPoint[2] > 0);
 
       // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*parentScale + parentCenter;
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;
@@ -520,7 +528,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
+          --scale;
           continue;
         }
       }
@@ -529,14 +537,12 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
     _stack.pop_back();
     --_currentDepth;
+    ++scale;
   }
 
 
   return 0;
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
 
 
 
