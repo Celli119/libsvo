@@ -49,21 +49,6 @@
 namespace svo
 {
 
-
-//struct AxisAndTValue
-//{
-//  float _t;
-//  int   _axis;
-//
-//  bool operator<(const AxisAndTValue& a)
-//  {
-//    return a._t < this->_t;
-//  }
-//
-//};
-
-
-
   //  CpuRaycasterSingleRay2
 
 class CpuRaycasterSingleRay2

@@ -175,13 +175,13 @@ void init()
 //#define BUILD_VISUALIZATION_NODES
 //#define BUILD_VISUALIZATION_LEAVES
 
-#define USE_THREADED_RENDERING
-  g_num_render_Threads = 12;
+//#define USE_THREADED_RENDERING
+  g_num_render_Threads = 8;
 
   g_bufferWidth  = g_screenWidth/8;
   g_bufferHeight = g_screenHeight/8;
 
-  const unsigned maxDepth = 9;
+  const unsigned maxDepth = 6;
 
 
   // create screencoords
@@ -283,7 +283,7 @@ void init()
                                                                                           (unsigned char*) hostside_buffer,
                                                                                           16,
                                                                                           GL_TEXTURE_2D,
-                                                                                          GL_RGB32F,
+                                                                                          GL_RGB16F,
                                                                                           GL_RGB,
                                                                                           GL_FLOAT));
 
@@ -315,7 +315,7 @@ void init()
 
 
 
-  g_camera = new gloost::PerspectiveCamera(50.0,
+  g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);

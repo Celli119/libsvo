@@ -149,6 +149,9 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
                                     float tMin,
                                     float tMax)
 {
+
+  _currentDepth = 0;
+
   CpuRaycastStackElement element;
   element.parentNode   = _svo->getRootNode();
   element.parentTMin   = tMin;
@@ -156,9 +159,6 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
   element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
 
   _stack.push_back(element);
-
-
-  _currentDepth = 0;
 
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -204,7 +204,7 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
 
 
   /////////////////// LOOP ///////////////////////////////
-  while (_stack.size())
+  while (_currentDepth > -1)
   {
 //    _max_stack_size = gloost::max(_max_stack_size, (int)_stack.size());
 
@@ -299,13 +299,11 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentCenter = childCenter;
           newStackElement.nextChild    = 0;
 
-          _stack[_currentDepth].nextChild  = 1;
+          _stack[_currentDepth].nextChild  = nextChild+1;
           _stack[_currentDepth].parentTMin = tcMax;
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
-//          if (_currentDepth != _stack.size()-1) std::cerr << std::endl << "AHHHHH 1: " << _currentDepth << " != " << _stack.size()-1;
 
           continue;
         }
@@ -371,13 +369,11 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-          _stack[_currentDepth].nextChild  = 2;
+          _stack[_currentDepth].nextChild  = nextChild+1;
           _stack[_currentDepth].parentTMin = tcMax;
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
-//          if (_currentDepth != _stack.size()-1) std::cerr << std::endl << "AHHHHH 2: " << _currentDepth << " != " << _stack.size()-1;
 
           continue;
         }
@@ -445,13 +441,11 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-          _stack[_currentDepth].nextChild  = 3;
+          _stack[_currentDepth].nextChild  = nextChild+1;
           _stack[_currentDepth].parentTMin = tcMax;
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
-//          if (_currentDepth != _stack.size()-1) std::cerr << std::endl << "AHHHHH 3: " << _currentDepth << " != " << _stack.size()-1;
 
           continue;
         }
@@ -518,16 +512,14 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
 
-          if (_stack.size())
+//          if (_stack.size())
           {
-            _stack[_currentDepth].nextChild  = 4;
+            _stack[_currentDepth].nextChild  = nextChild+1;
             _stack[_currentDepth].parentTMin = tcMax;
           }
 
           ++_currentDepth;
           _stack.push_back(newStackElement);
-
-//          if (_currentDepth != _stack.size()-1) std::cerr << std::endl << "AHHHHH 4: " << _currentDepth << " != " << _stack.size()-1;
 
           continue;
         }
