@@ -36,6 +36,7 @@
 #include <gloost/MatrixStack.h>
 #include <gloost/BinaryFile.h>
 #include <gloost/BinaryBundle.h>
+#include <gloost/serializers.h>
 
 /// cpp includes
 #include <string>
@@ -70,7 +71,6 @@ namespace svo
 Svo::Svo(int maxDepth):
   _root(new SvoNode()),
   _maxDepth(maxDepth),
-  _minVoxelSize(pow(2, -maxDepth)),
   _boundingBox(gloost::Point3(-0.5, -0.5, -0.5), gloost::Point3(0.5, 0.5, 0.5)),
   _numNodes(1),
   _numLeaves(0),
@@ -83,6 +83,32 @@ Svo::Svo(int maxDepth):
   _serializedSvoBundle(0)
 {
 //	createDiscreteSampleList();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief Class constructor
+
+  \remarks ...
+*/
+
+Svo::Svo(const std::string svoFilePath):
+  _root(new SvoNode()),
+  _maxDepth(0),
+  _boundingBox(gloost::Point3(-0.5, -0.5, -0.5), gloost::Point3(0.5, 0.5, 0.5)),
+  _numNodes(1),
+  _numLeaves(0),
+  _numOutOfBoundPoints(0),
+  _numDoublePoints(0),
+  _numOneChildNodes(0),
+  _discreteSamples(),
+  _discreteSampleIndex(0),
+  _serializedCpuSvoNodes(),
+  _serializedSvoBundle(0)
+{
+  loadSerializedSvoFromFile(svoFilePath);
 }
 
 
@@ -211,34 +237,43 @@ Svo::serializeSvo()
 
   std::cerr << std::endl << "Message from Svo::serializeSvo(): ";
   std::cerr << std::endl << "             serializing svo nodes structure";
+  std::cerr << std::endl << "           " << getNumNodes() << " nodes to serialize";
+
+  _serializedCpuSvoNodes.resize(getNumNodes());
+  unsigned currentNodeIndex = 0;
 
 
   std::queue<QueuedNode> nodeQueue;
 
   QueuedNode queuedNode;
-  queuedNode.node     = _root;
-  queuedNode.position = _serializedCpuSvoNodes.size();
+  queuedNode.node  = _root;
+  queuedNode.index = currentNodeIndex;
   nodeQueue.push(queuedNode);
 
 
+
+  // push root node to posiiton 0
   CpuSvoNode cpuNode(0,
                      _root->getValidMask(),
                      _root->getLeafMask(),
                      _root->getAttribPosition());
 
-  _serializedCpuSvoNodes.push_back(cpuNode);                     // child pointer (unknown for now)
+  _serializedCpuSvoNodes[currentNodeIndex] = cpuNode;  // child pointer (unknown for now)
+  ++currentNodeIndex;
 
 
 
   // add all nodes to the queue in a width search style
   while (nodeQueue.size())
   {
+    // take a node from the queue
     QueuedNode currentParent = nodeQueue.front();
     nodeQueue.pop();
 
+    unsigned childCount = 0;
+
     for (unsigned int i=0; i!=8; ++i)
     {
-      int childCount = 0;
 
       if (currentParent.node->getValidMask().getFlag(i))
       {
@@ -247,31 +282,38 @@ Svo::serializeSvo()
         // if this is the first child, put its position into parents childPointer field in the buffer
         if (childCount == 1)
         {
-          _serializedCpuSvoNodes[currentParent.position].setFirstChildIndex(_serializedCpuSvoNodes.size());
+          _serializedCpuSvoNodes[currentParent.index].setFirstChildIndex(currentNodeIndex);
+
+//          std::cerr << std::endl << "currentParent.index: " << currentParent.index;
+//          std::cerr << std::endl << "currentNodeIndex:    " << currentNodeIndex;
+//          std::cerr << std::endl;
         }
 
+        // queue current child
         SvoNode* child = currentParent.node->getChild(i);
 
         QueuedNode queuedChild;
-        queuedChild.node     = child;
-        queuedChild.position = _serializedCpuSvoNodes.size();
+        queuedChild.node  = child;
+        queuedChild.index = currentNodeIndex;
         nodeQueue.push(queuedChild);
 
-        CpuSvoNode cpuNode(0,
-                           child->getValidMask(),
-                           child->getLeafMask(),
-                           child->getAttribPosition());
+        // serialize current child
+        CpuSvoNode cpuChildNode(0,                       // <- first child position unknown for now
+                                child->getValidMask(),
+                                child->getLeafMask(),
+                                child->getAttribPosition());
 
-        _serializedCpuSvoNodes.push_back(cpuNode);
-
+        _serializedCpuSvoNodes[currentNodeIndex] = cpuChildNode;
+        ++currentNodeIndex;
       }
     }
   }
+  std::cerr << std::endl;
+  std::cerr << std::endl << "           number of nodes serialized: " << currentNodeIndex;
+  std::cerr << std::endl;
 
-  std::cerr << std::endl << "sizeof(CpuSvoNode): " << sizeof(CpuSvoNode);
-
-  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(),
-                                                  _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
+//  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(),
+//                                                  _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 }
 
 
@@ -306,14 +348,75 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
     return false;
   }
 
-  std::cerr << std::endl << "_maxDepth: " << gloost::toString(_maxDepth);
-
+  outfile.writeString(gloost::toString("v1") + " ");                      // write version
   outfile.writeString(gloost::toString(_maxDepth) + " ");                 // write maxDepth
   outfile.writeString(gloost::toString(_numNodes) + " ");                 // write numNodes
   outfile.writeBuffer((unsigned char*)&_serializedCpuSvoNodes.front(),    // write Nodes
                       _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 
   outfile.close();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief reads a serialized svo and attribute files
+  \param ...
+  \remarks ...
+*/
+
+bool
+Svo::loadSerializedSvoFromFile(const std::string& filePath)
+{
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Svo::loadSerializedSvoToFile():";
+  std::cerr << std::endl << "             Reading *.svo file";
+  std::cerr << std::endl << "             " << filePath;
+
+
+  if (_serializedSvoBundle)
+  {
+    delete _serializedSvoBundle;
+  }
+
+  gloost::BinaryFile infile;
+  infile.openAndLoad(filePath);
+
+  std::string versionString = infile.readWord();
+  std::cerr << std::endl << "             version: " << versionString;
+
+  _maxDepth = atoi(infile.readWord().c_str());
+  std::cerr << std::endl << "             depth:   " << _maxDepth;
+
+  _numNodes = atoi(infile.readWord().c_str());
+  std::cerr << std::endl << "             nodes:   " << _numNodes;
+
+  _serializedCpuSvoNodes.resize(_numNodes);
+
+  gloost::unserialize((unsigned char*)&_serializedCpuSvoNodes.front(),
+                      _numNodes*sizeof(CpuSvoNode),
+                      infile);
+
+  infile.unload();
+  return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns a vector with serialized nodes
+  \param ...
+  \remarks ...
+*/
+
+std::vector<CpuSvoNode>&
+Svo::getSerializedNodes()
+{
+  return _serializedCpuSvoNodes;
 }
 
 
@@ -430,69 +533,6 @@ Svo::clearDiscreteSamples()
   std::cerr << std::endl << "Message from Svo::clearDiscreteSamples(): ";
   std::cerr << std::endl << "  " << freedMemory/1024.0/1024.0 << " MB freed.";
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns current attribute index;
-  \param ...
-  \remarks ...
-*/
-
-//unsigned int
-//Svo::getCurrentAttribPosition() const
-//{
-//  return _attributeBuffer.size();
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns the attribute buffer
-  \param ...
-  \remarks ...
-*/
-
-//std::vector<float>&
-//Svo::getAttributeBuffer()
-//{
-//  return _attributeBuffer;
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief adds a element to the nomralizer vector
-  \param ...
-  \remarks ...
-*/
-
-//void
-//Svo::pushNormalizer()
-//{
-//  _attribNormalizers.push_back(1);
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief increases the node count within the normalizer to normalize attribs for double voxels
-  \param ...
-  \remarks ...
-*/
-
-//void
-//Svo::addDoubleNodeToNormalizer(unsigned attribPos)
-//{
-//  ++_attribNormalizers[attribPos];
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -93,7 +93,7 @@ bool
 BitMask8::getFlag(unsigned int flagPosition) const
 {
 	flagPosition = 1 << flagPosition;
-	return (_mask & flagPosition);
+	return (bool)(_mask & flagPosition);
 }
 
 

@@ -38,10 +38,19 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-O2" />
+					<Add option="-O1" />
+					<Add option="-O" />
 					<Add option="-Wall" />
+					<Add option="-pg" />
+					<Add option="-g" />
 					<Add option="-W" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add library="gloost_db" />
 				</Linker>
 			</Target>
@@ -82,6 +91,8 @@
 		<Unit filename="../../src/CpuRaycasterSingleRay2.h" />
 		<Unit filename="../../src/CpuRaycasterSingleRay3.cpp" />
 		<Unit filename="../../src/CpuRaycasterSingleRay3.h" />
+		<Unit filename="../../src/CpuRaycasterSingleRay4.cpp" />
+		<Unit filename="../../src/CpuRaycasterSingleRay4.h" />
 		<Unit filename="../../src/CpuSvoNode.cpp" />
 		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />

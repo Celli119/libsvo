@@ -39,10 +39,19 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-O2" />
+					<Add option="-O1" />
+					<Add option="-O" />
 					<Add option="-Wall" />
+					<Add option="-pg" />
+					<Add option="-g" />
 					<Add option="-W" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add library="libsvo_db" />
 					<Add library="libgloost_db" />
 					<Add library="tinyxml" />

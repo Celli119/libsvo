@@ -109,8 +109,6 @@ CpuRaycasterSingleRay2::start(const gloost::Ray& ray, Svo* svo)
 {
   _svo = svo;
 
-  _stack.clear();
-
   static gloost::BoundingBox svoBoundingBox(gloost::Point3(-0.5,-0.5,-0.5),
                                             gloost::Point3(0.5,0.5,0.5));
 
@@ -147,7 +145,6 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
                                     float tMin,
                                     float tMax)
 {
-
   // STACK INIT
   static const int scaleMax = _svo->getMaxDepth();
   int              scale    = scaleMax-1;
@@ -161,13 +158,14 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
   element.parentTMin   = tMin;
   element.parentTMax   = tMax;
   element.parentCenter = gloost::Point3(0.0, 0.0, 0.0);
-  element.nextChild    = 0;
+//  element.nextChild    = 0;
 
   _stack[scale] = element;
 
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
-  static float epsilon = 0.00001;
+  static float epsilon = 0.0001;
+//  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
 
   if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]);
   if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]);
@@ -206,57 +204,83 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
   gloost::Point3 childEntryPoint;
   unsigned childIndex;
 
+  gloost::mathType childOffsetScale;
+  gloost::mathType childSizeHalf;
 
 
+  CpuRaycastStackElement parent;
+  bool refetchParent = true;
 
+  SvoNode*         parentNode;
+  gloost::mathType parentTMin;
+  gloost::mathType parentTMax;
+  gloost::Point3   parentCenter;
+
+  unsigned        whileCounter = 0;
+  static unsigned maxLoops     = (_svo->getMaxDepth()+1)*(_svo->getMaxDepth()+1)*5.0;
 
 
   /////////////////// LOOP ///////////////////////////////
   while (scale < scaleMax)
   {
-    CpuRaycastStackElement parent = _stack[scale];
+    ++whileCounter;
 
-    SvoNode*         parentNode   = parent.parentNode;
-    gloost::mathType parentTMin   = parent.parentTMin;
-    gloost::mathType parentTMax   = parent.parentTMax;
-    gloost::Point3   parentCenter = parent.parentCenter;
-    unsigned         nextChild    = parent.nextChild;
-
-
-    if (nextChild == 4 || parentTMax < 0.0)
+    if (whileCounter > maxLoops)
     {
+      std::cerr << std::endl << "ERROR MAX LOOPS REACHED: " << maxLoops;
+      std::cerr << std::endl << "refetchParent:           " << refetchParent;
+      std::cerr << std::endl;
+      return 0;
+    }
+
+    if (refetchParent)
+    {
+      parent = _stack[scale];
+
+      parentNode   = parent.parentNode;
+      parentTMin   = parent.parentTMin;
+      parentTMax   = parent.parentTMax;
+      parentCenter = parent.parentCenter;
+
+      /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
+      /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
+      /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
+      scale_exp2       = pow(2, scale - scaleMax);
+      childOffsetScale = scale_exp2;
+      childSizeHalf    = childOffsetScale*0.5;
+      refetchParent    = false;
+    }
+
+
+    if ( parentTMax < 0.0)
+    {
+      // POP
       ++scale;
+      refetchParent = true;
       continue;
     }
 
-    tcMax = parentTMin;
-
-    /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
-    /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
-    /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
-    scale_exp2 = pow(2, scale - scaleMax);
-    gloost::mathType childOffsetScale = scale_exp2;
-    gloost::mathType childSizeHalf    = childOffsetScale*0.5;
-
-    /* Depth = 1 (child of root)
-        childOffsetScale = 1.0;
-       Depth = 2:
-        childOffsetScale = 0.5;
-       Depth = 3:
-        childOffsetScale = 0.25;
-    */
-
-    //////////////////////////////////// FIRST CHILD of FOUR ////////////////////
-    if (tcMax < parentTMax)
+    if ( std::abs(parentTMin - parentTMax) < epsilon)
+//    if ( tcMin >= parentTMax)
     {
-      // in parent voxel coordinates
-      childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
+      // POP
+      ++scale;
+      refetchParent = true;
+      continue;
+    }
+
+
+
+    if (parentTMin < parentTMax)
+    {
+      // childEntryPoint in parent voxel coordinates
+      childEntryPoint = (origin + (parentTMin + epsilon) * direction) - parentCenter;
       childIndex      =   4*(childEntryPoint[0] > 0)
                         + 2*(childEntryPoint[1] > 0)
                         +   (childEntryPoint[2] > 0);
 
 
-      // in world coordinates
+      // childCenter in world coordinates
       gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
@@ -287,6 +311,15 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
       tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
+//      if (std::abs(tcMin - tcMax) < epsilon)
+//      {
+//        // POP
+//        ++scale;
+//        refetchParent = true;
+//        continue;
+//      }
+
+
       // handle firstChild
       if (parentNode->getValidMask().getFlag(childIndex))
       {
@@ -296,8 +329,8 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
         }
         else
         {
-          // update parent
-          _stack[scale].nextChild  = nextChild+1;
+
+          // update parent befor push
           _stack[scale].parentTMin = tcMax;
 
           // PUSH
@@ -306,233 +339,28 @@ CpuRaycasterSingleRay2::traversSvo( gloost::Point3 origin,
           newStackElement.parentTMin   = tcMin;
           newStackElement.parentTMax   = tcMax;
           newStackElement.parentCenter = childCenter;
-          newStackElement.nextChild    = 0;
 
           --scale;
-          _stack[scale] = (newStackElement);
+          _stack[scale] = newStackElement;
+
+          refetchParent = true;
           continue;
         }
       }
       else
       {
-        ++nextChild;
+        // ADVANCE
+        parentTMin = tcMax;
       }
     }
-
-
-    //////////////////////////////////// SECOND CHILD of FOUR ////////////////////
-    if(nextChild == 1 && tcMax < parentTMax)
+    else
     {
-      // in parent voxel coordinates
-      childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
-      childIndex      =   4*(childEntryPoint[0] > 0)
-                        + 2*(childEntryPoint[1] > 0)
-                        +   (childEntryPoint[2] > 0);
+      // POP
+      ++scale;
+      refetchParent = true;
+      continue;
+    }
 
-
-      // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
-
-      x0 = childCenter[0] - childSizeHalf;
-      x1 = childCenter[0] + childSizeHalf;
-      y0 = childCenter[1] - childSizeHalf;
-      y1 = childCenter[1] + childSizeHalf;
-      z0 = childCenter[2] - childSizeHalf;
-      z1 = childCenter[2] + childSizeHalf;
-
-
-      // tx(x) = (1/dx)x + (-px/dx)
-      // dx...Direction of the Ray in x
-      // px...Origin of the Ray in x
-      tx0 = dxReziprok*x0 + minusPx_dx;
-      tx1 = dxReziprok*x1 + minusPx_dx;
-      gloost::swapToIncreasing(tx0, tx1);
-
-      ty0 = dyReziprok*y0 + minusPy_dy;
-      ty1 = dyReziprok*y1 + minusPy_dy;
-      gloost::swapToIncreasing(ty0, ty1);
-
-      tz0 = dzReziprok*z0 + minusPz_dz;
-      tz1 = dzReziprok*z1 + minusPz_dz;
-      gloost::swapToIncreasing(tz0, tz1);
-
-      tcMin = gloost::max(tx0, ty0, tz0);
-      tcMax = gloost::min(tx1, ty1, tz1);
-
-
-      // handle second child
-      if (parentNode->getValidMask().getFlag(childIndex))
-      {
-        if (parentNode->getLeafMask().getFlag(childIndex))
-        {
-          return parentNode->getChild(childIndex);
-        }
-        else
-        {
-          // update parent
-          _stack[scale].nextChild  = nextChild+1;
-          _stack[scale].parentTMin = tcMax;
-
-          // PUSH
-          CpuRaycastStackElement newStackElement;
-          newStackElement.parentNode   = parentNode->getChild(childIndex);
-          newStackElement.parentTMin   = tcMin;
-          newStackElement.parentTMax   = tcMax;
-          newStackElement.parentCenter = childCenter;
-
-          --scale;
-          _stack[scale] = (newStackElement);
-          continue;
-        }
-      }
-      else
-      {
-        ++nextChild;
-      }
-    } // if still in parentNode
-
-
-
-    //////////////////////////////////// THIRD CHILD of FOUR ////////////////////
-    if(nextChild == 2 && tcMax < parentTMax)
-    {
-      // in parent voxel coordinates
-      childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
-      childIndex      =   4*(childEntryPoint[0] > 0)
-                        + 2*(childEntryPoint[1] > 0)
-                        +   (childEntryPoint[2] > 0);
-
-
-      // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
-
-      x0 = childCenter[0] - childSizeHalf;
-      x1 = childCenter[0] + childSizeHalf;
-      y0 = childCenter[1] - childSizeHalf;
-      y1 = childCenter[1] + childSizeHalf;
-      z0 = childCenter[2] - childSizeHalf;
-      z1 = childCenter[2] + childSizeHalf;
-
-
-      // tx(x) = (1/dx)x + (-px/dx)
-      // dx...Direction of the Ray in x
-      // px...Origin of the Ray in x
-      tx0 = dxReziprok*x0 + minusPx_dx;
-      tx1 = dxReziprok*x1 + minusPx_dx;
-      gloost::swapToIncreasing(tx0, tx1);
-
-      ty0 = dyReziprok*y0 + minusPy_dy;
-      ty1 = dyReziprok*y1 + minusPy_dy;
-      gloost::swapToIncreasing(ty0, ty1);
-
-      tz0 = dzReziprok*z0 + minusPz_dz;
-      tz1 = dzReziprok*z1 + minusPz_dz;
-      gloost::swapToIncreasing(tz0, tz1);
-
-      tcMin = gloost::max(tx0, ty0, tz0);
-      tcMax = gloost::min(tx1, ty1, tz1);
-
-
-      // handle firstChild
-      if (parentNode->getValidMask().getFlag(childIndex))
-      {
-        if (parentNode->getLeafMask().getFlag(childIndex))
-        {
-          return parentNode->getChild(childIndex);
-        }
-        else
-        {
-          // update parent
-          _stack[scale].nextChild  = nextChild+1;
-          _stack[scale].parentTMin = tcMax;
-
-          // PUSH
-          CpuRaycastStackElement newStackElement;
-          newStackElement.parentNode   = parentNode->getChild(childIndex);
-          newStackElement.parentTMin   = tcMin;
-          newStackElement.parentTMax   = tcMax;
-          newStackElement.parentCenter = childCenter;
-
-          --scale;
-          _stack[scale] = (newStackElement);
-          continue;
-        }
-      }
-      else
-      {
-        ++nextChild;
-      }
-    } // if still in parentNode
-
-
-    //////////////////////////////////// FOURTH CHILD of FOUR ////////////////////
-    if(nextChild == 3 && tcMax < parentTMax)
-    {
-      // in parent voxel coordinates
-      childEntryPoint = (origin + (tcMax + epsilon) * direction) - parentCenter;
-      childIndex      =   4*(childEntryPoint[0] > 0)
-                        + 2*(childEntryPoint[1] > 0)
-                        +   (childEntryPoint[2] > 0);
-
-      // in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
-
-      x0 = childCenter[0] - childSizeHalf;
-      x1 = childCenter[0] + childSizeHalf;
-      y0 = childCenter[1] - childSizeHalf;
-      y1 = childCenter[1] + childSizeHalf;
-      z0 = childCenter[2] - childSizeHalf;
-      z1 = childCenter[2] + childSizeHalf;
-
-
-      // tx(x) = (1/dx)x + (-px/dx)
-      // dx...Direction of the Ray in x
-      // px...Origin of the Ray in x
-      tx0 = dxReziprok*x0 + minusPx_dx;
-      tx1 = dxReziprok*x1 + minusPx_dx;
-      gloost::swapToIncreasing(tx0, tx1);
-
-      ty0 = dyReziprok*y0 + minusPy_dy;
-      ty1 = dyReziprok*y1 + minusPy_dy;
-      gloost::swapToIncreasing(ty0, ty1);
-
-      tz0 = dzReziprok*z0 + minusPz_dz;
-      tz1 = dzReziprok*z1 + minusPz_dz;
-      gloost::swapToIncreasing(tz0, tz1);
-
-
-      tcMin = gloost::max(tx0, ty0, tz0);
-      tcMax = gloost::min(tx1, ty1, tz1);
-
-
-      // handle
-      if (parentNode->getValidMask().getFlag(childIndex))
-      {
-        if (parentNode->getLeafMask().getFlag(childIndex))
-        {
-          return parentNode->getChild(childIndex);
-        }
-        else
-        {
-          // update parent
-          _stack[scale].nextChild  = nextChild+1;
-          _stack[scale].parentTMin = tcMax;
-
-          // PUSH
-          CpuRaycastStackElement newStackElement;
-          newStackElement.parentNode   = parentNode->getChild(childIndex);
-          newStackElement.parentTMin   = tcMin;
-          newStackElement.parentTMax   = tcMax;
-          newStackElement.parentCenter = childCenter;
-
-          --scale;
-          _stack[scale] = (newStackElement);
-          continue;
-        }
-      }
-    } // if still in parentNode
-
-    ++scale;
   }
 
 

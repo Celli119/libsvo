@@ -85,7 +85,7 @@ class CpuRaycasterSingleRay2
 
       gloost::Point3   parentCenter;
 
-      char nextChild;
+//      char nextChild;
     };
 
     int _max_stack_size;

@@ -9,9 +9,7 @@
 **/
 
 /**
-  Step 00: glut template
 
-  This is a simple glfw template we will use in the tutorials.
 
 **/
 
@@ -38,11 +36,13 @@
 
 
 /// general setup
-static unsigned int g_screenWidth  = 1280;
-static unsigned int g_screenHeight = 800;
+static unsigned int g_screenWidth  = 1024;
+static unsigned int g_screenHeight = 1024;
 
-static unsigned int g_bufferWidth  = g_screenWidth;
-static unsigned int g_bufferHeight = g_screenHeight;
+static unsigned int g_bufferWidth   = g_screenWidth;
+static unsigned int g_bufferHeight  = g_screenHeight;
+
+
 
 /// frameCounter
 unsigned int g_frameCounter = 0;
@@ -65,24 +65,29 @@ std::string g_dataPath     = "../data/";
 gloost::Mouse g_mouse;
 
 #include <gloost/PerspectiveCamera.h>
-gloost::PerspectiveCamera*   g_camera;
+gloost::PerspectiveCamera*   g_camera                = 0;;
+float                        g_tScaleRatio           = 1.0;
+int                          g_tScaleRatioMultiplyer = 1.0;
 
 
 gloost::Point3 g_modelOffset;
 float          g_cameraRotateY  = 0;
 float          g_cameraRotateX  = 0;
-float          g_cameraDistance = 2.0;
+float          g_cameraDistance = 1.0;
 
+// SVO
+#include <Svo.h>
+svo::Svo* g_svo = 0;
+#include <SvoNode.h>
 
-gloost::Ray g_ray;
-#include <gloost/Mesh.h>
-#include <gloost/Vbo.h>
-gloost::Vbo* g_drawRayVbo  = 0;
+#include <CpuRaycasterSingleRay3.h>
 
+#include <gloost/InterleavedAttributes.h>
+gloost::InterleavedAttributes* g_voxelAttributes = 0;
 
 #include <gloost/Shader.h>
 #include <gloost/UniformSet.h>
-gloost::Shader*     g_SvoVisualizingShader = 0;
+gloost::Shader*  g_SvoVisualizingShader = 0;
 
 
 // setup for rendering into frame buffer
@@ -90,25 +95,27 @@ gloost::Shader*     g_SvoVisualizingShader = 0;
 #include <gloost/Texture.h>
 
 unsigned g_framebufferTextureId = 0;
+#include <gloost/gloostHelper.h>
 
-#include <RaycasterSerialSvo.h>
-#include <SvoLoader.h>
-svo::SvoLoader* g_svoData = 0;
+
+#include <boost/thread.hpp>
 
 
 // info
 bool g_showTextInfo     = true;
-bool g_showRayCastImage = false;
+bool g_showOctreeNodes  = true;
+bool g_showOctreeLeaves = false;
+bool g_showRayCastImage = true;
 
 void init();
+void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth);
+void buildSvoVisualization();
 void draw3d(void);
 void draw2d();
 void cleanup();
 void mouseFunc(int button, int state, int mouse_h, int mouse_v);
 void reloadShaders();
-void raycastIntoFrameBuffer( unsigned startIndex,
-                             unsigned count,
-                             unsigned threadId);
+bool raycastIntoFrameBuffer(unsigned threadId);
 void resize(int width, int height);
 void key(unsigned char key, int x, int y);
 void motionFunc(int mouse_h, int mouse_v);
@@ -121,43 +128,106 @@ std::vector<gloost::Vector2> g_screenCoords;
 
 float* g_renderBuffer = 0;
 
-#include <boost/thread.hpp>
 boost::thread_group g_threadGroup;
-boost::mutex g_bufferAccessMutex;
+bool                g_toggle_run_raycasting = true;
+boost::mutex        g_bufferAccessMutex;
 
-bool  g_toggle_run_raycasting = true;
+bool g_jobsReset = true;
 
+
+bool     g_toggle_renderer = false;
+unsigned g_num_render_Threads   = 4;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
-  /// load and initialize resources for our demo
 
 void init()
 {
 
+  #define USE_THREADED_RENDERING
 
-  const std::string svo_data_path = "/home/otaco/Desktop/SVO_DATA/";
-  g_svoData = new svo::SvoLoader(svo_data_path + "frog2_seperated_8");
+  g_bufferWidth  = g_screenWidth/2.0;
+  g_bufferHeight = g_screenHeight/2.0;
 
 
-  g_bufferWidth  = g_screenWidth/4;
-  g_bufferHeight = g_screenHeight/4;
+  // load svo
+  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
+
+//  const std::string svoBaseName = "Decimated_Head_3";
+//  const std::string svoBaseName = "Decimated_Head_6";
+//  const std::string svoBaseName = "Decimated_Head_8";
+//  const std::string svoBaseName = "Decimated_Head_9";
+//  const std::string svoBaseName = "Decimated_Head_10";
+//  const std::string svoBaseName = "Decimated_Head_11";
+
+
+//  const std::string svoBaseName = "dragon_vrip_3";
+//  const std::string svoBaseName = "dragon_vrip_8";
+//  const std::string svoBaseName = "dragon_vrip_10";
+//  const std::string svoBaseName = "dragon_vrip_11";
+
+
+//  const std::string svoBaseName = "female02_8";
+//  const std::string svoBaseName = "female02_11";
+
+
+//  const std::string svoBaseName = "frog2_seperated_3";
+//  const std::string svoBaseName = "frog2_seperated_6";
+//  const std::string svoBaseName = "frog2_seperated_8";
+//  const std::string svoBaseName = "frog2_seperated_10";
+
+
+//  const std::string svoBaseName = "Hitachi_FH200_6";
+//  const std::string svoBaseName = "Hitachi_FH200_9";
+//  const std::string svoBaseName = "Hitachi_FH200_11";
+
+  const std::string svoBaseName = "omotondo500k-manifold_11";
+
+
+//  const std::string svoBaseName = "skelet_9";
+//  const std::string svoBaseName = "skelet_11";
+//  const std::string svoBaseName = "skelet_12";
+
+
+//  const std::string svoBaseName = "venus_9";
+//  const std::string svoBaseName = "venus_11";
+
+
+//  const std::string svoBaseName = "women_9";
+//  const std::string svoBaseName = "women_12";
+
+
+//  const std::string svoBaseName = "xyzrgb_statuette_8";
+//  const std::string svoBaseName = "xyzrgb_statuette_11";
+
+
+
+  // loading svo and attributes
+  g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
+
+  std::cerr << std::endl << "Loading Attributes: " << svo_dir_path + svoBaseName + ".ia";
+  g_voxelAttributes = new gloost::InterleavedAttributes(svo_dir_path + svoBaseName + ".ia");
+  std::cerr << " ... done.";
+
 
   // create screencoords
   g_screenCoords = std::vector<gloost::Vector2>(g_bufferWidth*g_bufferHeight);
 
   for (unsigned y=0; y!=g_bufferHeight; ++y)
-  for (unsigned x=0; x!=g_bufferWidth; ++x)
-  {
-    unsigned index = y*g_bufferWidth +x;
-    g_screenCoords[index] = gloost::Vector2(x,y);
-  }
+    for (unsigned x=0; x!=g_bufferWidth; ++x)
+    {
+      unsigned index = y*g_bufferWidth +x;
+      g_screenCoords[index] = gloost::Vector2(x,y);
+    }
+
+
+  std::cerr << std::endl << " done screen coords.";
 
   // mix screen coords
-  for (unsigned i=0; i!=g_screenCoords.size()*10; ++i)
+  for (unsigned i=0; i!=g_screenCoords.size()*12; ++i)
   {
     unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
     unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
@@ -171,24 +241,30 @@ void init()
 
 
 
+  std::cerr << std::endl << " done g_texter.";
+
+
+  // shaders
+//  reloadShaders();
+
+
+
   // setup framebuffer
   unsigned int hostsideBufferSize = g_bufferWidth * g_bufferHeight * 3;
   g_renderBuffer                  = new float [hostsideBufferSize];
-  float*       hostside_buffer    = new float [hostsideBufferSize];
 
-  for (unsigned i=0; i<hostsideBufferSize; ++i)
-  {
-    g_renderBuffer[i]  = 0.2;
-    hostside_buffer[i] = 0.2;
-  }
+//  for (unsigned i=0; i<hostsideBufferSize; ++i)
+//  {
+//    g_renderBuffer[i]  = 0.2;
+//  }
 
   g_framebufferTextureId = gloost::TextureManager::get()->addTexture(new gloost::Texture( g_bufferWidth,
                                                                                           g_bufferHeight,
                                                                                           1,
-                                                                                          (unsigned char*) hostside_buffer,
-                                                                                          16,
+                                                                                          (unsigned char*) g_renderBuffer,
+                                                                                          12,
                                                                                           GL_TEXTURE_2D,
-                                                                                          GL_RGB32F,
+                                                                                          GL_RGB,
                                                                                           GL_RGB,
                                                                                           GL_FLOAT));
 
@@ -196,50 +272,70 @@ void init()
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
-  g_camera = new gloost::PerspectiveCamera(50.0,
+  std::cerr << std::endl << " done buffers.";
+
+
+
+
+  g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);
 
-  g_camera->lookAt(gloost::Point3(0.0f, 1.0f, 3.0f),
-                   gloost::Point3(0.0f, 0.0f, 0.0f),
-                   gloost::Vector3(0.0f, 1.0f, 0.0f));
+  float xmax = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0) * g_camera->getAspect();
+  g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
 
+//  g_tScaleRatio *= 1.0;
 
+  std::cerr << std::endl;
+  std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
+  std::cerr << std::endl;
 
 
 
   // raycast into framebuffer
 
-  static unsigned g_numThreads                 = 12;
-  static unsigned currentScreenCoordIndex      = 0;
-  static unsigned samplesPerThreadAnditeration = (g_bufferHeight*g_bufferWidth)/g_numThreads;
+//  static unsigned currentScreenCoordIndex      = 0;
+//  static unsigned samplesPerThreadAnditeration = (g_bufferWidth*g_bufferHeight)/g_num_render_Threads;
+//
+//  std::cerr << std::endl << "g_num_render_Threads:                 " << g_num_render_Threads;
+//  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
+//  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
+//
+////  if (g_showRayCastImage)
+//  {
+//
+//    for (unsigned i=0; i!=g_num_render_Threads; ++i)
+//    {
+//      std::cerr << std::endl << "Thread :" << i;
+//      std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
+//      std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
+//
+//
+//      g_threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
+//                                                currentScreenCoordIndex,
+//                                                samplesPerThreadAnditeration,
+//                                                i) );
+//
+//      currentScreenCoordIndex += samplesPerThreadAnditeration;
+//    }
+//
+////    g_threadGroup.join_all();
+//  }
 
-  std::cerr << std::endl << "g_numThreads:                 " << g_numThreads;
-  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
-  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
 
-//  if (g_showRayCastImage)
-  {
+  //
+  std::cerr << std::endl << std::endl << std::endl << "STARTING RENDERER: ";
 
-    for (unsigned i=0; i!=g_numThreads; ++i)
-    {
-
-      std::cerr << std::endl << "Thread :" << i;
-      std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
-      std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
+}
 
 
-      g_threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
-                                                currentScreenCoordIndex,
-                                                samplesPerThreadAnditeration,
-                                                i) );
+//////////////////////////////////////////////////////////////////////////////////////////
 
-      currentScreenCoordIndex += samplesPerThreadAnditeration;
-    }
 
-//    g_threadGroup.join_all();
-  }
+void initWithContext()
+{
+
 }
 
 
@@ -271,47 +367,66 @@ void frameStep()
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_2 ))
   {
     g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
-    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.15f, 20.0f);
+    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.05f, 20.0f);
+  }
+  if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
+  {
+    gloost::Matrix viewMatrixInv = g_camera->getViewMatrix().inverted();
+    viewMatrixInv.setTranslate(0.0,0.0,0.0);
+
+    g_mouse.getSpeed()[2] = 0.0;
+
+    gloost::Vector3 offsetAdd = viewMatrixInv*(g_mouse.getSpeed()*-0.0005);
+
+    g_modelOffset += offsetAdd;
   }
 
 
-  static bool mouse3Down = false;
-
+  static bool     mouse3Down = false;
   static unsigned rayCounter = 0;
 
-  if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ) && !mouse3Down)
+
+  g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
+                                   g_cameraRotateX,
+                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance,
+                                   gloost::Point3(0.0f, 0.0f, 0.0f),
+                                   gloost::Vector3(0.0f, 1.0f, 0.0f));
+
+
+
+//  g_jobsReset = true;
+
+#ifdef USE_THREADED_RENDERING
+  boost::thread_group threadGroup;
+  if (g_showRayCastImage)
   {
-
-    mouse3Down = true;
-    ++rayCounter;
-
-    g_ray = g_camera->getPickRay( g_screenWidth,
-                                  g_screenHeight,
-                                  x,
-                                  g_screenHeight - y);
-    g_ray.setT(1000.0);
-
-    std::cerr << std::endl << "------------------------------------------------: ";
-//    svo::RaycasterSerialSvo raycaster(true);
-//    unsigned hitNodeIndex = raycaster.start_with_SvoData(g_ray,
-//                                                         g_svoData->getSerializedSvo());
-    unsigned hitNodeIndex = 0;
-    std::cerr << std::endl << "At " << rayCounter << " hit leaf node: " << hitNodeIndex;
+    for (unsigned i=0; i!=g_num_render_Threads; ++i)
+    {
+      threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer, i) );
+    }
+    threadGroup.join_all();
   }
-  else
+#else
+
+  for (unsigned i=0; i!=4 && raycastIntoFrameBuffer(0); ++i)
   {
-    mouse3Down = false;
-  }
+    /// write stuff here
+  };
+
+#endif
 
 
-  if (g_frameCounter % 3 == 0)
+//  if (g_frameCounter % 10 == 0)
   {
+    {
+//      boost::mutex::scoped_lock(g_bufferAccessMutex);
+      memcpy(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels(),
+             g_renderBuffer,
+             g_bufferWidth*g_bufferHeight*3*sizeof(float));
+    }
 
-    memcpy(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels(),
-           g_renderBuffer,
-           g_bufferWidth*g_bufferHeight*3*sizeof(float));
-
-    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setDirty();
+    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->removeFromContext();
+    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
   }
 
 
@@ -321,20 +436,75 @@ void frameStep()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-/// main loop function, render with 3D setup
 
-void
-raycastIntoFrameBuffer(unsigned startIndex,
-                       unsigned count,
-                       unsigned threadId)
+  // ...
+
+bool getJob(unsigned& startIndex, unsigned& count)
 {
-//  svo::RaycasterSerialSvo raycaster;
+  static boost::mutex jobMutex;
+  static unsigned     pixelsPerJob = g_bufferWidth*4;
+  static unsigned     currentIndex = 0;
 
+  boost::mutex::scoped_lock lock(jobMutex);
 
-
-
-  while (g_toggle_run_raycasting)
+  if (g_jobsReset)
   {
+    currentIndex = 0;
+    g_jobsReset = false;
+  }
+
+  if (currentIndex == g_bufferWidth*g_bufferHeight)
+  {
+    g_jobsReset = true;
+    return 0;
+  }
+
+  startIndex = currentIndex;
+  count      = pixelsPerJob;
+
+//  std::cerr << std::endl;
+//  std::cerr << std::endl << "startIndex: " << startIndex;
+//  std::cerr << std::endl << "count:      "      << count;
+//  std::cerr << std::endl << "max:        "      << g_bufferWidth*g_bufferHeight;
+
+  currentIndex += pixelsPerJob;
+
+  return true;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/// main loop function, render with 3D setup
+//
+//void
+//raycastIntoFrameBuffer(unsigned startIndex,
+//                       unsigned count,
+//                       unsigned threadId)
+bool
+raycastIntoFrameBuffer(unsigned threadId)
+{
+
+  svo::CpuRaycasterSingleRay3 raycaster3;
+
+  gloost::Matrix offset;
+  offset.setIdentity();
+  offset.setTranslate(g_modelOffset);
+
+  svo::CpuRaycasterSingleRay3::ResultStruct result;
+
+//  while (g_toggle_run_raycasting)
+  {
+    unsigned startIndex;
+    unsigned count;
+
+    if (!getJob(startIndex, count))
+    {
+      return false;
+    }
+
+
     for (unsigned i=startIndex; i!=startIndex+count; ++i)
     {
       int x = g_screenCoords[i][0];
@@ -344,30 +514,54 @@ raycastIntoFrameBuffer(unsigned startIndex,
                                               g_bufferHeight,
                                               x,
                                               (int)g_bufferHeight - y);
-  //      ray.setT(1.0);
-//      unsigned nodeIndex = raycaster.start_with_SvoData(ray, g_svoData->getSerializedSvo());
-      unsigned nodeIndex = 0;
 
-      unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
+      ray.getOrigin() += g_modelOffset;
 
-      if (nodeIndex)
+
       {
+        unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
+        bool hit = raycaster3.start(ray,
+                                g_tScaleRatio*g_tScaleRatioMultiplyer,
+                                g_svo,
+                                result);
 
-        unsigned attribIndex = g_svoData->getSerializedSvo()[nodeIndex].getAttribPosition() + 3;
+        if (hit)
+        {
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
 
-        g_renderBuffer[pixelIndex++] = 1.0;
-        g_renderBuffer[pixelIndex++] = 1.0;
-        g_renderBuffer[pixelIndex++] = 1.0;
+
+//          float depth = result.depth/(float)g_svo->getMaxDepth();
+//          g_renderBuffer[pixelIndex++] = depth; // <-- red
+//          g_renderBuffer[pixelIndex++] = depth; // <-- green
+//          g_renderBuffer[pixelIndex++] = depth; // <-- blue
+
+//          float threadIndicatorColor = threadId/(float)g_num_render_Threads;
+//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- red
+//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- green
+//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- blue
+
+          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+        }
+        else
+        {
+//          boost::mutex::scoped_lock(g_bufferAccessMutex);
+          g_renderBuffer[pixelIndex++] = 0.1;
+          g_renderBuffer[pixelIndex++] = 0.1;
+          g_renderBuffer[pixelIndex++] = 0.25;
+        }
       }
-      else
-      {
-        g_renderBuffer[pixelIndex++] = 0.2;
-        g_renderBuffer[pixelIndex++] = 0.2;
-        g_renderBuffer[pixelIndex++] = 0.25;
-      }
+
+
+
     }
 
   }
+
+  return true;
+
 }
 
 
@@ -387,13 +581,24 @@ void draw3d(void)
   glViewport(0, 0, g_screenWidth, g_screenHeight);
 
 
-  g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
-                                   g_cameraRotateX,
-                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance,
-                                     gloost::Point3(0.0f, 0.0f, 0.0f),
-                                     gloost::Vector3(0.0f, 1.0f, 0.0f));
+
 
   g_camera->set();
+
+
+//  gloost::Matrix offset;
+//  offset.setIdentity();
+//  offset.setTranslate(g_modelOffset);
+
+
+  // draw model
+  glPushMatrix();
+  {
+
+  }
+  glPopMatrix();
+
+
 
 }
 
@@ -455,6 +660,18 @@ void draw2d()
 
       }
 
+      static double timeAccum           = 0;
+      static double avarageTimePerFrame = 1.0;
+
+      timeAccum += g_timePerFrame;
+
+      if (g_frameCounter % 20 == 0)
+      {
+        avarageTimePerFrame = timeAccum / 20.0;
+        timeAccum = 0;
+      }
+
+
 
       glColor4f(1.0f, 1.0f, 1.0f, 1.0);
 
@@ -465,11 +682,18 @@ void draw2d()
         {
           g_texter->renderTextLine(20, g_screenHeight -20, "glfw + VBO test");
           g_texter->renderFreeLine();
-          g_texter->renderTextLine("Time per frame: " + gloost::toString(g_timePerFrame));
-          g_texter->renderTextLine("fps: " + gloost::toString(1.0/g_timePerFrame));
+          g_texter->renderTextLine("Time per frame: " + gloost::toString(avarageTimePerFrame));
+          g_texter->renderTextLine("fps: " + gloost::toString(1.0/avarageTimePerFrame));
           g_texter->renderFreeLine();
           glColor4f(1.0f, 1.0f, 1.0f, 0.5);
-          g_texter->renderTextLine("(h) Show text info:      " + gloost::toString( g_showTextInfo )) ;
+          g_texter->renderTextLine("(h) Show text info:     " + gloost::toString( g_showTextInfo )) ;
+          g_texter->renderTextLine("(3) Show octree nodes:  " + gloost::toString( g_showOctreeNodes )) ;
+          g_texter->renderTextLine("(4) Show octree leaves: " + gloost::toString( g_showOctreeLeaves )) ;
+          g_texter->renderFreeLine();
+          g_texter->renderFreeLine();
+          glColor4f(0.8f, 0.8f, 1.0f, 1.0);
+          g_texter->renderTextLine("g_maxRayCastDepth:      " + gloost::toString(g_svo->getMaxDepth()));
+          g_texter->renderTextLine("LOD multiplier:         " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();
 
@@ -565,9 +789,29 @@ void key(int key, int state)
       case 'H':
         g_showTextInfo = !g_showTextInfo;
         break;
+      case '3':
+        g_showOctreeNodes = !g_showOctreeNodes;
+        break;
+      case '4':
+        g_showOctreeLeaves = !g_showOctreeLeaves;
+        break;
       case 'R':
         reloadShaders();
         break;
+
+      case ' ':
+          g_toggle_renderer = !g_toggle_renderer;
+        break;
+
+
+      case '+':
+        ++g_tScaleRatioMultiplyer;
+        break;
+      case '-':
+        --g_tScaleRatioMultiplyer;
+        g_tScaleRatioMultiplyer = gloost::max(g_tScaleRatioMultiplyer, 1);
+        break;
+
       case 'F':
         g_showRayCastImage = !g_showRayCastImage;
         break;
@@ -576,6 +820,12 @@ void key(int key, int state)
       case '0':
         std::cerr << std::endl;
         std::cerr << std::endl << "CLEARING ALL MESH DATA: ";
+        std::cerr << std::endl;
+        break;
+
+      case 'C':
+        g_modelOffset = gloost::Vector3(0.0,0.0,0.0);
+        std::cerr << std::endl << "centering object";
         std::cerr << std::endl;
         break;
     }
@@ -588,14 +838,6 @@ void key(int key, int state)
 
 int main(int argc, char *argv[])
 {
-//  glfwCreateThread( pollEvents, NULL);
-
-  /// enable sync to vblank on linux to control the demo fps
-#ifdef GLOOST_GNULINUX
-  setenv("__GL_SYNC_TO_VBLANK","1",true);
-#endif
-
-
 
   /// load and intialize stuff for our demo
   init();
@@ -618,7 +860,7 @@ int main(int argc, char *argv[])
 
   // Open an OpenGL window
 //  glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE);
-  glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16);
+//  glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 16);
 //  glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 
@@ -652,6 +894,12 @@ int main(int argc, char *argv[])
   glDepthFunc(GL_LEQUAL);
 
 //  glfwSwapInterval( 1 );
+
+
+  /// load and intialize stuff for our demo
+  initWithContext();
+
+//  glfwCreateThread( pollEvents, NULL);
 
 
   // Main loop

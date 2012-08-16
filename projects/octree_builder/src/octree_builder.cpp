@@ -138,8 +138,10 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned g_maxSvoDepth   = 10;
-unsigned g_nodesVisDepth = 9;
+unsigned g_maxSvoDepth        = 11;
+unsigned g_nodesVisDepth      = 99;
+
+unsigned g_numBuildingThreads = 12;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,8 +151,8 @@ unsigned g_nodesVisDepth = 9;
 
 void init()
 {
-  #define OPEN_GL_WINDOW
-  #define DRAW_MESH
+//  #define OPEN_GL_WINDOW
+//  #define DRAW_MESH
 
   #define BUILD_SVO
 //  #define BUILD_VISUALIZATION_NODES
@@ -159,7 +161,7 @@ void init()
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
-//  g_meshFilename = "omotondo500k-manifold.ply";
+  g_meshFilename = "omotondo500k-manifold.ply";
 //  g_meshFilename = "david_2mm_final_ao.ply";
 //  g_meshFilename = "Hitachi_FH200.ply";
 //  g_meshFilename = "xyzrgb_statuette.ply";
@@ -170,10 +172,9 @@ void init()
 //  g_meshFilename = "dragon_vrip.ply";
 //  g_meshFilename = "david_angel_low.ply";
 //  g_meshFilename = "david_angel.ply";
-//  g_meshFilename = "DecileafNodemated_Head_low.ply";
 //  g_meshFilename = "Decimated_Head.ply";
+//  g_meshFilename = "Decimated_Head_low.ply";
 //  g_meshFilename = "skelet.ply";
-  g_meshFilename = "Decimated_Head.ply";
 //  g_meshFilename = "alligator_head.ply";
 //  g_meshFilename = "furniture_leg_color.ply";
 //  g_meshFilename = "GlenRoseTrack.ply";
@@ -236,9 +237,10 @@ void init()
 //  g_meshFilename = "steppos_kueche_01.ply";
   }
 
-
+  std::cerr << std::endl << "Loading geometry: " << g_plyPath + g_meshFilename;
   gloost::PlyLoader ply(g_plyPath + g_meshFilename);
   g_mesh = ply.getMesh();
+  std::cerr << std::endl << "                 Memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
 
 
 //  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
@@ -327,7 +329,7 @@ void init()
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/uni-washington.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/christmas.jpg"));
 //                                 gloost::TextureManager::getInstance()->createTexture(g_dataPath + "environments/scanner.jpg"));
-  g_modelUniforms->set_float("reflection",  0.2);
+  g_modelUniforms->set_float("reflection",  0.1);
   g_modelUniforms->set_float("shininess",  80.0);
   g_modelUniforms->set_float("specular",    0.2);
 
@@ -345,7 +347,7 @@ void init()
 #ifdef BUILD_SVO
   // SVO builder
   g_svo = new svo::Svo(g_maxSvoDepth);
-  svo::SvoBuilderFaces fromFaceBuilder;
+  svo::SvoBuilderFaces fromFaceBuilder(g_numBuildingThreads);
   fromFaceBuilder.build(g_svo, g_mesh);
 
   // attribute generator
@@ -368,11 +370,13 @@ void init()
                                    + ".svo" );
 #endif
 
+#ifdef OPEN_GL_WINDOW
   buildSvoVisualization(generator.getAttributeBuffer());
 
   // clear attribute buffer to save some mem
   generator.getAttributeBuffer()->getVector().clear();
   generator.getAttributeBuffer()->getVector().resize(1);
+#endif
 #endif
 
 //  g_mesh->interleave(true);
@@ -783,9 +787,9 @@ int main(int argc, char *argv[])
 //  glfwCreateThread( pollEvents, NULL);
 
   /// enable sync to vblank on linux to control the demo fps
-#ifdef GLOOST_GNULINUX
-  setenv("__GL_SYNC_TO_VBLANK","1",true);
-#endif
+//#ifdef GLOOST_GNULINUX
+//  setenv("__GL_SYNC_TO_VBLANK","1",true);
+//#endif
 
 
 

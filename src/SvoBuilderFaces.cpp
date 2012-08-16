@@ -134,7 +134,9 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
     threadGroup.create_thread(boost::bind(&SvoBuilderFaces::runThreadOnRange, this, t, t*range, (t+1)*range ));
   }
 
-  std::cerr << std::endl << "waiting for threads: ";
+  std::cerr << std::endl;
+  std::cerr << std::endl << "starting build threads: [" << gloost::repeatString(" ", _numBuildThreads) << "]";
+  std::cerr << std::endl << "              patience: [";
 
   threadGroup.join_all();
 
@@ -142,6 +144,7 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
 //  std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
 //#ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
+  std::cerr << std::endl;
   std::cerr << std::endl << "               Number of leaves:          " << _svo->getNumLeaves();
   std::cerr << std::endl << "               Number of nodes:           " << _svo->getNumNodes();
   std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
@@ -183,7 +186,7 @@ SvoBuilderFaces::runThreadOnRange(unsigned threadId,
     }
   }
 
-  std::cerr << threadId << " done, ";
+  std::cerr << '|';
 
 }
 

@@ -69,8 +69,6 @@
 		</Linker>
 		<Unit filename="../../../data/shaders/svo_tbo_test_330.fs" />
 		<Unit filename="../../../data/shaders/svo_tbo_test_330.vs" />
-		<Unit filename="../src/RaycasterSerialSvo.cpp" />
-		<Unit filename="../src/RaycasterSerialSvo.h" />
 		<Unit filename="../src/raycast_serialized_cpu.cpp" />
 		<Extensions>
 			<code_completion />

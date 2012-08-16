@@ -55,83 +55,82 @@ class CpuRaycasterSingleRay3
 {
 	public:
 
+
+    struct CpuRaycastStackElement
+    {
+      CpuRaycastStackElement()
+      {}
+
+      unsigned         parentNodeIndex;
+      gloost::mathType parentTMin;
+      gloost::mathType parentTMax;
+
+      gloost::Point3   parentCenter;
+
+//      char nextChild;
+    };
+
+
+    struct ResultStruct
+    {
+      ResultStruct()
+      {
+        hit = 0;
+      }
+
+      bool     hit;
+      unsigned nodeIndex;
+      unsigned attribIndex;
+      unsigned depth;
+      float    t;
+    };
+
+
+
+
     // class constructor
     CpuRaycasterSingleRay3(bool verboseMode = false);
 
     // class destructor
-	  virtual ~CpuRaycasterSingleRay3();
+	  ~CpuRaycasterSingleRay3();
 
 
     // traverses a Svo with a single ray
 //	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
-	  virtual CpuSvoNode start(const gloost::Ray& ray, Svo* svo);
+	  bool start(const gloost::Ray& ray,
+               float tScaleRatio,
+               Svo* svo,
+               ResultStruct& result);
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  virtual CpuSvoNode traversSvo(SvoNode* rootNode, gloost::Point3 p, gloost::Vector3 d);
+	  bool traversSvo(gloost::Point3 origin,
+                    gloost::Vector3 direction,
+                    float tMin,
+                    float tMax,
+                    ResultStruct& result);
 
 
-
-
-    unsigned _pushCounter;
-    unsigned _popCounter;
-    unsigned _whileCounter;
-
-
-    struct StackElement
-    {
-      StackElement()
-      {
-        _parent = CpuSvoNode();
-        _t_max  = 0;
-      }
-      StackElement(CpuSvoNode parent, float t_max)
-      {
-        _parent = parent;
-        _t_max  = t_max;
-      }
-
-      CpuSvoNode _parent;
-      float      _t_max;
-
-    };
-
-
-    struct Stack
-    {
-      Stack(unsigned maxDepth)
-      {
-        _stack.resize(maxDepth);
-      }
-
-      void write(unsigned scale, CpuSvoNode parent, float t_max)
-      {
-        std::cerr << std::endl << "Stack::write at: " << scale;
-        std::cerr << std::endl;
-        _stack[scale]._parent = parent;
-        _stack[scale]._t_max  = t_max;
-      }
-
-
-      CpuSvoNode read(unsigned scale, float& t_max)
-      {
-        std::cerr << std::endl << "Stack::read at:  " << scale;
-        std::cerr << std::endl;
-
-        t_max = _stack[scale]._t_max;
-        return _stack[scale]._parent;
-      }
-
-      std::vector<StackElement> _stack;
-
-
-    };
+    int _max_stack_size;
 
 
 	private:
 
-	  Svo* _svo;
 
+//	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
+
+   std::vector<CpuRaycastStackElement> _stack;
+
+   float _tScaleRatio;
+
+   gloost::mathType _tMin;
+   gloost::mathType _tMax;
+
+   Svo*             _svo;
+
+   std::vector<gloost::Point3> _idToPositionLookUp;
+
+   bool _verboseMode;
 
 };
 
