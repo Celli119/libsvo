@@ -24,14 +24,9 @@
 
 
 
-/// svo system includes
+/// gloost system includes
 #include <CpuRaycasterSingleRay3.h>
 #include <SvoVisualizer.h>
-#include <CpuSvoNode.h>
-
-
-/// gloost system includes
-#include <gloost/gloostHelper.h>
 
 
 
@@ -66,18 +61,23 @@ namespace svo
 */
 
 CpuRaycasterSingleRay3::CpuRaycasterSingleRay3(bool verboseMode):
+  _max_stack_size(0),
+  _stack(),
+  _tScaleRatio(1.0),
+  _tMin(0),
+  _tMax(0),
   _svo(0),
-  _pushCounter(0),
-  _popCounter(0),
-  _whileCounter(0)
-//  _stack(),
-//  _tMin(0),
-//  _tMax(0),
-//  _svo(0),
-//  _idToPositionLookUp(8),
-//  _verboseMode(verboseMode)
+  _idToPositionLookUp(8),
+  _verboseMode(verboseMode)
 {
-
+  _idToPositionLookUp[0] = gloost::Point3(-0.5, -0.5, -0.5);
+  _idToPositionLookUp[1] = gloost::Point3(-0.5, -0.5,  0.5);
+  _idToPositionLookUp[2] = gloost::Point3(-0.5,  0.5, -0.5);
+  _idToPositionLookUp[3] = gloost::Point3(-0.5,  0.5,  0.5);
+  _idToPositionLookUp[4] = gloost::Point3( 0.5, -0.5, -0.5);
+  _idToPositionLookUp[5] = gloost::Point3( 0.5, -0.5,  0.5);
+  _idToPositionLookUp[6] = gloost::Point3( 0.5,  0.5, -0.5);
+  _idToPositionLookUp[7] = gloost::Point3( 0.5,  0.5,  0.5);
 }
 
 
@@ -98,7 +98,6 @@ CpuRaycasterSingleRay3::~CpuRaycasterSingleRay3()
 ////////////////////////////////////////////////////////////////////////////////
 
 
-//#define TEXTOUTPUTWHILETRAVERSAL
 
 /**
   \brief traverses a Svo with a single ray
@@ -106,20 +105,34 @@ CpuRaycasterSingleRay3::~CpuRaycasterSingleRay3()
   \remarks ...
 */
 
-CpuSvoNode
-CpuRaycasterSingleRay3::start(const gloost::Ray& ray, Svo* svo)
+bool
+CpuRaycasterSingleRay3::start(const gloost::Ray& ray,
+                              float tScaleRatio,
+                              Svo* svo,
+                              ResultStruct& result)
 {
-  _svo = svo;
+  _tScaleRatio = tScaleRatio;
+  _svo         = svo;
 
-//  while (_stack.size())
-//  {
-//    _stack.pop();
-//  }
+  static gloost::BoundingBox svoBoundingBox(gloost::Point3(-0.5,-0.5,-0.5),
+                                            gloost::Point3(0.5,0.5,0.5));
 
+//  std::cerr << std::endl << "CpuRaycastStackElement: " << sizeof(CpuRaycastStackElement);
 
-  return traversSvo(svo->getRootNode(),
-                    gloost::Point3(ray.getOrigin()),
-                    gloost::Vector3(ray.getDirection()));
+  gloost::mathType tMin, tMax;
+
+  if (svoBoundingBox.intersect(ray, tMin, tMax))
+  {
+    return traversSvo(ray.getOrigin(),
+                      ray.getDirection(),
+                      tMin, tMax,
+                      result);
+  }
+  else
+  {
+	  return false;
+  }
+	return false;
 }
 
 
@@ -132,295 +145,258 @@ CpuRaycasterSingleRay3::start(const gloost::Ray& ray, Svo* svo)
   \remarks ...
 */
 
-CpuSvoNode
-CpuRaycasterSingleRay3::traversSvo(SvoNode* rootNode, gloost::Point3 p, gloost::Vector3 d)
+bool
+CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
+                                    gloost::Vector3 direction,
+                                    float tMin,
+                                    float tMax,
+                                    ResultStruct& result)
 {
-  const int   s_max   = 23;               // Maximum scale
-  const float epsilon = pow(2.0, -s_max);
+  // STACK INIT
+  static const int scaleMax   = _svo->getMaxDepth();
+  int              scale      = scaleMax-1;
+  float            scale_exp2 = 0.5f;// exp2f(scale - s_max)
 
-  Stack stack(s_max+1);
+  _stack.resize(scaleMax+1);
 
-  // Get rid of small ray direction components to avoid division by zero.
-//  if (std::abs(d[0]) < epsilon) d[0] = copysignf(epsilon, d[0]);
-//  if (std::abs(d[1]) < epsilon) d[1] = copysignf(epsilon, d[1]);
-//  if (std::abs(d[2]) < epsilon) d[2] = copysignf(epsilon, d[2]);
+  CpuRaycastStackElement element;
+  element.parentNodeIndex = 0;
+  element.parentTMin      = tMin;
+  element.parentTMax      = tMax;
+  element.parentCenter    = gloost::Point3(0.0, 0.0, 0.0);
+//  element.nextChild    = 0;
 
-  if (std::abs(d[0]) < epsilon) d[0] = epsilon * gloost::sign(d[0]);
-  if (std::abs(d[1]) < epsilon) d[1] = epsilon * gloost::sign(d[1]);
-  if (std::abs(d[2]) < epsilon) d[2] = epsilon * gloost::sign(d[2]);
-
-
-  // Precompute the coefficients of tx(x), ty(y), and tz(z).
-  // The octree is assumed to reside at coordinates [1, 2].
-
-  float tx_coef = 1.0f / -std::abs(d[0]);
-  float ty_coef = 1.0f / -std::abs(d[1]);
-  float tz_coef = 1.0f / -std::abs(d[2]);
-
-  float tx_bias = tx_coef * p[0];
-  float ty_bias = ty_coef * p[1];
-  float tz_bias = tz_coef * p[2];
+  _stack[scale] = element;
 
 
-  // Select octant mask to mirror the coordinate system so
-  // that ray direction is negative along each axis.
+  // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
+  static float epsilon = 0.0001;
+//  static float epsilon = pow(2, -(scaleMax+2));
+//  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
 
-  int octant_mask = 7;
-  if (d[0] > 0.0f) octant_mask ^= 1, tx_bias = 3.0f * tx_coef - tx_bias;
-  if (d[1] > 0.0f) octant_mask ^= 2, ty_bias = 3.0f * ty_coef - ty_bias;
-  if (d[2] > 0.0f) octant_mask ^= 4, tz_bias = 3.0f * tz_coef - tz_bias;
-
-//  std::cerr << std::endl << "word: " << gloost::unsignedToBinaryString(octant_mask);
-
-
-  // Initialize the active span of t-values.
-
-  float t_min = gloost::max(gloost::max(2.0f * tx_coef - tx_bias, 2.0f * ty_coef - ty_bias), 2.0f * tz_coef - tz_bias);
-  float t_max = gloost::min(gloost::min(tx_coef - tx_bias, ty_coef - ty_bias), tz_coef - tz_bias);
-  float h     = t_max;
-  t_min       = gloost::max(t_min, 0.0f);
-  t_max       = gloost::min(t_max, 1.0f);
+  if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]);
+  if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]);
+  if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]);
 
 
-  // Initialize the current voxel to the first child of the root.
+  gloost::mathType dxReziprok = 1.0/direction[0];
+  gloost::mathType minusPx_dx = -origin[0]*dxReziprok;
 
-  CpuSvoNode parent   = _svo->getSerializedNodeForIndex(0);
-  // int2 childDescriptor = make_int2(0, 0); // invalid until fetched
-  int idx             = 0;
-  gloost::Vector3 pos = gloost::Vector3(1.0,1.0,1.0);
-  int scale           = s_max - 1;
+  gloost::mathType dyReziprok = 1.0/direction[1];
+  gloost::mathType minusPy_dy = -origin[1]*dyReziprok;
 
-//  std::cerr << std::endl << "scale: " << scale;
-
-  float scale_exp2    = 0.5f;// exp2f(scale - s_max)
-
-  if (1.5f * tx_coef - tx_bias > t_min) idx ^= 1, pos[0] = 1.5f;
-  if (1.5f * ty_coef - ty_bias > t_min) idx ^= 2, pos[1] = 1.5f;
-  if (1.5f * tz_coef - tz_bias > t_min) idx ^= 4, pos[2] = 1.5f;
-
-  unsigned itCounter = 0;
+  gloost::mathType dzReziprok = 1.0/direction[2];
+  gloost::mathType minusPz_dz = -origin[2]*dzReziprok;
 
 
-  while (scale < s_max/* && itCounter == 0*/)
+  gloost::mathType x0;
+  gloost::mathType x1;
+  gloost::mathType y0;
+  gloost::mathType y1;
+  gloost::mathType z0;
+  gloost::mathType z1;
+
+  gloost::mathType tx0;
+  gloost::mathType tx1;
+
+  gloost::mathType ty0;
+  gloost::mathType ty1;
+
+  gloost::mathType tz0;
+  gloost::mathType tz1;
+
+  gloost::mathType tcMin;
+  gloost::mathType tcMax;
+
+  gloost::Point3 childEntryPoint;
+  unsigned childIndex;
+
+  gloost::mathType childOffsetScale;
+  gloost::mathType childSizeHalf;
+
+
+  CpuRaycastStackElement parent;
+  bool refetchParent = true;
+
+  unsigned         parentNodeIndex;
+  gloost::mathType parentTMin;
+  gloost::mathType parentTMax;
+  gloost::Point3   parentCenter;
+
+  unsigned        whileCounter = 0;
+  static unsigned maxLoops     = (_svo->getMaxDepth()+1)*(_svo->getMaxDepth()+1)*5.0;
+
+  std::vector<CpuSvoNode>& svoSerialized =  _svo->getSerializedNodes();
+
+
+  /////////////////// LOOP ///////////////////////////////
+  while (scale < scaleMax)
   {
+    ++whileCounter;
 
-    // Fetch child descriptor unless it is already valid.
-//    if (child_descriptor.x == 0)
-//    {
-//      child_descriptor = *(int2*)parent;   /// !!!!!!!!!!
-//    }
-
-    // Determine maximum t-value of the cube by evaluating
-    // tx(), ty(), and tz() at its corner.
-
-    float tx_corner = pos[0] * tx_coef - tx_bias;
-    float ty_corner = pos[1] * ty_coef - ty_bias;
-    float tz_corner = pos[2] * tz_coef - tz_bias;
-    float tc_max = gloost::min(gloost::min(tx_corner, ty_corner), tz_corner);
-
-
-    // Process voxel if the corresponding bit in valid mask is set
-    // and the active t-span is non-empty.
-
-    int child_shift = idx ^ octant_mask; // permute child slots based on the mirroring
-//    int child_masks = child_descriptor.x << child_shift;
-
-    int child_masks = parent.getValidMask().getValue();
-    child_masks = child_masks << 8;
-    child_masks |= parent.getLeafMask().getValue();
-//    child_masks = child_masks << child_shift;
-
-//    std::cerr << std::endl << "t_min: " << t_min;
-//    std::cerr << std::endl << "t_max: " << t_max;
-//    std::cerr << std::endl;
-
-    std::cerr << std::endl << "wanna PUSH0: ";
-    std::cerr << std::endl << "t_min: " << t_min;
-    std::cerr << std::endl << "t_max: " << t_max;
-//    std::cerr << std::endl << gloost::unsignedToBinaryString(child_masks);
-
-    if ((child_masks & 0x8000) != 0 && t_min <= t_max)
+    if (whileCounter == maxLoops)
     {
+      std::cerr << std::endl << "ERROR MAX LOOPS REACHED: " << maxLoops;
+      std::cerr << std::endl << "refetchParent:           " << refetchParent;
+      std::cerr << std::endl;
+      return 0;
+    }
 
-      // Terminate if the voxel is small enough.
+    if (refetchParent)
+    {
+      parent = _stack[scale];
 
-//      updateCounter(PerfCounter_Instructions, 3);
-//      if (tc_max * ray.dir_sz + ray_orig_sz >= scale_exp2)
-//          break; // at t_min
+      parentNodeIndex = parent.parentNodeIndex;
+      parentTMin      = parent.parentTMin;
+      parentTMax      = parent.parentTMax;
+      parentCenter    = parent.parentCenter;
 
-
-      // INTERSECT
-      // Intersect active t-span with the cube and evaluate
-      // tx(), ty(), and tz() at the center of the voxel.
-
-      float tv_max = gloost::min(t_max, tc_max);
-      float half = scale_exp2 * 0.5f;
-      float tx_center = half * tx_coef + tx_corner;
-      float ty_center = half * ty_coef + ty_corner;
-      float tz_center = half * tz_coef + tz_corner;
-
-
-        std::cerr << std::endl << "wanna PUSH1: ";
-
-      // Descend to the first child if the resulting t-span is non-empty.
-      if (t_min <= tv_max)
-      {
-        std::cerr << std::endl << "wanna PUSH2: ";
-
-          // Terminate if the corresponding bit in the non-leaf mask is not set.
-
-          if ((child_masks & 0x0080) == 0)
-              break; // at t_min (overridden with tv_min).
-
-          // PUSH
-          // Write current parent to the stack.
-
-//#ifndef DISABLE_PUSH_OPTIMIZATION
-//          if (tc_max < h)
-//#endif
-          {
-            std::cerr << std::endl << "PUSH: ";
-            stack.write(scale, parent, t_max);
-          }
-          h = tc_max;
-
-
-//          // Find child descriptor corresponding to the current voxel.
-//
-//          int ofs = (unsigned int)child_descriptor.x >> 17; // child pointer
-////          if ((child_descriptor.x & 0x10000) != 0) // far
-////          {
-////              ofs = parent[ofs * 2]; // far pointer
-////              updateCountersForGlobalAccess(2, &parent[ofs * 2]);
-////          }
-//          ofs    += popc8(child_masks & 0x7F);
-//          parent += ofs * 2;
-        parent = _svo->getSerializedNodeForIndex(parent.getFirstChildIndex());
-
-        // Select child voxel that the ray enters first.
-
-        idx = 0;
-        scale--;
-        scale_exp2 = half;
-
-        if (tx_center > t_min) idx ^= 1, pos[0] += scale_exp2;
-        if (ty_center > t_min) idx ^= 2, pos[1] += scale_exp2;
-        if (tz_center > t_min) idx ^= 4, pos[2] += scale_exp2;
-
-        // Update active t-span and invalidate cached child descriptor.
-        t_max = tv_max;
-        continue;
-      }
+      /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
+      /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
+      /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
+      scale_exp2       = pow(2, scale - scaleMax);
+      childOffsetScale = scale_exp2;
+      childSizeHalf    = childOffsetScale*0.5;
+      refetchParent    = false;
     }
 
 
-
-    // ADVANCE
-    // Step along the ray.
-
-    int step_mask = 0;
-    if (tx_corner <= tc_max) step_mask ^= 1, pos[0] -= scale_exp2;
-    if (ty_corner <= tc_max) step_mask ^= 2, pos[1] -= scale_exp2;
-    if (tz_corner <= tc_max) step_mask ^= 4, pos[2] -= scale_exp2;
-
-    // Update active t-span and flip bits of the child slot index.
-
-    t_min = tc_max;
-    idx  ^= step_mask;
-
-    // Proceed with pop if the bit flips disagree with the ray direction.
-
-    if ((idx & step_mask) != 0)
+    if ( parentTMax < 0.0)
     {
       // POP
-      // Find the highest differing bit between the two positions.
-
-      unsigned int differing_bits = 0;
-      if ((step_mask & 1) != 0) differing_bits |= gloost::float_as_int(pos[0]) ^ gloost::float_as_int(pos[0] + scale_exp2);
-      if ((step_mask & 2) != 0) differing_bits |= gloost::float_as_int(pos[1]) ^ gloost::float_as_int(pos[1] + scale_exp2);
-      if ((step_mask & 4) != 0) differing_bits |= gloost::float_as_int(pos[2]) ^ gloost::float_as_int(pos[2] + scale_exp2);
-      scale = (gloost::float_as_int((float)differing_bits) >> 23) - 127; // position of the highest bit
-      scale_exp2 = gloost::int_as_float((scale - s_max + 127) << 23); // exp2f(scale - s_max)
-
-      // Restore parent voxel from the stack.
-
-      parent = stack.read(scale, t_max);
-
-      // Round cube position and extract child slot index.
-
-      int shx = gloost::float_as_int(pos[0]) >> scale;
-      int shy = gloost::float_as_int(pos[1]) >> scale;
-      int shz = gloost::float_as_int(pos[2]) >> scale;
-      pos[0]  = gloost::int_as_float(shx << scale);
-      pos[1]  = gloost::int_as_float(shy << scale);
-      pos[2]  = gloost::int_as_float(shz << scale);
-      idx     = (shx & 1) | ((shy & 1) << 1) | ((shz & 1) << 2);
-
-      // Prevent same parent from being stored again and invalidate cached child descriptor.
-
-      h = 0.0f;
-//      child_descriptor.x = 0;
+      ++scale;
+      refetchParent = true;
+      continue;
     }
+
+    if ( std::abs(parentTMin - parentTMax) < epsilon)
+//    if ( tcMin >= parentTMax)
+    {
+      // POP
+      ++scale;
+      refetchParent = true;
+      continue;
+    }
+
+
+
+    if (parentTMin < parentTMax)
+    {
+      // childEntryPoint in parent voxel coordinates
+      childEntryPoint = (origin + (parentTMin + epsilon) * direction) - parentCenter;
+      childIndex      =   4*(childEntryPoint[0] > 0)
+                        + 2*(childEntryPoint[1] > 0)
+                        +   (childEntryPoint[2] > 0);
+
+
+      // childCenter in world coordinates
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
+
+      x0 = childCenter[0] - childSizeHalf;
+      x1 = childCenter[0] + childSizeHalf;
+      y0 = childCenter[1] - childSizeHalf;
+      y1 = childCenter[1] + childSizeHalf;
+      z0 = childCenter[2] - childSizeHalf;
+      z1 = childCenter[2] + childSizeHalf;
+
+
+      // tx(x) = (1/dx)x + (-px/dx)
+      // dx...Direction of the Ray in x
+      // px...Origin of the Ray in x
+      tx0 = dxReziprok*x0 + minusPx_dx;
+      tx1 = dxReziprok*x1 + minusPx_dx;
+      gloost::swapToIncreasing(tx0, tx1);
+
+      ty0 = dyReziprok*y0 + minusPy_dy;
+      ty1 = dyReziprok*y1 + minusPy_dy;
+      gloost::swapToIncreasing(ty0, ty1);
+
+      tz0 = dzReziprok*z0 + minusPz_dz;
+      tz1 = dzReziprok*z1 + minusPz_dz;
+      gloost::swapToIncreasing(tz0, tz1);
+
+
+      tcMin = gloost::max(tx0, ty0, tz0); // <- you can only enter once
+      tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
+
+
+//      if (childIndex>7)
+//      {
+//        std::cerr << std::endl << "!!!!!! childIndex > 7: ";
+//        return 0;
+//      }
+
+
+      // handle children
+      if (svoSerialized[parentNodeIndex].getValidMask().getFlag(childIndex))
+      {
+        if (svoSerialized[parentNodeIndex].getLeafMask().getFlag(childIndex))
+        {
+          unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
+
+          result.hit         = true;
+          result.nodeIndex   = returnChildIndex;
+          result.attribIndex = svoSerialized[returnChildIndex].getAttribPosition();
+          result.depth       = scaleMax-scale;
+          result.t           = parentTMin;
+
+          return true;
+        }
+        else
+        {
+          if (_tScaleRatio*tcMax > scale_exp2)
+          {
+            unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
+
+            result.hit         = true;
+            result.nodeIndex   = returnChildIndex;
+            result.attribIndex = svoSerialized[returnChildIndex].getAttribPosition();
+            result.depth       = scaleMax-scale;
+            result.t           = parentTMin;
+
+            return true;
+          }
+
+          // update parent befor push
+          _stack[scale].parentTMin = tcMax;
+
+          // PUSH
+          CpuRaycastStackElement newStackElement;
+          newStackElement.parentNodeIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
+          newStackElement.parentTMin      = tcMin;
+          newStackElement.parentTMax      = tcMax;
+          newStackElement.parentCenter    = childCenter;
+
+          --scale;
+          _stack[scale] = newStackElement;
+
+          refetchParent = true;
+          continue;
+        }
+      }
+      else
+      {
+        // ADVANCE
+        parentTMin = tcMax;
+      }
+    }
+    else
+    {
+      // POP
+      ++scale;
+      refetchParent = true;
+      continue;
+    }
+
   }
 
-    // Indicate miss if we are outside the octree.
 
-//#if (MAX_RAYCAST_ITERATIONS > 0)
-//    if (scale >= s_max || iter > MAX_RAYCAST_ITERATIONS)
-//#else
-    if (scale >= s_max)
-//#endif
-    {
-        t_min = 2.0f;
-    }
-
-    // Undo mirroring of the coordinate system.
-
-    if ((octant_mask & 1) == 0) pos[0] = 3.0f - scale_exp2 - pos[0];
-    if ((octant_mask & 2) == 0) pos[1] = 3.0f - scale_exp2 - pos[1];
-    if ((octant_mask & 4) == 0) pos[2] = 3.0f - scale_exp2 - pos[2];
-
-    // Output results.
-
-//    res.t = t_min;
-//    res.iter = iter;
-//    res.pos.x = fminf(fmaxf(ray.orig.x + t_min * ray.dir.x, pos.x + epsilon), pos.x + scale_exp2 - epsilon);
-//    res.pos.y = fminf(fmaxf(ray.orig.y + t_min * ray.dir.y, pos.y + epsilon), pos.y + scale_exp2 - epsilon);
-//    res.pos.z = fminf(fmaxf(ray.orig.z + t_min * ray.dir.z, pos.z + epsilon), pos.z + scale_exp2 - epsilon);
-//    res.node = parent;
-//    res.childIdx = idx ^ octant_mask ^ 7;
-//    res.stackPtr = scale;
-
-
-
-  return parent;
+  return 0;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

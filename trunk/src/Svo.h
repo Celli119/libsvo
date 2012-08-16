@@ -61,7 +61,7 @@ namespace svo
     SvoNode* node;
 
     /// position within the serialized buffer
-    unsigned int position;
+    unsigned index;
   };
 
 
@@ -94,6 +94,9 @@ class Svo
     // class constructor
     Svo(int maxDepth);
 
+    // class constructor
+    Svo(const std::string svoFilePath);
+
     // class destructor
 	  virtual ~Svo();
 
@@ -119,6 +122,12 @@ class Svo
     // writes the serialized svo and attributes to a file
     bool writeSerializedSvoToFile(const std::string& filePath);
 
+    // reads a serialized svo and attribute files
+    bool loadSerializedSvoFromFile(const std::string& filePath);
+
+
+    // returns a vector with serialized nodes
+    std::vector<CpuSvoNode>& getSerializedNodes();
 
     // returns a serialized SvoNode for an index
     CpuSvoNode getSerializedNodeForIndex(unsigned index);
@@ -178,7 +187,6 @@ class Svo
 
     SvoNode*            _root;
     int                 _maxDepth;
-    float               _minVoxelSize;
 
     gloost::BoundingBox _boundingBox;
 

@@ -76,6 +76,11 @@ class CpuSvoNode
     void setFirstChildIndex(unsigned index);
 
 
+    // returns the nth child node index within the serialized data
+    unsigned getNthChildIndex(unsigned childIndex);
+
+
+
     // returns valid mask
     BitMask8& getValidMask();
     const BitMask8& getValidMask() const;
@@ -93,13 +98,13 @@ class CpuSvoNode
     unsigned int getAttribPosition() const;
 
     // sets the attribute position within the attribute buffer
-    void setAttribPosition(unsigned int i);
+    void setAttribPosition(unsigned i);
 
 
 	private:
 
     // ...
-    unsigned _firstchildIndex;
+    unsigned _firstChildIndex;
 
     BitMask8 _validMask;
     BitMask8 _leafMask;

@@ -58,7 +58,7 @@ namespace svo
 */
 
 CpuSvoNode::CpuSvoNode():
- _firstchildIndex(0),
+ _firstChildIndex(0),
  _validMask(),
  _leafMask(),
  _attribPosition(0)
@@ -79,7 +79,7 @@ CpuSvoNode::CpuSvoNode( unsigned        firstchildIndex,
                         const BitMask8& validMask,
                         const BitMask8& leafMask,
                         unsigned        attribPosition):
- _firstchildIndex(firstchildIndex),
+ _firstChildIndex(firstchildIndex),
  _validMask(validMask),
  _leafMask(leafMask),
  _attribPosition(attribPosition)
@@ -114,7 +114,7 @@ CpuSvoNode::~CpuSvoNode()
 unsigned
 CpuSvoNode::getFirstChildIndex() const
 {
-  return _firstchildIndex;
+  return _firstChildIndex;
 }
 
 
@@ -130,7 +130,30 @@ CpuSvoNode::getFirstChildIndex() const
 void
 CpuSvoNode::setFirstChildIndex(unsigned index)
 {
-  _firstchildIndex = index;
+  _firstChildIndex = index;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns the nth child node index within the serialized data
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+CpuSvoNode::getNthChildIndex(unsigned childIndex)
+{
+  unsigned index = _firstChildIndex;
+
+  for (unsigned i=0; i!=childIndex; ++i)
+  {
+    index += _validMask.getFlag(i);
+  }
+
+  return index;
 }
 
 
@@ -256,7 +279,7 @@ CpuSvoNode::getAttribPosition() const
 */
 
 void
-CpuSvoNode::setAttribPosition(unsigned int i)
+CpuSvoNode::setAttribPosition(unsigned i)
 {
   _attribPosition = i;
 }
