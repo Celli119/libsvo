@@ -100,59 +100,67 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
                                       gloost::ObjMatFile* materials,
                                       bool freeDiscreteSamplesAfterwards)
 {
-
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::generate(): ";
   std::cerr << std::endl << "  Num Lists of samples: " << svo->getDiscreteSampleLists().size();
   std::cerr << std::endl << "  Num of leaves:        " << svo->getNumLeaves();
 
 
-  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
-
-  // for all lists with samples
-  for (unsigned i=0; i!=svo->getDiscreteSampleLists().size(); ++i)
-	{
-    Svo::SampleList::iterator sampleIt    = svo->getDiscreteSampleList(i).begin();
-    Svo::SampleList::iterator sampleEndIt = svo->getDiscreteSampleList(i).end();
-
-    gloost::Vector3 color(0.0,0.0,0.0);
-    gloost::Vector3 normal(0.0,0.0,0.0);
-
-    // for all samples of a list
-    for (; sampleIt!=sampleEndIt; ++sampleIt)
-    {
-      svo::BuilderTriangleFace triangle(mesh, (*sampleIt)._primitiveId);
-
-      normal += triangle.interpolateNormal((*sampleIt)._u, (*sampleIt)._v);
-      color  += triangle.interpolateColor((*sampleIt)._u, (*sampleIt)._v);
-    }
-
-    normal /= (float) svo->getDiscreteSampleList(i).size();
-    color  /= (float) svo->getDiscreteSampleList(i).size();
-
-    attribBundle.putFloat(normal[0]);
-    attribBundle.putFloat(normal[1]);
-    attribBundle.putFloat(normal[2]);
-    attribBundle.putFloat(color[0]);
-    attribBundle.putFloat(color[1]);
-    attribBundle.putFloat(color[2]);
-	}
-
-	if (freeDiscreteSamplesAfterwards)
-	{
-	  svo->clearDiscreteSamples();
-	}
-
+//  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
 
   _attributes[0]->dropReference();
-	_attributes[0] = new gloost::InterleavedAttributes(attribBundle);
+	_attributes[0] = new gloost::InterleavedAttributes();
 	_attributes[0]->takeReference();
 
 	_attributes[0]->addAttribute(3, 12, "normals");
 	_attributes[0]->addAttribute(3, 12, "colors");
 
+	_attributes[0]->resize(svo->getDiscreteSampleLists().size());
+
+
+  // for all lists with samples
+  for (unsigned i=0; i!=svo->getDiscreteSampleLists().size(); ++i)
+	{
+	  std::vector<DiscreteSample>& samples = svo->getDiscreteSampleList(i);
+
+    gloost::Vector3 color(0.0,0.0,0.0);
+    gloost::Vector3 normal(0.0,0.0,0.0);
+
+    // for all samples of a list
+    for (unsigned i=0; i!=samples.size(); ++i)
+    {
+      svo::BuilderTriangleFace triangle(mesh, samples[i]._primitiveId);
+
+      normal += triangle.interpolateNormal(samples[i]._u, samples[i]._v);
+      color  += triangle.interpolateColor(samples[i]._u, samples[i]._v);
+    }
+
+    // averaging with number of samples
+    normal /= (float) svo->getDiscreteSampleList(i).size();
+    color  /= (float) svo->getDiscreteSampleList(i).size();
+
+    unsigned packageIndex = _attributes[0]->getPackageIndex(i);
+
+    _attributes[0]->getVector()[packageIndex+0] = normal[0];
+    _attributes[0]->getVector()[packageIndex+1] = normal[1];
+    _attributes[0]->getVector()[packageIndex+2] = normal[2];
+
+    _attributes[0]->getVector()[packageIndex+3] = color[0];
+    _attributes[0]->getVector()[packageIndex+4] = color[1];
+    _attributes[0]->getVector()[packageIndex+5] = color[2];
+	}
+
+//	if (freeDiscreteSamplesAfterwards)
+//	{
+//	  svo->clearDiscreteSamples();
+//	}
+
+
   std::cerr << std::endl;
   std::cerr << std::endl << "  -> Generating attributes for inner nodes: ";
-	generateInnerNodesAttributesRecursive(svo->getRootNode(), 0);
 
+  // generate non leaf nodes attributes
+	generateInnerNodesAttributesRecursive(svo->getRootNode(), 1);
 }
 
 
@@ -172,7 +180,8 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
   // average child attributes for this node
   gloost::Vector3 averageNormal(0.0,0.0,0.0);
   gloost::Vector3 averageColor(0.0,0.0,0.0);
-  unsigned int numChildren = 0;
+
+  unsigned numChildren = 0;
 
   for (unsigned int c=0; c!=8; ++c)
   {
@@ -182,10 +191,14 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
       ++numChildren;
 
       // reading attribs of children
-      unsigned childAttribIndex  = node->getChild(c)->getAttribPosition();
-      unsigned elementIndex = attribs->getPackageIndex(childAttribIndex);
 
-      // reading and accumulating
+      unsigned childAttribIndex  = node->getChild(c)->getAttribPosition();
+      unsigned elementIndex      = attribs->getPackageIndex(childAttribIndex);
+
+
+      // reading attribute components and accumulating
+
+      // normals
       float nx = (*attribs).getVector()[elementIndex];
       ++elementIndex;
       float ny = (*attribs).getVector()[elementIndex];
@@ -197,6 +210,7 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
       averageNormal[1] += ny;
       averageNormal[2] += nz;
 
+      // colors
       float r = (*attribs).getVector()[elementIndex];
       ++elementIndex;
       float g = (*attribs).getVector()[elementIndex];
@@ -210,12 +224,17 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
   }
 
   // averaging
-  averageNormal /= numChildren;
+  if (numChildren)
+  {
+    averageNormal /= numChildren;
+    averageColor  /= numChildren;
+  }
   averageNormal.normalize();
-  averageColor  /= numChildren;
 
   // set attribute position and push attributes
-  node->setAttribPosition(attribs->getNumPackages());
+  static unsigned numAttribPackages = attribs->getNumPackages();
+  node->setAttribPosition(numAttribPackages);
+  ++numAttribPackages;
 
   attribs->getVector().push_back(averageNormal[0]);
   attribs->getVector().push_back(averageNormal[1]);

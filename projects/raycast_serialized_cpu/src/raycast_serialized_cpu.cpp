@@ -36,8 +36,8 @@
 
 
 /// general setup
-static unsigned int g_screenWidth  = 1024;
-static unsigned int g_screenHeight = 1024;
+static unsigned int g_screenWidth  = 1920;
+static unsigned int g_screenHeight = 1200;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
 static unsigned int g_bufferHeight  = g_screenHeight;
@@ -136,19 +136,22 @@ bool g_jobsReset = true;
 
 
 bool     g_toggle_renderer = false;
-unsigned g_num_render_Threads   = 4;
+unsigned g_num_render_Threads   = 6;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
+#include <limits>
 
 void init()
 {
+  std::cerr << std::endl << "int:      " << std::numeric_limits<int>::max();
+  std::cerr << std::endl << "unsigned: " << std::numeric_limits<unsigned>::max();
+  std::cerr << std::endl << "float:    " << (int)std::numeric_limits<float>::max();
+
 
   #define USE_THREADED_RENDERING
-
   g_bufferWidth  = g_screenWidth/2.0;
   g_bufferHeight = g_screenHeight/2.0;
 
@@ -156,53 +159,12 @@ void init()
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-//  const std::string svoBaseName = "Decimated_Head_3";
-//  const std::string svoBaseName = "Decimated_Head_6";
-//  const std::string svoBaseName = "Decimated_Head_8";
-//  const std::string svoBaseName = "Decimated_Head_9";
-//  const std::string svoBaseName = "Decimated_Head_10";
-//  const std::string svoBaseName = "Decimated_Head_11";
-
-
-//  const std::string svoBaseName = "dragon_vrip_3";
-//  const std::string svoBaseName = "dragon_vrip_8";
-//  const std::string svoBaseName = "dragon_vrip_10";
-//  const std::string svoBaseName = "dragon_vrip_11";
-
-
-//  const std::string svoBaseName = "female02_8";
-//  const std::string svoBaseName = "female02_11";
-
-
-//  const std::string svoBaseName = "frog2_seperated_3";
-//  const std::string svoBaseName = "frog2_seperated_6";
-//  const std::string svoBaseName = "frog2_seperated_8";
-//  const std::string svoBaseName = "frog2_seperated_10";
-
-
-//  const std::string svoBaseName = "Hitachi_FH200_6";
-//  const std::string svoBaseName = "Hitachi_FH200_9";
-//  const std::string svoBaseName = "Hitachi_FH200_11";
-
-  const std::string svoBaseName = "omotondo500k-manifold_11";
-
-
-//  const std::string svoBaseName = "skelet_9";
-//  const std::string svoBaseName = "skelet_11";
-//  const std::string svoBaseName = "skelet_12";
-
-
-//  const std::string svoBaseName = "venus_9";
-//  const std::string svoBaseName = "venus_11";
-
-
-//  const std::string svoBaseName = "women_9";
-//  const std::string svoBaseName = "women_12";
-
-
-//  const std::string svoBaseName = "xyzrgb_statuette_8";
-//  const std::string svoBaseName = "xyzrgb_statuette_11";
-
+  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "dental_crown_11";
+//  const std::string svoBaseName = "dental_scan_11";
+//  const std::string svoBaseName = "fancy_art_high_11";
+//  const std::string svoBaseName = "teeth_5mp_11";
+//  const std::string svoBaseName = "terrain_05_11";
 
 
   // loading svo and attributes
@@ -223,11 +185,8 @@ void init()
       g_screenCoords[index] = gloost::Vector2(x,y);
     }
 
-
-  std::cerr << std::endl << " done screen coords.";
-
   // mix screen coords
-  for (unsigned i=0; i!=g_screenCoords.size()*12; ++i)
+  for (unsigned i=0; i!=g_screenCoords.size()*4; ++i)
   {
     unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
     unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
@@ -239,9 +198,6 @@ void init()
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
 
-
-
-  std::cerr << std::endl << " done g_texter.";
 
 
   // shaders
@@ -272,10 +228,6 @@ void init()
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
-  std::cerr << std::endl << " done buffers.";
-
-
-
 
   g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
@@ -291,37 +243,6 @@ void init()
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
   std::cerr << std::endl;
 
-
-
-  // raycast into framebuffer
-
-//  static unsigned currentScreenCoordIndex      = 0;
-//  static unsigned samplesPerThreadAnditeration = (g_bufferWidth*g_bufferHeight)/g_num_render_Threads;
-//
-//  std::cerr << std::endl << "g_num_render_Threads:                 " << g_num_render_Threads;
-//  std::cerr << std::endl << "samplesPerThreadAnditeration: " << samplesPerThreadAnditeration;
-//  std::cerr << std::endl << "g_bufferWidth*g_bufferHeight: " << g_bufferWidth*g_bufferHeight;
-//
-////  if (g_showRayCastImage)
-//  {
-//
-//    for (unsigned i=0; i!=g_num_render_Threads; ++i)
-//    {
-//      std::cerr << std::endl << "Thread :" << i;
-//      std::cerr << std::endl << "  From: " << currentScreenCoordIndex;
-//      std::cerr << std::endl << "  To:   " << currentScreenCoordIndex+samplesPerThreadAnditeration;
-//
-//
-//      g_threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer,
-//                                                currentScreenCoordIndex,
-//                                                samplesPerThreadAnditeration,
-//                                                i) );
-//
-//      currentScreenCoordIndex += samplesPerThreadAnditeration;
-//    }
-//
-////    g_threadGroup.join_all();
-//  }
 
 
   //
@@ -530,6 +451,11 @@ raycastIntoFrameBuffer(unsigned threadId)
 //          boost::mutex::scoped_lock(g_bufferAccessMutex);
 
 
+//          float tValue = result.t;
+//          g_renderBuffer[pixelIndex++] = tValue; // <-- red
+//          g_renderBuffer[pixelIndex++] = tValue; // <-- green
+//          g_renderBuffer[pixelIndex++] = tValue; // <-- blue
+
 //          float depth = result.depth/(float)g_svo->getMaxDepth();
 //          g_renderBuffer[pixelIndex++] = depth; // <-- red
 //          g_renderBuffer[pixelIndex++] = depth; // <-- green
@@ -540,10 +466,15 @@ raycastIntoFrameBuffer(unsigned threadId)
 //          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- green
 //          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- blue
 
+//          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+
           unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex]; // <-- red
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+1]; // <-- green
+          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+2]; // <-- blue
         }
         else
         {
@@ -680,7 +611,7 @@ void draw2d()
       {
         g_texter->begin();
         {
-          g_texter->renderTextLine(20, g_screenHeight -20, "glfw + VBO test");
+          g_texter->renderTextLine(20, g_screenHeight -20, "raycast serialized cpu test");
           g_texter->renderFreeLine();
           g_texter->renderTextLine("Time per frame: " + gloost::toString(avarageTimePerFrame));
           g_texter->renderTextLine("fps: " + gloost::toString(1.0/avarageTimePerFrame));

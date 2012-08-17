@@ -67,6 +67,7 @@ gloost::Mouse g_mouse;
 #include <gloost/PerspectiveCamera.h>
 gloost::PerspectiveCamera*   g_camera;
 float                        g_tScaleRatio = 1.0;
+int                          g_tScaleRatioMultiplyer = 1.0;
 
 
 gloost::Point3 g_modelOffset;
@@ -157,7 +158,7 @@ boost::mutex g_bufferAccessMutex;
 
 
 bool     g_toggle_renderer = false;
-unsigned g_num_building_Threads = 8;
+unsigned g_num_building_Threads = 12;
 unsigned g_num_render_Threads   = 8;
 
 
@@ -179,10 +180,10 @@ void init()
 #define USE_THREADED_RENDERING
   g_num_render_Threads = 8;
 
-  g_bufferWidth  = g_screenWidth/4;
-  g_bufferHeight = g_screenHeight/4;
+  g_bufferWidth  = g_screenWidth/8;
+  g_bufferHeight = g_screenHeight/8;
 
-  const unsigned maxDepth = 2;
+  const unsigned maxDepth = 11;
 
 
   // create screencoords
@@ -228,7 +229,7 @@ void init()
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Women_hair_undressed_low.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/dragon_vrip.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/triplane.ply");
-  gloost::PlyLoader loader("/home/otaco/Desktop/ply/fancy_art.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/fancy_art.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/NissanPathfinder.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/women.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/frog2_vertex_ao.ply");
@@ -238,6 +239,8 @@ void init()
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/alligator_head.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head_low.ply");
+  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head_verylow.ply");
+//  gloost::PlyLoader loader("/home/otaco/Desktop/ply/Decimated_Head_verylow_yellow.ply");
 //  gloost::PlyLoader loader("/home/otaco/Desktop/ply/human/shf--01.ply");
 
 
@@ -270,19 +273,17 @@ void init()
   // setup framebuffer
   unsigned int hostsideBufferSize = g_bufferWidth * g_bufferHeight * 3;
   g_renderBuffer                  = new float [hostsideBufferSize];
-  float*       hostside_buffer    = new float [hostsideBufferSize];
 
   for (unsigned i=0; i<hostsideBufferSize; ++i)
   {
     g_renderBuffer[i]  = 0.2;
-    hostside_buffer[i] = 0.2;
   }
 
   g_framebufferTextureId = gloost::TextureManager::get()->addTexture(new gloost::Texture( g_bufferWidth,
                                                                                           g_bufferHeight,
                                                                                           1,
-                                                                                          (unsigned char*) hostside_buffer,
-                                                                                          16,
+                                                                                          (unsigned char*) g_renderBuffer,
+                                                                                          12,
                                                                                           GL_TEXTURE_2D,
                                                                                           GL_RGB,
                                                                                           GL_RGB,
@@ -329,7 +330,7 @@ void init()
   g_tScaleRatio = xmax / g_camera->getNear() / (float)g_bufferWidth;
 
 
-  g_tScaleRatio *= 10.0;
+//  g_tScaleRatio *= 10.0;
 
   std::cerr << std::endl;
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
@@ -399,12 +400,14 @@ void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth)
   svo::SvoBuilderFaces builder(g_num_building_Threads);
 
   builder.build(g_svo, mesh);
-  g_svo->serializeSvo();
 
   //
   svo::Ag_colorAndNormalsTriangles generator;
   generator.generate(g_svo, mesh,
                      new gloost::ObjMatFile());
+
+  g_svo->serializeSvo();
+
   g_voxelAttributes = generator.getAttributeBuffer(0);
   g_voxelAttributes->takeReference();
 
@@ -550,6 +553,8 @@ raycastIntoFrameBuffer(unsigned startIndex,
 {
   svo::CpuRaycasterSingleRay2 raycaster2;
   svo::CpuRaycasterSingleRay3 raycaster3;
+
+
   //    float* pixels =  (float*)(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels());
 //  std::vector<float>&  attribs = g_svo->getAttributeBuffer();
 
@@ -602,16 +607,15 @@ raycastIntoFrameBuffer(unsigned startIndex,
       else // raycaster3
       {
         unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
-        node = raycaster3.start(ray, g_tScaleRatio, g_svo);
+        svo::CpuRaycasterSingleRay3::ResultStruct result;
+        bool hit = raycaster3.start(ray,
+                                    g_tScaleRatio*g_tScaleRatioMultiplyer,
+                                    g_svo,
+                                    result);
 
-        if (node)
+        if (hit && result.attribIndex != SVO_EMPTY_ATTRIB_POS)
         {
-//          boost::mutex::scoped_lock(g_bufferAccessMutex);
-          unsigned attribPos   = node->getAttribPosition();
-
-          delete node;
-
-          unsigned attribIndex = g_voxelAttributes->getPackageIndex(attribPos);
+          unsigned attribIndex = result.attribIndex*6;//g_voxelAttributes->getPackageIndex(result.attribIndex);
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
           g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
@@ -619,9 +623,9 @@ raycastIntoFrameBuffer(unsigned startIndex,
         else
         {
 //          boost::mutex::scoped_lock(g_bufferAccessMutex);
-          g_renderBuffer[pixelIndex++] = 0.2;
-          g_renderBuffer[pixelIndex++] = 0.2;
-          g_renderBuffer[pixelIndex++] = 0.3;
+          g_renderBuffer[pixelIndex++] = 0.1;
+          g_renderBuffer[pixelIndex++] = 0.1;
+          g_renderBuffer[pixelIndex++] = 0.25;
         }
       }
 
@@ -630,34 +634,6 @@ raycastIntoFrameBuffer(unsigned startIndex,
     }
 
   }
-
-
-
-
-//  if (g_toggle_renderer == 0)
-//  {
-//////    std::cerr << std::endl << "raycaster 1 pushes: " << raycaster2._pushCounter;
-//////    std::cerr << std::endl << "raycaster 1 pop:    " << raycaster2._popCounter;
-//////    std::cerr << std::endl << "raycaster 1 while:  " << raycaster2._whileCounter;
-////    std::cerr << std::endl << "raycaster 1 max stack depth:  " << raycaster3._max_stack_size;
-//////    std::cerr << std::endl;
-//////    raycaster2._pushCounter  = 0;
-//////    raycaster2._popCounter   = 0;
-//////    raycaster2._whileCounter = 0;
-////    raycaster3._max_stack_size = 0;
-//  }
-//  else
-//  {
-//    std::cerr << std::endl << "raycaster 2 pushes: " << raycaster3._pushCounter;
-//    std::cerr << std::endl << "raycaster 2 pop:    " << raycaster3._popCounter;
-//    std::cerr << std::endl << "raycaster 2 while:  " << raycaster3._whileCounter;
-//    std::cerr << std::endl;
-//    raycaster3._pushCounter  = 0;
-//    raycaster3._popCounter   = 0;
-//    raycaster3._whileCounter = 0;
-//  }
-
-
 
 }
 
@@ -865,20 +841,21 @@ void draw2d()
       {
         g_texter->begin();
         {
-          g_texter->renderTextLine(20, g_screenHeight -20, "glfw + VBO test");
+          g_texter->renderTextLine(20, g_screenHeight -20, "raycast cpu test");
           g_texter->renderFreeLine();
           g_texter->renderTextLine("Time per frame: " + gloost::toString(avarageTimePerFrame));
-          g_texter->renderTextLine("fps: " + gloost::toString(1.0/avarageTimePerFrame));
+          g_texter->renderTextLine("fps:            " + gloost::toString(1.0/avarageTimePerFrame));
           g_texter->renderFreeLine();
           glColor4f(1.0f, 1.0f, 1.0f, 0.5);
-          g_texter->renderTextLine("(h) Show text info:      " + gloost::toString( g_showTextInfo )) ;
-          g_texter->renderTextLine("(3) Show octree nodes:   " + gloost::toString( g_showOctreeNodes )) ;
-          g_texter->renderTextLine("(4) Show octree leaves:  " + gloost::toString( g_showOctreeLeaves )) ;
+          g_texter->renderTextLine("(h) Show text info:     " + gloost::toString( g_showTextInfo )) ;
+          g_texter->renderTextLine("(3) Show octree nodes:  " + gloost::toString( g_showOctreeNodes )) ;
+          g_texter->renderTextLine("(4) Show octree leaves: " + gloost::toString( g_showOctreeLeaves )) ;
           g_texter->renderFreeLine();
           g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
-          g_texter->renderTextLine("g_maxRayCastDepth:       " + gloost::toString(g_maxRayCastDepth));
-          g_texter->renderTextLine("raycaster:               " + gloost::toString(g_toggle_renderer+1));
+          g_texter->renderTextLine("g_maxRayCastDepth:      " + gloost::toString(g_maxRayCastDepth));
+          g_texter->renderTextLine("raycaster:              " + gloost::toString(g_toggle_renderer+1));
+          g_texter->renderTextLine("LOD multiplier:         " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();
 
@@ -988,12 +965,14 @@ void key(int key, int state)
           g_toggle_renderer = !g_toggle_renderer;
         break;
 
-
-
-      case 'B':
-        --g_maxRayCastDepth;
-        g_maxRayCastDepth = gloost::clamp(g_maxRayCastDepth, 1, 1000);
+      case '+':
+        ++g_tScaleRatioMultiplyer;
         break;
+      case '-':
+        --g_tScaleRatioMultiplyer;
+        g_tScaleRatioMultiplyer = gloost::max(g_tScaleRatioMultiplyer, 1);
+        break;
+
       case 'F':
         g_showRayCastImage = !g_showRayCastImage;
         break;

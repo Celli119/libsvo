@@ -26,6 +26,7 @@
 
 /// gloost system includes
 #include <CpuSvoNode.h>
+#include <Svo.h>
 
 
 
@@ -61,7 +62,7 @@ CpuSvoNode::CpuSvoNode():
  _firstChildIndex(0),
  _validMask(),
  _leafMask(),
- _attribPosition(0)
+ _attribPosition(SVO_EMPTY_ATTRIB_POS)
 {
 
 }

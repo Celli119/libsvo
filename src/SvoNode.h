@@ -42,10 +42,6 @@
 /// cpp includes
 #include <string>
 
-
-#define SVO_SVONODE_EMPTY_ATTRIB_POS 999999999
-
-
 namespace svo
 {
 
@@ -67,10 +63,10 @@ class SvoNode
     SvoNode* getChildren();
 
     // returns array of children
-    SvoNode* getChild(unsigned int i);
+    SvoNode* getChild(unsigned i);
 
     // sets the child on index i
-    void setChild(unsigned int i, SvoNode* node);
+    void setChild(unsigned i, SvoNode* node);
 
 
     // returns valid mask
@@ -85,28 +81,24 @@ class SvoNode
 
 
     // returns attribute position in attrib buffer
-    unsigned int getAttribPosition();
+    unsigned getAttribPosition();
 
     // sets the attribute position within the attribute buffer
-    void setAttribPosition(unsigned int i);
+    void setAttribPosition(unsigned i);
 
 
     // returns serialized node size
     static int getSerializedNodeSize();
 
-    // returns a child index for a coordinate between (-0.5,-0.5,-0.5) and (0.5,0.5,0.5)
-//    static unsigned int getChildIndexForPosition(const gloost::Point3& pos);
-
-
 	private:
 
     // ...
-    SvoNode*     _children[8];
+    SvoNode* _children[8];
 
-    BitMask8     _validMask;
-    BitMask8     _leafMask;
+    BitMask8 _validMask;
+    BitMask8 _leafMask;
 
-    unsigned int _attribPosition;
+    unsigned _attribPosition;
 
 };
 

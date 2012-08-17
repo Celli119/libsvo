@@ -138,10 +138,10 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned g_maxSvoDepth        = 11;
-unsigned g_nodesVisDepth      = 99;
+const unsigned g_maxSvoDepth        = 12;
+const unsigned g_nodesVisDepth      = 99;
 
-unsigned g_numBuildingThreads = 12;
+const unsigned g_numBuildingThreads = 12;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,8 @@ void init()
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
-  g_meshFilename = "omotondo500k-manifold.ply";
+  g_meshFilename = "david_2mm_final_ao.ply";
+//  g_meshFilename = "omotondo500k-manifold.ply";
 //  g_meshFilename = "david_2mm_final_ao.ply";
 //  g_meshFilename = "Hitachi_FH200.ply";
 //  g_meshFilename = "xyzrgb_statuette.ply";
@@ -185,9 +186,7 @@ void init()
 //  g_meshFilename = "female02.ply";
 //  g_meshFilename = "women.ply";
 //  g_meshFilename = "women_low.ply";
-//  g_meshFilename = "Alfa_Romeo_159.ply";
 //  g_meshFilename = "lambo.ply";
-//  g_meshFilename = "dental_scan.ply";
 //  g_meshFilename = "GlenRoseTrack_high.ply";
 //  g_meshFilename = "monster.ply";
 //  g_meshFilename = "monster_medium.ply";
@@ -235,6 +234,7 @@ void init()
 //  g_meshFilename = "triplane.ply";
 //  g_meshFilename = "Infinite-Level_02.ply";
 //  g_meshFilename = "steppos_kueche_01.ply";
+//  g_meshFilename = "terrain_05.ply";
   }
 
   std::cerr << std::endl << "Loading geometry: " << g_plyPath + g_meshFilename;
@@ -252,23 +252,6 @@ void init()
 //    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
 //    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
 //  }
-
-
-
-//  gloost::ObjLoader objLoader("../data/meshes/two_triangles.obj");
-//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/frog2.obj");
-//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/sponza.obj");
-//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/wacky_planet.obj");
-//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/xyzrgb_dragon_low.obj");
-//  gloost::ObjLoader objLoader("/home/otaco/Desktop/obj/two_triangles.obj");
-//  g_mesh = objLoader.getMesh();
-
-//  g_mesh->getColors().resize(g_mesh->getVertices().size());
-//  for (unsigned i=0; i!=g_mesh->getVertices().size(); ++i)
-//  {
-//    g_mesh->getColors()[i] = gloost::vec4(0.8, 0.8, 0.8, 1.0);
-//  }
-
 
 
 

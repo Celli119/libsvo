@@ -84,7 +84,7 @@ class AttributeGenerator
 
 	protected:
 
-	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, int currentDepth);
+	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth);
 
     // generates the attributes for one partucular node
 	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
