@@ -448,7 +448,7 @@ Svo::getSerializedNodeForIndex(unsigned index)
 unsigned
 Svo::createDiscreteSampleList()
 {
-  _discreteSamples.push_back(std::list<DiscreteSample>() );
+  _discreteSamples.push_back(std::vector<DiscreteSample>());
   return _discreteSamples.size()-1;
 }
 
@@ -525,9 +525,9 @@ Svo::clearDiscreteSamples()
   for (unsigned i=0; i!=_discreteSamples.size(); ++i)
   {
     freedMemory += _discreteSamples[i].size()*sizeof(DiscreteSample);
-    _discreteSamples[i].clear();
   }
   _discreteSamples.clear();
+  _discreteSamples.resize(1);
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from Svo::clearDiscreteSamples(): ";

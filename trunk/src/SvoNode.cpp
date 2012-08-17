@@ -26,6 +26,7 @@
 
 /// gloost system includes
 #include <SvoNode.h>
+#include <Svo.h>
 
 
 
@@ -61,7 +62,7 @@ SvoNode::SvoNode():
  _children(),
  _validMask(),
  _leafMask(),
- _attribPosition(SVO_SVONODE_EMPTY_ATTRIB_POS)
+ _attribPosition(SVO_EMPTY_ATTRIB_POS)
 {
 	_children[0] = 0;
 	_children[1] = 0;
@@ -114,7 +115,7 @@ SvoNode::getChildren()
 */
 
 SvoNode*
-SvoNode::getChild(unsigned int i)
+SvoNode::getChild(unsigned i)
 {
   return _children[i];
 }
@@ -130,7 +131,7 @@ SvoNode::getChild(unsigned int i)
 */
 
 void
-SvoNode::setChild(unsigned int i, SvoNode* node)
+SvoNode::setChild(unsigned i, SvoNode* node)
 {
   _children[i] = node;
 }
@@ -193,7 +194,7 @@ SvoNode::isLeaf() const
   \remarks ...
 */
 
-unsigned int
+unsigned
 SvoNode::getAttribPosition()
 {
   return _attribPosition;
@@ -210,7 +211,7 @@ SvoNode::getAttribPosition()
 */
 
 void
-SvoNode::setAttribPosition(unsigned int i)
+SvoNode::setAttribPosition(unsigned i)
 {
   _attribPosition = i;
 }
@@ -242,37 +243,6 @@ SvoNode::getSerializedNodeSize()
            +memForValidMask
            +memForLeafMask)/8;
 }
-//
-//
-//////////////////////////////////////////////////////////////////////////////////
-//
-//
-///**
-//  \brief returns a child index for a coordinate between (-0.5,-0.5,-0.5) and (0.5,0.5,0.5)
-//  \param ...
-//  \remarks ...
-//*/
-//
-///*static*/
-//unsigned int
-//SvoNode::getChildIndexForPosition(const gloost::Point3& pos)
-//{
-//  static const gloost::mathType delta = 0.00001;
-//
-//  gloost::Point3 posBetter(pos);
-//
-//  if (gloost::abs(posBetter[0]) < delta)
-//    posBetter[0] = 0;
-//  if (gloost::abs(posBetter[1]) < delta)
-//    posBetter[1] = 0;
-//  if (gloost::abs(posBetter[2]) < delta)
-//    posBetter[2] = 0;
-//
-//
-//
-//  return 4*(pos[0] >= 0.0) + 2*(pos[1] >= 0.0) + (pos[2] >= 0.0);
-////  return 4*(abs(pos[0]) >= delta) + 2*(abs(pos[1]) >= delta) + (abs(pos[2]) >= delta);
-//}
 
 
 ////////////////////////////////////////////////////////////////////////////////

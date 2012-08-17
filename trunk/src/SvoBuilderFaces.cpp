@@ -224,13 +224,12 @@ SvoBuilderFaces::buildRecursive(unsigned                   threadId,
 
     if (triangle.calculateUAndV( bbox.getCenter(), u, v))
     {
-
       _modifySvoMutex.lock();
       {
         leafNode = _svo->insert(bbox.getCenter());
 
         // push attribs for a new leaf node
-        if (leafNode->getAttribPosition() == SVO_SVONODE_EMPTY_ATTRIB_POS)
+        if (leafNode->getAttribPosition() == SVO_EMPTY_ATTRIB_POS)
         {
           leafNode->setAttribPosition(_svo->createDiscreteSampleList());
         }

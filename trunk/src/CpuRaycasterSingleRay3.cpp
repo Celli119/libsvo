@@ -170,7 +170,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
-  static float epsilon = 0.0001;
+  static float epsilon = 0.00001;
 //  static float epsilon = pow(2, -(scaleMax+2));
 //  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
 
@@ -211,12 +211,10 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
   gloost::Point3 childEntryPoint;
   unsigned childIndex;
 
-  gloost::mathType childOffsetScale;
   gloost::mathType childSizeHalf;
 
-
-  CpuRaycastStackElement parent;
-  bool refetchParent = true;
+  CpuRaycastStackElement* parent = 0;
+  bool refetchParent             = true;
 
   unsigned         parentNodeIndex;
   gloost::mathType parentTMin;
@@ -244,19 +242,19 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
     if (refetchParent)
     {
-      parent = _stack[scale];
+      parent = &_stack[scale];
 
-      parentNodeIndex = parent.parentNodeIndex;
-      parentTMin      = parent.parentTMin;
-      parentTMax      = parent.parentTMax;
-      parentCenter    = parent.parentCenter;
+      parentNodeIndex = parent->parentNodeIndex;
+      parentTMin      = parent->parentTMin;
+      parentTMax      = parent->parentTMax;
+      parentCenter    = parent->parentCenter;
 
       /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
       /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
       /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
       scale_exp2       = pow(2, scale - scaleMax);
-      childOffsetScale = scale_exp2;
-      childSizeHalf    = childOffsetScale*0.5;
+//      childOffsetScale = scale_exp2;
+      childSizeHalf    = scale_exp2*0.5;
       refetchParent    = false;
     }
 
@@ -279,7 +277,6 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
     }
 
 
-
     if (parentTMin < parentTMax)
     {
       // childEntryPoint in parent voxel coordinates
@@ -290,7 +287,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
 
       // childCenter in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*childOffsetScale + parentCenter;
+      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*scale_exp2 + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;

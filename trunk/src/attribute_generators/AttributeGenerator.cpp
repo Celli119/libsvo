@@ -112,7 +112,7 @@ AttributeGenerator::getAttributeBuffer(unsigned id)
 */
 
 void
-AttributeGenerator::generateInnerNodesAttributesRecursive(SvoNode* node, int currentDepth)
+AttributeGenerator::generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth)
 {
   if (node->isLeaf())
   {
@@ -120,9 +120,7 @@ AttributeGenerator::generateInnerNodesAttributesRecursive(SvoNode* node, int cur
   }
 
   // call generateInnerNodesAttributes recursive
-  std::vector<unsigned int> existingChildren;
-
-  for (unsigned int i=0; i!=8; ++i)
+  for (unsigned i=0; i!=8; ++i)
   {
     if (node->getValidMask().getFlag(i))
     {

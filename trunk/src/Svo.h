@@ -27,7 +27,7 @@
 #ifndef H_SVO_SVO
 #define H_SVO_SVO
 
-
+#define SVO_EMPTY_ATTRIB_POS 999999999
 
 /// gloost system includes
 #include <gloost/gloostConfig.h>
@@ -134,8 +134,8 @@ class Svo
 
 
 
-    typedef std::vector< std::list<DiscreteSample> > SampleListVector;
-    typedef std::list<DiscreteSample>                SampleList;
+    typedef std::vector< std::vector<DiscreteSample> > SampleListVector;
+    typedef std::vector<DiscreteSample>                SampleList;
 
     // creates new set of samples for a leaf node and returns an id
     unsigned createDiscreteSampleList();
@@ -196,8 +196,8 @@ class Svo
     int                 _numDoublePoints;
     int                 _numOneChildNodes;
 
-    std::vector< std::list<DiscreteSample> > _discreteSamples;
-    unsigned                                 _discreteSampleIndex;
+    std::vector< std::vector<DiscreteSample> > _discreteSamples;
+    unsigned                                   _discreteSampleIndex;
 
 
     // serialized svo nodes
