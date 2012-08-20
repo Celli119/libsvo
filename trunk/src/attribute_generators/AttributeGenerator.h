@@ -68,18 +68,31 @@ class AttributeGenerator
 
 
     // init the AttributeGenerator
-	  void generate(Svo* svo,
-                  gloost::Mesh* mesh,
-                  gloost::ObjMatFile* materials,
-                  bool freeDiscreteSamplesAfterwards = true){};
+	  virtual void generate(Svo* svo,
+                          gloost::Mesh* mesh,
+                          gloost::ObjMatFile* materials,
+                          bool freeDiscreteSamplesAfterwards = true) = 0;
+
+
+    // compresses the attribute buffer and creates a coresponding attribute buffer
+    virtual void generateCompressAttributes() = 0;
+
 
 	  // returns a vector of texture ids, textures containing serialized attribute data
 	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
 
 
+	  // returns a vector of texture ids, textures containing serialized attribute data
+	  gloost::InterleavedAttributes* getCompressedAttributeBuffer(unsigned id = 0);
+
+
 	  // writes one attribute buffer to a *.ia file
 	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
                                             unsigned id = 0) = 0;
+
+	  // writes one compressed attribute buffer to a *.ia file
+	  virtual bool writeCompressedAttributeBufferToFile(const std::string& filePath,
+                                                      unsigned id = 0) = 0;
 
 
 	protected:
@@ -92,6 +105,7 @@ class AttributeGenerator
 
     // vector of texture ids of serialized attribute data
     std::vector<gloost::InterleavedAttributes*> _attributes;
+    std::vector<gloost::InterleavedAttributes*> _compressedAttributes;
 };
 
 

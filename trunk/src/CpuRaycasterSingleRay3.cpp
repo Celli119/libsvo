@@ -174,9 +174,9 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 //  static float epsilon = pow(2, -(scaleMax+2));
 //  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
 
-  if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]);
-  if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]);
-  if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]);
+  if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]) * 10.0f;
+  if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]) * 10.0f;
+  if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]) * 10.0f;
 
 
   gloost::mathType dxReziprok = 1.0/direction[0];
@@ -242,12 +242,12 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
     if (refetchParent)
     {
-      parent = &_stack[scale];
+//      parent = &_stack[scale];
 
-      parentNodeIndex = parent->parentNodeIndex;
-      parentTMin      = parent->parentTMin;
-      parentTMax      = parent->parentTMax;
-      parentCenter    = parent->parentCenter;
+      parentNodeIndex = _stack[scale].parentNodeIndex;
+      parentTMin      = _stack[scale].parentTMin;
+      parentTMax      = _stack[scale].parentTMax;
+      parentCenter    = _stack[scale].parentCenter;
 
       /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
       /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
@@ -317,16 +317,11 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
       tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
-//      if (childIndex>7)
-//      {
-//        std::cerr << std::endl << "!!!!!! childIndex > 7: ";
-//        return 0;
-//      }
-
 
       // handle children
       if (svoSerialized[parentNodeIndex].getValidMask().getFlag(childIndex))
       {
+        // terminate if voxel is a leaf
         if (svoSerialized[parentNodeIndex].getLeafMask().getFlag(childIndex))
         {
           unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
@@ -341,6 +336,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
         }
         else
         {
+          // terminate if voxel is small enough
           if (_tScaleRatio*tcMax > scale_exp2)
           {
             unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);

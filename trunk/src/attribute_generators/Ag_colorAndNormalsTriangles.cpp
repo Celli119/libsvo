@@ -71,6 +71,8 @@ Ag_colorAndNormalsTriangles::Ag_colorAndNormalsTriangles():
 
   _attributes.push_back(new gloost::InterleavedAttributes());
   _attributes[0]->takeReference();
+  _compressedAttributes.push_back(new gloost::InterleavedAttributes());
+  _compressedAttributes[0]->takeReference();
 }
 
 
@@ -161,10 +163,12 @@ Ag_colorAndNormalsTriangles::generate(Svo* svo,
 
   // generate non leaf nodes attributes
 	generateInnerNodesAttributesRecursive(svo->getRootNode(), 1);
+	generateCompressAttributes();
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
 
 /**
   \brief   generates the attributes for one partucular node
@@ -248,6 +252,81 @@ Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned
 
 ////////////////////////////////////////////////////////////////////////////////
 
+
+/**
+  \brief   compresses the attribute buffer and creates a coresponding attribute buffer with the values
+  \remarks ...
+*/
+
+/*virtual*/
+void
+Ag_colorAndNormalsTriangles::generateCompressAttributes()
+{
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::compressAttributes(): ";
+  std::cerr << std::endl << "             Compressing: " << _attributes[0]->getNumPackages() << " attributes";
+
+  _compressedAttributes[0]->dropReference();
+	_compressedAttributes[0] = new gloost::InterleavedAttributes();
+	_compressedAttributes[0]->takeReference();
+
+	_compressedAttributes[0]->addAttribute(1, 4, "compressed_normals");
+	_compressedAttributes[0]->addAttribute(1, 4, "compressed_colors");
+
+	_compressedAttributes[0]->resize(_attributes[0]->getNumPackages());
+	_compressedAttributes[0]->fill(0.0f);
+
+
+	for (unsigned i=0; i!=_attributes[0]->getNumPackages(); ++i)
+	{
+	  std::vector<float>& sourceVector = _attributes[0]->getVector();
+	  std::vector<float>& destVector   = _compressedAttributes[0]->getVector();
+
+	  unsigned sourceIndex = _attributes[0]->getPackageIndex(i);
+	  unsigned destIndex   = _compressedAttributes[0]->getPackageIndex(i);
+
+
+    // compress normals
+    {
+      float nx = sourceVector[sourceIndex];
+      float ny = sourceVector[sourceIndex+1];
+      float nz = sourceVector[sourceIndex+2];
+
+      unsigned char nx8 = (unsigned char)(nx*0.5 + 0.5)*255;
+      unsigned char ny8 = (unsigned char)(ny*0.5 + 0.5)*255;
+      unsigned char nz8 = (unsigned char)(nz*0.5 + 0.5)*255;
+
+      unsigned packedNormal;
+      gloost::packRgbaToUnsigned(packedNormal, nx8, ny8, nz8, (unsigned char)0);
+      destVector[destIndex] = gloost::unsigned_as_float(packedNormal);
+    }
+
+
+    // compress colors
+    {
+      float red32   = sourceVector[sourceIndex+3];
+      float green32 = sourceVector[sourceIndex+4];
+      float blue32  = sourceVector[sourceIndex+5];
+
+      unsigned char red8   = (unsigned char)(gloost::clamp(red32, 0.0f, 1.0f)*255);
+      unsigned char green8 = (unsigned char)(gloost::clamp(green32, 0.0f, 1.0f)*255);
+      unsigned char blue8  = (unsigned char)(gloost::clamp(blue32, 0.0f, 1.0f)*255);
+
+      unsigned packedColor;
+      gloost::packRgbaToUnsigned(packedColor, red8, green8, blue8, (unsigned char)0);
+
+      destVector[destIndex+1] = gloost::unsigned_as_float(packedColor);
+    }
+	}
+
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 /**
   \brief   writes one attribute buffer to a *.ia file
   \remarks ...
@@ -270,6 +349,34 @@ Ag_colorAndNormalsTriangles::writeAttributeBufferToFile(const std::string& fileP
   std::cerr << std::endl << "    " << filePath;
 
   return _attributes[id]->writeToFile(filePath);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   writes one compressed attribute buffer to a *.ia file
+  \remarks ...
+*/
+
+/*virtual*/
+bool
+Ag_colorAndNormalsTriangles::writeCompressedAttributeBufferToFile(const std::string& filePath,
+                                                        unsigned id)
+{
+  // if buffer id is not valid
+  if ( !(id < _compressedAttributes.size()) )
+  {
+    return false;
+  }
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::writeCompressedAttributeBufferToFile():";
+  std::cerr << std::endl << "  Writing compressed attribute buffer " << id << " to:";
+  std::cerr << std::endl << "    " << filePath;
+
+  return _compressedAttributes[id]->writeToFile(filePath);
 }
 
 
