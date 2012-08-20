@@ -77,10 +77,17 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
                   bool freeDiscreteSamplesAfterwards = true);
 
 
+    // compresses the attribute buffer and creates a coresponding attribute buffer with the values
+    virtual void generateCompressAttributes();
+
 
 	  // writes one attribute buffer to a *.ia file
 	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
                                             unsigned id = 0);
+
+	  // writes one compressed attribute buffer to a *.ia file
+	  virtual bool writeCompressedAttributeBufferToFile(const std::string& filePath,
+                                                      unsigned id = 0);
 
 
 	protected:

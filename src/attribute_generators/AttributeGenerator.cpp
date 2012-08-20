@@ -64,7 +64,8 @@ namespace svo
 */
 
 AttributeGenerator::AttributeGenerator():
-    _attributes()
+    _attributes(),
+    _compressedAttributes()
 {
 	// insert your code here
 }
@@ -83,6 +84,10 @@ AttributeGenerator::~AttributeGenerator()
 	for (unsigned i=0; i!=_attributes.size(); ++i)
 	{
     _attributes[i]->dropReference();
+	}
+	for (unsigned i=0; i!=_compressedAttributes.size(); ++i)
+	{
+    _compressedAttributes[i]->dropReference();
 	}
 }
 

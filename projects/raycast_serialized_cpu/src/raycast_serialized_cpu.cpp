@@ -36,8 +36,8 @@
 
 
 /// general setup
-static unsigned int g_screenWidth  = 1920;
-static unsigned int g_screenHeight = 1200;
+static unsigned int g_screenWidth  = 1024;
+static unsigned int g_screenHeight = 1024;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
 static unsigned int g_bufferHeight  = g_screenHeight;
@@ -136,7 +136,7 @@ bool g_jobsReset = true;
 
 
 bool     g_toggle_renderer = false;
-unsigned g_num_render_Threads   = 6;
+unsigned g_num_render_Threads   = 12;
 
 
 
@@ -151,27 +151,58 @@ void init()
   std::cerr << std::endl << "float:    " << (int)std::numeric_limits<float>::max();
 
 
+  unsigned char r = 10;
+  unsigned char g = 200;
+  unsigned char b = 123;
+  unsigned char a = 255;
+
+  unsigned packedValue = 0;
+
+  gloost::packRgbaToUnsigned(packedValue, r, g, b, a);
+
+  std::cerr << std::endl << "word: " << gloost::unsignedToBinaryString(packedValue);
+
+  r = 0; g=0; b=0; a=0;
+
+  gloost::unpackRgbaFromUnsigned(packedValue, r, g, b, a);
+
+  std::cerr << std::endl << "r: " << (unsigned)r;
+  std::cerr << std::endl << "g: " << (unsigned)g;
+  std::cerr << std::endl << "b: " << (unsigned)b;
+  std::cerr << std::endl << "a: " << (unsigned)a;
+
+
+
+
   #define USE_THREADED_RENDERING
-  g_bufferWidth  = g_screenWidth/2.0;
-  g_bufferHeight = g_screenHeight/2.0;
+  g_bufferWidth  = g_screenWidth/4.0;
+  g_bufferHeight = g_screenHeight/4.0;
 
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "alligator_head_11";
+//  const std::string svoBaseName = "david_2mm_final_ao_12";
 //  const std::string svoBaseName = "dental_crown_11";
 //  const std::string svoBaseName = "dental_scan_11";
 //  const std::string svoBaseName = "fancy_art_high_11";
+//  const std::string svoBaseName = "female02_7";
+  const std::string svoBaseName = "frog2_seperated_8";
+//  const std::string svoBaseName = "incendia_9";
+//  const std::string svoBaseName = "lambo_11";
+//  const std::string svoBaseName = "lambo_11";
 //  const std::string svoBaseName = "teeth_5mp_11";
 //  const std::string svoBaseName = "terrain_05_11";
+//  const std::string svoBaseName = "wacky_planet_9";
 
 
   // loading svo and attributes
   g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
 
-  std::cerr << std::endl << "Loading Attributes: " << svo_dir_path + svoBaseName + ".ia";
-  g_voxelAttributes = new gloost::InterleavedAttributes(svo_dir_path + svoBaseName + ".ia");
+  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
+  std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
+  g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);
   std::cerr << " ... done.";
 
 
@@ -329,7 +360,7 @@ void frameStep()
   }
 #else
 
-  for (unsigned i=0; i!=4 && raycastIntoFrameBuffer(0); ++i)
+  for (unsigned i=0; i!=400 && raycastIntoFrameBuffer(0); ++i)
   {
     /// write stuff here
   };
@@ -451,30 +482,56 @@ raycastIntoFrameBuffer(unsigned threadId)
 //          boost::mutex::scoped_lock(g_bufferAccessMutex);
 
 
+            // Z depth
 //          float tValue = result.t;
 //          g_renderBuffer[pixelIndex++] = tValue; // <-- red
 //          g_renderBuffer[pixelIndex++] = tValue; // <-- green
 //          g_renderBuffer[pixelIndex++] = tValue; // <-- blue
 
+            // SVO Depth
 //          float depth = result.depth/(float)g_svo->getMaxDepth();
 //          g_renderBuffer[pixelIndex++] = depth; // <-- red
 //          g_renderBuffer[pixelIndex++] = depth; // <-- green
 //          g_renderBuffer[pixelIndex++] = depth; // <-- blue
 
+            // thread id indicator
 //          float threadIndicatorColor = threadId/(float)g_num_render_Threads;
 //          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- red
 //          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- green
 //          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- blue
-
+//
+//          // uncompressed color
 //          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
 //          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
 //          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
 //          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
 
-          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex]; // <-- red
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+1]; // <-- green
-          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+2]; // <-- blue
+          // uncompressed normal
+//          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex]; // <-- red
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+1]; // <-- green
+//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+2]; // <-- blue
+
+
+          // compressed color
+          unsigned attribIndex     = g_voxelAttributes->getPackageIndex(result.attribIndex);
+          unsigned compressedColor = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex+1]);
+          unsigned char r,g,b,empty;
+          gloost::unpackRgbaFromUnsigned(compressedColor,r,g,b,empty);
+          g_renderBuffer[pixelIndex++] = r*0.003921569; // <-- red
+          g_renderBuffer[pixelIndex++] = g*0.003921569; // <-- green
+          g_renderBuffer[pixelIndex++] = b*0.003921569; // <-- blue
+
+//          // compressed normal
+//          unsigned attribIndex      = g_voxelAttributes->getPackageIndex(result.attribIndex);
+//          unsigned compressedNormal = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex]);
+//          unsigned char nx,ny,nz,empty;
+//          gloost::unpackRgbaFromUnsigned(compressedNormal,nx,ny,nz,empty);
+//          g_renderBuffer[pixelIndex++] = ((nx*0.003921569)-0.5) * 2.0; // <-- red
+//          g_renderBuffer[pixelIndex++] = ((ny*0.003921569)-0.5) * 2.0; // <-- green
+//          g_renderBuffer[pixelIndex++] = ((nz*0.003921569)-0.5) * 2.0; // <-- blue
+
+
         }
         else
         {
