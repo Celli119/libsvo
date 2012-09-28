@@ -138,10 +138,10 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-const unsigned g_maxSvoDepth        = 8;
+const unsigned g_maxSvoDepth        = 12;
 const unsigned g_nodesVisDepth      = 99;
 
-const unsigned g_numBuildingThreads = 12;
+const unsigned g_numBuildingThreads = 4;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -151,14 +151,17 @@ const unsigned g_numBuildingThreads = 12;
 
 void init()
 {
-  #define OPEN_GL_WINDOW
-//  #define DRAW_MESH
+
 
   #define BUILD_SVO
   #define SERIALIZE_AND_WRITE_BUFFERS
 
+//  #define OPEN_GL_WINDOW
+//  #define DRAW_MESH
+//
 //  #define BUILD_VISUALIZATION_NODES
-  #define BUILD_VISUALIZATION_LEAVES
+//  #define BUILD_VISUALIZATION_LEAVES
+
   {
 //  g_meshFilename = "bogenschuetze-01.ply";
 //  g_meshFilename = "vcg_david_1M_ao.ply";
@@ -225,8 +228,11 @@ void init()
 //  g_meshFilename = "gg_logo.ply";
 //  g_meshFilename = "fancy_art.ply";
 //  g_meshFilename = "fancy_art_high.ply";
+//  g_meshFilename = "frog_landscape.ply";
+//  g_meshFilename = "malaysia.ply";
+//  g_meshFilename = "victoria-standing2.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
-  g_meshFilename = "frog2_seperated.ply";
+//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
 //  g_meshFilename = "frog2_seperated_ao.ply";
 //  g_meshFilename = "two_triangles.ply";
@@ -234,8 +240,14 @@ void init()
 //  g_meshFilename = "human/Girl N270309.ply";
 //  g_meshFilename = "triplane.ply";
 //  g_meshFilename = "Infinite-Level_02.ply";
-//  g_meshFilename = "steppos_kueche_01.ply";
 //  g_meshFilename = "terrain_05.ply";
+//  g_meshFilename = "ring.ply";
+//  g_meshFilename = "hammer.ply";
+//  g_meshFilename = "fancy_art_floor.ply";
+//  g_meshFilename = "flunder.ply";
+//  g_meshFilename = "frog_anglerfish.ply";
+//  g_meshFilename = "women.ply";
+  g_meshFilename = "victoria-standing2.ply";
   }
 
   std::cerr << std::endl << "Loading geometry: " << g_plyPath + g_meshFilename;
@@ -244,15 +256,15 @@ void init()
   std::cerr << std::endl << "                 Memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
 
 
-  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
-  gloost::Mesh* mesh2 = ply2.getMesh();
-
-  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
-  {
-    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
-    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
-    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
-  }
+//  gloost::PlyLoader ply2(g_plyPath + "frog2_seperated_ao.ply");
+//  gloost::Mesh* mesh2 = ply2.getMesh();
+//
+//  for (unsigned i=0; i!=mesh2->getColors().size(); ++i)
+//  {
+//    g_mesh->getColors()[i].r = g_mesh->getColors()[i].r * mesh2->getColors()[i].r;
+//    g_mesh->getColors()[i].g = g_mesh->getColors()[i].g * mesh2->getColors()[i].g;
+//    g_mesh->getColors()[i].b = g_mesh->getColors()[i].b * mesh2->getColors()[i].b;
+//  }
 
 
 
@@ -757,6 +769,9 @@ void key(int key, int state)
         break;
       case 'R':
         reloadShaders();
+        break;
+      case 'S':
+        g_svo->serializeSvo();
         break;
       case 'C':
         g_modelOffset = gloost::Point3();

@@ -73,8 +73,8 @@ namespace svo
                    gloost::mathType v)
     {
       _primitiveId = primitiveId;
-      _u          = u;
-      _v          = v;
+      _u           = u;
+      _v           = v;
     }
 
     unsigned _primitiveId;

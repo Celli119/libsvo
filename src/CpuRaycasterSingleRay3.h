@@ -78,11 +78,13 @@ class CpuRaycasterSingleRay3
         hit = 0;
       }
 
-      bool     hit;
-      unsigned nodeIndex;
-      unsigned attribIndex;
-      unsigned depth;
-      float    t;
+      bool           hit;
+      gloost::Point3 nodeCenter;
+      unsigned       nodeIndex;
+      unsigned       attribIndex;
+      unsigned       depth;
+      float          t;
+      unsigned       numWhileLoops;
     };
 
 

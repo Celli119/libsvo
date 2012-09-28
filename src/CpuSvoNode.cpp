@@ -60,8 +60,7 @@ namespace svo
 
 CpuSvoNode::CpuSvoNode():
  _firstChildIndex(0),
- _validMask(),
- _leafMask(),
+ _masks(0),
  _attribPosition(SVO_EMPTY_ATTRIB_POS)
 {
 
@@ -81,11 +80,12 @@ CpuSvoNode::CpuSvoNode( unsigned        firstchildIndex,
                         const BitMask8& leafMask,
                         unsigned        attribPosition):
  _firstChildIndex(firstchildIndex),
- _validMask(validMask),
- _leafMask(leafMask),
+ _masks(0),
  _attribPosition(attribPosition)
 {
-
+  _masks = validMask.getValue();
+  _masks.getValue() <<= 8;
+  _masks.getValue() |= leafMask.getValue();
 }
 
 
@@ -151,7 +151,7 @@ CpuSvoNode::getNthChildIndex(unsigned childIndex)
 
   for (unsigned i=0; i!=childIndex; ++i)
   {
-    index += _validMask.getFlag(i);
+    index += _masks.getFlag(i+SVO_CPUSVONODE_OFFSET_VALIDMASK);
   }
 
   return index;
@@ -162,95 +162,31 @@ CpuSvoNode::getNthChildIndex(unsigned childIndex)
 
 
 /**
-  \brief returns child
-  \param ...
-  \remarks ...
-*/
-
-//CpuSvoNode*
-//CpuSvoNode::getChild(unsigned i)
-//{
-//  return _children[i];
-//}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns valid mask
-  \param ...
-  \remarks ...
-*/
-
-BitMask8&
-CpuSvoNode::getValidMask()
-{
-  return _validMask;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns valid mask
-  \param ...
-  \remarks ...
-*/
-
-const BitMask8&
-CpuSvoNode::getValidMask() const
-{
-  return _validMask;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns leaf mask
-  \param ...
-  \remarks ...
-*/
-
-BitMask8&
-CpuSvoNode::getLeafMask()
-{
-  return _leafMask;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns leaf mask
-  \param ...
-  \remarks ...
-*/
-
-const BitMask8&
-CpuSvoNode::getLeafMask() const
-{
-  return _leafMask;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
-  \brief returns true if node is a leaf
+  \brief returns valid mask flag at position i
   \param ...
   \remarks ...
 */
 
 bool
-CpuSvoNode::isLeaf() const
+CpuSvoNode::getValidMaskFlag(unsigned i)
 {
-  return !(bool) _validMask.getValue();
+  return _masks.getFlag(i+SVO_CPUSVONODE_OFFSET_VALIDMASK);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns leaf mask bit at position i
+  \param ...
+  \remarks ...
+*/
+
+bool
+CpuSvoNode::getLeafMaskFlag(unsigned i)
+{
+  return _masks.getFlag(i+SVO_CPUSVONODE_OFFSET_LEAFMASK);
 }
 
 

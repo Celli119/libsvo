@@ -252,7 +252,7 @@ Svo::serializeSvo()
 
 
 
-  // push root node to posiiton 0
+  // push root node to position 0
   CpuSvoNode cpuNode(0,
                      _root->getValidMask(),
                      _root->getLeafMask(),
@@ -283,10 +283,6 @@ Svo::serializeSvo()
         if (childCount == 1)
         {
           _serializedCpuSvoNodes[currentParent.index].setFirstChildIndex(currentNodeIndex);
-
-//          std::cerr << std::endl << "currentParent.index: " << currentParent.index;
-//          std::cerr << std::endl << "currentNodeIndex:    " << currentNodeIndex;
-//          std::cerr << std::endl;
         }
 
         // queue current child
@@ -330,7 +326,7 @@ bool
 Svo::writeSerializedSvoToFile(const std::string& filePath)
 {
 
-  if (!_serializedSvoBundle)
+  if (!_serializedCpuSvoNodes.size())
   {
     serializeSvo();
   }

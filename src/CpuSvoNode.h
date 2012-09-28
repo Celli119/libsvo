@@ -33,6 +33,7 @@
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 #include <gloost/UniformTypes.h>
+#include <gloost/BitMask.h>
 
 
 /// svo system includes
@@ -41,6 +42,9 @@
 
 /// cpp includes
 #include <string>
+
+#define SVO_CPUSVONODE_OFFSET_LEAFMASK  0
+#define SVO_CPUSVONODE_OFFSET_VALIDMASK 8
 
 
 namespace svo
@@ -79,17 +83,10 @@ class CpuSvoNode
 
 
     // returns valid mask
-    BitMask8& getValidMask();
-    const BitMask8& getValidMask() const;
+    bool getValidMaskFlag(unsigned i);
 
     // returns leaf mask
-    BitMask8& getLeafMask();
-    const BitMask8& getLeafMask() const;
-
-
-    // returns true if node is a leaf
-    bool isLeaf() const;
-
+    bool getLeafMaskFlag(unsigned i);
 
     // returns attribute position in attrib buffer
     unsigned int getAttribPosition() const;
@@ -97,14 +94,12 @@ class CpuSvoNode
     // sets the attribute position within the attribute buffer
     void setAttribPosition(unsigned i);
 
-
 	private:
 
     // ...
     unsigned _firstChildIndex;
 
-    BitMask8 _validMask;
-    BitMask8 _leafMask;
+    gloost::BitMask _masks; // 8 bit leaf mask (0..7) + 8 bit valid mask (8..15)
 
     unsigned _attribPosition;
 

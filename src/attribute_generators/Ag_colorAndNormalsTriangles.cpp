@@ -293,9 +293,9 @@ Ag_colorAndNormalsTriangles::generateCompressAttributes()
       float ny = sourceVector[sourceIndex+1];
       float nz = sourceVector[sourceIndex+2];
 
-      unsigned char nx8 = (unsigned char)(nx*0.5 + 0.5)*255;
-      unsigned char ny8 = (unsigned char)(ny*0.5 + 0.5)*255;
-      unsigned char nz8 = (unsigned char)(nz*0.5 + 0.5)*255;
+      unsigned char nx8 = (unsigned char)((nx*0.5 + 0.5)*255);
+      unsigned char ny8 = (unsigned char)((ny*0.5 + 0.5)*255);
+      unsigned char nz8 = (unsigned char)((nz*0.5 + 0.5)*255);
 
       unsigned packedNormal;
       gloost::packRgbaToUnsigned(packedNormal, nx8, ny8, nz8, (unsigned char)0);
