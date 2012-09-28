@@ -17,13 +17,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
-/// for glut win32
-#define _STDCALL_SUPPORTED
-#define _M_IX86
-
-
-
 /// c++ includes
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -40,7 +33,7 @@ static unsigned int g_screenWidth  = 1024;
 static unsigned int g_screenHeight = 1024;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
-static unsigned int g_bufferHeight  = g_screenHeight;
+static unsigned int g_bufferHeight  = g_bufferHeight;
 
 
 
@@ -84,6 +77,8 @@ svo::Svo* g_svo = 0;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
+gloost::InterleavedAttributes* g_shadowBuffer    = 0;
+gloost::InterleavedAttributes* g_shadowSampleCountBuffer    = 0;
 
 #include <gloost/Shader.h>
 #include <gloost/UniformSet.h>
@@ -102,15 +97,40 @@ unsigned g_framebufferTextureId = 0;
 
 
 // info
-bool g_showTextInfo     = true;
-bool g_showOctreeNodes  = true;
-bool g_showOctreeLeaves = false;
-bool g_showRayCastImage = true;
+bool        g_showTextInfo     = true;
+bool        g_showRayCastImage = true;
+unsigned    g_viewMode         = 0;
+std::string g_viewModeText     = "color";
+
+
+std::vector<gloost::Vector2> g_screenCoords;
+std::vector<gloost::Ray>     g_cameraRays;
+std::vector<gloost::Vector3> g_randomShadowRayOffsets;
+std::vector<gloost::Vector3> g_randomAORays;
+
+
+float* g_renderBuffer = 0;
+
+boost::thread_group g_threadGroup;
+bool                g_toggle_run_raycasting = true;
+boost::mutex        g_bufferAccessMutex;
+
+bool g_allJobsDone = false;
+bool g_jobsReset   = true;
+
+
+bool     g_toggle_renderer    = false;
+unsigned g_num_render_Threads = 0;
+unsigned g_num_jobsPerThread  = 1;
+unsigned g_linesPerJob        = 2;
+bool     g_join_threads       = true;
+unsigned g_numShadowRays      = 0;
+
+
+std::vector<svo::CpuRaycasterSingleRay3> g_raycasters;
+
 
 void init();
-void buildSvo(gloost::Mesh* mesh, unsigned int maxSvoDepth);
-void buildSvoVisualization();
-void draw3d(void);
 void draw2d();
 void cleanup();
 void mouseFunc(int button, int state, int mouse_h, int mouse_v);
@@ -123,78 +143,56 @@ void idle(void);
 
 
 
-std::vector<gloost::Vector2> g_screenCoords;
-
-
-float* g_renderBuffer = 0;
-
-boost::thread_group g_threadGroup;
-bool                g_toggle_run_raycasting = true;
-boost::mutex        g_bufferAccessMutex;
-
-bool g_jobsReset = true;
-
-
-bool     g_toggle_renderer = false;
-unsigned g_num_render_Threads   = 12;
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <limits>
 
 void init()
 {
-  std::cerr << std::endl << "int:      " << std::numeric_limits<int>::max();
-  std::cerr << std::endl << "unsigned: " << std::numeric_limits<unsigned>::max();
-  std::cerr << std::endl << "float:    " << (int)std::numeric_limits<float>::max();
-
-
-  unsigned char r = 10;
-  unsigned char g = 200;
-  unsigned char b = 123;
-  unsigned char a = 255;
-
-  unsigned packedValue = 0;
-
-  gloost::packRgbaToUnsigned(packedValue, r, g, b, a);
-
-  std::cerr << std::endl << "word: " << gloost::unsignedToBinaryString(packedValue);
-
-  r = 0; g=0; b=0; a=0;
-
-  gloost::unpackRgbaFromUnsigned(packedValue, r, g, b, a);
-
-  std::cerr << std::endl << "r: " << (unsigned)r;
-  std::cerr << std::endl << "g: " << (unsigned)g;
-  std::cerr << std::endl << "b: " << (unsigned)b;
-  std::cerr << std::endl << "a: " << (unsigned)a;
-
-
-
 
   #define USE_THREADED_RENDERING
-  g_bufferWidth  = g_screenWidth/4.0;
-  g_bufferHeight = g_screenHeight/4.0;
+  g_bufferWidth        = g_screenWidth/2.0;
+  g_bufferHeight       = g_screenHeight/2.0;
+//  g_bufferWidth        = 1920;
+//  g_bufferHeight       = 1200;
+  g_num_render_Threads = 4;
+  g_num_jobsPerThread  = 2;
+  g_linesPerJob        = 2; // power of 2
+  g_join_threads       = true;
+
+
+
+  g_numShadowRays      = 1;
+
+
+
+  g_raycasters.resize(g_num_render_Threads, svo::CpuRaycasterSingleRay3());
+
 
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-//  const std::string svoBaseName = "alligator_head_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_12";
-//  const std::string svoBaseName = "dental_crown_11";
+//  const std::string svoBaseName = "dragon_vrip_9";
+//  const std::string svoBaseName = "frog2_seperated_11";
+  const std::string svoBaseName = "david_2mm_final_ao_11";
 //  const std::string svoBaseName = "dental_scan_11";
+//  const std::string svoBaseName = "wacky_planet_11";
+//  const std::string svoBaseName = "Decimated_Head_11";
+//  const std::string svoBaseName = "Decimated_Head_8";
+//  const std::string svoBaseName = "frog_landscape_12";
+//  const std::string svoBaseName = "women_11";
+//  const std::string svoBaseName = "frog_anglerfish_11";
 //  const std::string svoBaseName = "fancy_art_high_11";
-//  const std::string svoBaseName = "female02_7";
-  const std::string svoBaseName = "frog2_seperated_8";
-//  const std::string svoBaseName = "incendia_9";
-//  const std::string svoBaseName = "lambo_11";
-//  const std::string svoBaseName = "lambo_11";
-//  const std::string svoBaseName = "teeth_5mp_11";
+//  const std::string svoBaseName = "malaysia_11";
+//  const std::string svoBaseName = "victoria-standing2_11";
+//  const std::string svoBaseName = "hammer_11";
+//  const std::string svoBaseName = "fancy_art_floor_11";
+//  const std::string svoBaseName = "flunder_11";
 //  const std::string svoBaseName = "terrain_05_11";
-//  const std::string svoBaseName = "wacky_planet_9";
+//  const std::string svoBaseName = "ring_11";
+
+
 
 
   // loading svo and attributes
@@ -203,7 +201,20 @@ void init()
   const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
   std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
   g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);
+  std::cerr << std::endl << "num packages: " << g_voxelAttributes->getNumPackages();
+  std::cerr << std::endl << "num elements: " << g_voxelAttributes->getNumElementsPerPackage();
   std::cerr << " ... done.";
+
+  // shadow buffer
+  g_shadowBuffer = new gloost::InterleavedAttributes();
+  g_shadowBuffer->addAttribute(1, 4, "shadow");
+  g_shadowBuffer->resize(g_voxelAttributes->getNumPackages());
+  g_shadowBuffer->fill(0.0f);
+
+  g_shadowSampleCountBuffer = new gloost::InterleavedAttributes();
+  g_shadowSampleCountBuffer->addAttribute(1, 4, "shadowSampleCount");
+  g_shadowSampleCountBuffer->resize(g_voxelAttributes->getNumPackages());
+  g_shadowSampleCountBuffer->fill(0);
 
 
   // create screencoords
@@ -227,38 +238,47 @@ void init()
     g_screenCoords[index2] = tmp;
   }
 
+
+  // create random shadow ray directions
+  for (unsigned i=0; i!=1024; ++i)
+  {
+    g_randomShadowRayOffsets.push_back(gloost::Vector3(gloost::crand(),
+                                                       gloost::crand(),
+                                                       gloost::crand())*0.035);
+  }
+
+  // create random AO rays
+  for (unsigned i=0; i!=1024; ++i)
+  {
+    g_randomAORays.push_back(gloost::Vector3(gloost::crand(),
+                                             gloost::crand(),
+                                             gloost::crand()).normalized());
+  }
+
+
+
+
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
 
 
-
-  // shaders
-//  reloadShaders();
-
-
-
   // setup framebuffer
-  unsigned int hostsideBufferSize = g_bufferWidth * g_bufferHeight * 3;
-  g_renderBuffer                  = new float [hostsideBufferSize];
+  gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
+                                                  g_bufferHeight,
+                                                  1,
+                                                  0,
+                                                  12,
+                                                  GL_TEXTURE_2D,
+                                                  GL_RGB,
+                                                  GL_RGB,
+                                                  GL_FLOAT);
 
-//  for (unsigned i=0; i<hostsideBufferSize; ++i)
-//  {
-//    g_renderBuffer[i]  = 0.2;
-//  }
-
-  g_framebufferTextureId = gloost::TextureManager::get()->addTexture(new gloost::Texture( g_bufferWidth,
-                                                                                          g_bufferHeight,
-                                                                                          1,
-                                                                                          (unsigned char*) g_renderBuffer,
-                                                                                          12,
-                                                                                          GL_TEXTURE_2D,
-                                                                                          GL_RGB,
-                                                                                          GL_RGB,
-                                                                                          GL_FLOAT));
+  g_framebufferTextureId = gloost::TextureManager::get()->addTexture(texture);
 
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
+  g_renderBuffer = (float*)texture->getPixels();
 
   g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
@@ -267,18 +287,7 @@ void init()
 
   float xmax = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0) * g_camera->getAspect();
   g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
-
-//  g_tScaleRatio *= 1.0;
-
-  std::cerr << std::endl;
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
-  std::cerr << std::endl;
-
-
-
-  //
-  std::cerr << std::endl << std::endl << std::endl << "STARTING RENDERER: ";
-
 }
 
 
@@ -299,15 +308,11 @@ void frameStep()
   ++g_frameCounter;
 
 
-  glfwPollEvents();
-
   int x,y;
-
   glfwGetMousePos(&x,&y);
 
   g_mouse.setSpeedToZero();
   g_mouse.setLoc(x,g_screenHeight-y,0);
-
 
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ))
   {
@@ -333,11 +338,6 @@ void frameStep()
     g_modelOffset += offsetAdd;
   }
 
-
-  static bool     mouse3Down = false;
-  static unsigned rayCounter = 0;
-
-
   g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
                                    g_cameraRotateX,
                                    cos(g_cameraRotateY)).normalized() * g_cameraDistance,
@@ -345,10 +345,6 @@ void frameStep()
                                    gloost::Vector3(0.0f, 1.0f, 0.0f));
 
 
-
-//  g_jobsReset = true;
-
-#ifdef USE_THREADED_RENDERING
   boost::thread_group threadGroup;
   if (g_showRayCastImage)
   {
@@ -356,30 +352,19 @@ void frameStep()
     {
       threadGroup.create_thread( boost::bind( raycastIntoFrameBuffer, i) );
     }
-    threadGroup.join_all();
-  }
-#else
-
-  for (unsigned i=0; i!=400 && raycastIntoFrameBuffer(0); ++i)
-  {
-    /// write stuff here
-  };
-
-#endif
-
-
-//  if (g_frameCounter % 10 == 0)
-  {
+    if (g_join_threads)
     {
-//      boost::mutex::scoped_lock(g_bufferAccessMutex);
-      memcpy(gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getPixels(),
-             g_renderBuffer,
-             g_bufferWidth*g_bufferHeight*3*sizeof(float));
+      threadGroup.join_all();
     }
-
-    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->removeFromContext();
-    gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
   }
+
+
+  if (g_allJobsDone)
+  {
+    g_allJobsDone = false;
+  }
+
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->removeFromContext();
 
 
 }
@@ -389,37 +374,35 @@ void frameStep()
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-  // ...
+static boost::mutex g_jobMutex;
+static unsigned     currentIndex = 0;
+static unsigned     jobNumber    = 0;
+
 
 bool getJob(unsigned& startIndex, unsigned& count)
 {
-  static boost::mutex jobMutex;
-  static unsigned     pixelsPerJob = g_bufferWidth*4;
-  static unsigned     currentIndex = 0;
+  boost::mutex::scoped_lock lock(g_jobMutex);
 
-  boost::mutex::scoped_lock lock(jobMutex);
+  const unsigned pixelsPerJob = g_bufferWidth*g_linesPerJob;
 
-  if (g_jobsReset)
+  if (g_allJobsDone)
   {
-    currentIndex = 0;
-    g_jobsReset = false;
+    return false;
   }
 
-  if (currentIndex == g_bufferWidth*g_bufferHeight)
+  if (currentIndex >= g_bufferWidth*g_bufferHeight)
   {
-    g_jobsReset = true;
-    return 0;
+    g_allJobsDone = true;
+    currentIndex  = 0;
+    jobNumber     = 0;
+    return false;
   }
 
   startIndex = currentIndex;
   count      = pixelsPerJob;
 
-//  std::cerr << std::endl;
-//  std::cerr << std::endl << "startIndex: " << startIndex;
-//  std::cerr << std::endl << "count:      "      << count;
-//  std::cerr << std::endl << "max:        "      << g_bufferWidth*g_bufferHeight;
-
   currentIndex += pixelsPerJob;
+  ++jobNumber;
 
   return true;
 }
@@ -428,165 +411,252 @@ bool getJob(unsigned& startIndex, unsigned& count)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-/// main loop function, render with 3D setup
-//
-//void
-//raycastIntoFrameBuffer(unsigned startIndex,
-//                       unsigned count,
-//                       unsigned threadId)
+
 bool
 raycastIntoFrameBuffer(unsigned threadId)
 {
-
-  svo::CpuRaycasterSingleRay3 raycaster3;
-
-  gloost::Matrix offset;
-  offset.setIdentity();
-  offset.setTranslate(g_modelOffset);
-
   svo::CpuRaycasterSingleRay3::ResultStruct result;
+  svo::CpuRaycasterSingleRay3::ResultStruct resultSecond;
 
-//  while (g_toggle_run_raycasting)
+
+  const gloost::Frustum& frustum = g_camera->getFrustum();
+
+  gloost::Vector3 frustumH_vec         = frustum.far_lower_right - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelWidth = frustumH_vec/g_bufferWidth;
+  gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
+
+
+
+
+  static float whileLoopNormalizer = 280.0;
+
+  unsigned jobCounter = 0;
+
+  unsigned startIndex;
+  unsigned count;
+
+  while (jobCounter < g_num_jobsPerThread)
   {
-    unsigned startIndex;
-    unsigned count;
-
     if (!getJob(startIndex, count))
     {
-      return false;
+      return true;
     }
 
+    ++jobCounter;
 
     for (unsigned i=startIndex; i!=startIndex+count; ++i)
     {
       int x = g_screenCoords[i][0];
       int y = g_screenCoords[i][1];
 
-      gloost::Ray ray = g_camera->getPickRay( g_bufferWidth,
-                                              g_bufferHeight,
-                                              x,
-                                              (int)g_bufferHeight - y);
 
+
+#if 0 // enable proxy ray
+      gloost::Ray ray(gloost::Point3(0.0,0.0,10.0),
+                      gloost::Vector3(0.0,0.0,-1.0));
+#else
+
+//      gloost::Ray ray = g_camera->getPickRay( g_bufferWidth,
+//                                              g_bufferHeight,
+//                                              x,
+//                                              (int)g_bufferHeight - y);
+
+
+      gloost::Point3 pickPointOnFarPlane = frustum.far_lower_left
+                                    + (frustumOnePixelWidth * x)
+                                    + (frustumOnePixelHeight * ((int)g_bufferHeight - y));
+
+      gloost::Vector3 pickDir = (pickPointOnFarPlane - g_camera->getPosition()).normalized();
+
+      gloost::Ray ray(g_camera->getPosition(), pickDir);
+
+#endif
       ray.getOrigin() += g_modelOffset;
 
 
       {
         unsigned pixelIndex = (y*g_bufferWidth + x) * 3;
-        bool hit = raycaster3.start(ray,
-                                g_tScaleRatio*g_tScaleRatioMultiplyer,
-                                g_svo,
-                                result);
+
+#if 0 // disable actual raycasting
+
+        bool hit           = true;
+        result.attribIndex = 0;
+#else
+
+        bool hit = g_raycasters[threadId].start(ray,
+                                                g_tScaleRatio*g_tScaleRatioMultiplyer,
+                                                g_svo,
+                                                result);
+#endif
 
         if (hit)
         {
-//          boost::mutex::scoped_lock(g_bufferAccessMutex);
+        //          boost::mutex::scoped_lock(g_bufferAccessMutex);
+
+        static const gloost::Vector3 lightDirection = gloost::Vector3(-1.0,2.0,1.0).normalized();
+
+         switch(g_viewMode)
+         {
+            case 0:
+            {
+              //                // uncompressed color
+              //                unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+
+              // compressed color
+              unsigned attribIndex     = g_voxelAttributes->getPackageIndex(result.attribIndex);
+              unsigned compressedColor = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex+1]);
+              unsigned char r,g,b,empty;
+              gloost::unpackRgbaFromUnsigned(compressedColor,r,g,b,empty);
+              g_renderBuffer[pixelIndex++] = r*0.003921569; // <-- red
+              g_renderBuffer[pixelIndex++] = g*0.003921569; // <-- green
+              g_renderBuffer[pixelIndex++] = b*0.003921569; // <-- blue
+
+              break;
+            }
+            case 1:
+            {
+
+              //                // uncompressed normal
+              //                unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex]; // <-- red
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+1]; // <-- green
+              //                g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+2]; // <-- blue
 
 
-            // Z depth
-//          float tValue = result.t;
-//          g_renderBuffer[pixelIndex++] = tValue; // <-- red
-//          g_renderBuffer[pixelIndex++] = tValue; // <-- green
-//          g_renderBuffer[pixelIndex++] = tValue; // <-- blue
+              // compressed normal
+              unsigned attribIndex      = g_voxelAttributes->getPackageIndex(result.attribIndex);
+              unsigned compressedNormal = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex]);
+              unsigned char nx,ny,nz,empty;
+              gloost::unpackRgbaFromUnsigned(compressedNormal,nx,ny,nz,empty);
+              g_renderBuffer[pixelIndex++] = ((nx*0.003921569)-0.5) * 2.0; // <-- red
+              g_renderBuffer[pixelIndex++] = ((ny*0.003921569)-0.5) * 2.0; // <-- green
+              g_renderBuffer[pixelIndex++] = ((nz*0.003921569)-0.5) * 2.0; // <-- blue
 
-            // SVO Depth
-//          float depth = result.depth/(float)g_svo->getMaxDepth();
-//          g_renderBuffer[pixelIndex++] = depth; // <-- red
-//          g_renderBuffer[pixelIndex++] = depth; // <-- green
-//          g_renderBuffer[pixelIndex++] = depth; // <-- blue
+              break;
+            }
+            case 2:
+            {
+              // SVO Depth
+              float depth = result.depth/(float)g_svo->getMaxDepth();
+              g_renderBuffer[pixelIndex++] = depth; // <-- red
+              g_renderBuffer[pixelIndex++] = depth; // <-- green
+              g_renderBuffer[pixelIndex++] = depth; // <-- blue
 
-            // thread id indicator
-//          float threadIndicatorColor = threadId/(float)g_num_render_Threads;
-//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- red
-//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- green
-//          g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- blue
-//
-//          // uncompressed color
-//          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+3]; // <-- red
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+4]; // <-- green
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+5]; // <-- blue
+              break;
+            }
+            case 3:
+            {
+              // Z depth
+              float tValue = result.t;
+              g_renderBuffer[pixelIndex++] = tValue; // <-- red
+              g_renderBuffer[pixelIndex++] = tValue; // <-- green
+              g_renderBuffer[pixelIndex++] = tValue; // <-- blue
 
-          // uncompressed normal
-//          unsigned attribIndex = g_voxelAttributes->getPackageIndex(result.attribIndex);
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex]; // <-- red
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+1]; // <-- green
-//          g_renderBuffer[pixelIndex++] = g_voxelAttributes->getVector()[attribIndex+2]; // <-- blue
+              break;
+            }
+            case 4:
+            {
+              // while counter indicator
+              float whileIndicatorColor = 1.0 - result.numWhileLoops/whileLoopNormalizer;
+              g_renderBuffer[pixelIndex++] = whileIndicatorColor; // <-- red
+              g_renderBuffer[pixelIndex++] = whileIndicatorColor; // <-- green
+              g_renderBuffer[pixelIndex++] = whileIndicatorColor; // <-- blue
+
+              break;
+            }
+            case 5:
+            {
+              //  thread id indicator
+              float threadIndicatorColor = threadId/(float)g_num_render_Threads;
+              g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- red
+              g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- green
+              g_renderBuffer[pixelIndex++] = threadIndicatorColor; // <-- blue
+
+              break;
+            }
+            case 6:
+            {
+              // shaded compressed color
+              unsigned attribIndex     = g_voxelAttributes->getPackageIndex(result.attribIndex);
+
+              unsigned compressedNormal = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex]);
+              unsigned char nxc,nyc,nzc,emptyc;
+              gloost::unpackRgbaFromUnsigned(compressedNormal,nxc,nyc,nzc,emptyc);
+              float nx = ((nxc*0.003921569)-0.5) * 2.0; // <-- red
+              float ny = ((nyc*0.003921569)-0.5) * 2.0; // <-- green
+              float nz = ((nzc*0.003921569)-0.5) * 2.0; // <-- blue
+
+              unsigned compressedColor = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex+1]);
+              unsigned char r,g,b,empty;
+              gloost::unpackRgbaFromUnsigned(compressedColor,r,g,b,empty);
+
+              // diffuse shading
+              float nDotL = gloost::max(0.0f, (float)(lightDirection * gloost::Vector3(nx,ny,nz)));
+
+              // shadow
+              float shadow              = g_shadowBuffer->getVector()[result.attribIndex];
+              unsigned numStoredSamples = g_shadowSampleCountBuffer->getVector()[result.attribIndex];
+              float newShadowIndicator  = 0.0;
+#if 1
+              unsigned randStart = gloost::frand()*g_randomShadowRayOffsets.size();
+              if (numStoredSamples < 64)
+              {
+                gloost::Ray shadowRay(result.nodeCenter+gloost::Vector3(nx,ny,nz)*0.01, lightDirection);
+
+                for (unsigned i=0; i!=g_numShadowRays; ++i)
+                {
+                  shadowRay.setDirection(lightDirection + g_randomShadowRayOffsets[(unsigned)(i+randStart)%g_randomShadowRayOffsets.size()] );
+//                  shadowRay.setDirection();
+                  shadowRay.normalize();
+  //                shadowRay.setOrigin(result.nodeCenter + shadowRay.getDirection()*0.01);
+
+                  shadow += !g_raycasters[threadId].start(shadowRay,
+                                                           g_tScaleRatio,
+                                                           g_svo,
+                                                           resultSecond);
+                }
+                numStoredSamples += g_numShadowRays;
 
 
-          // compressed color
-          unsigned attribIndex     = g_voxelAttributes->getPackageIndex(result.attribIndex);
-          unsigned compressedColor = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex+1]);
-          unsigned char r,g,b,empty;
-          gloost::unpackRgbaFromUnsigned(compressedColor,r,g,b,empty);
-          g_renderBuffer[pixelIndex++] = r*0.003921569; // <-- red
-          g_renderBuffer[pixelIndex++] = g*0.003921569; // <-- green
-          g_renderBuffer[pixelIndex++] = b*0.003921569; // <-- blue
-
-//          // compressed normal
-//          unsigned attribIndex      = g_voxelAttributes->getPackageIndex(result.attribIndex);
-//          unsigned compressedNormal = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex]);
-//          unsigned char nx,ny,nz,empty;
-//          gloost::unpackRgbaFromUnsigned(compressedNormal,nx,ny,nz,empty);
-//          g_renderBuffer[pixelIndex++] = ((nx*0.003921569)-0.5) * 2.0; // <-- red
-//          g_renderBuffer[pixelIndex++] = ((ny*0.003921569)-0.5) * 2.0; // <-- green
-//          g_renderBuffer[pixelIndex++] = ((nz*0.003921569)-0.5) * 2.0; // <-- blue
+//                shadow /= numStoredSamples;
+//                std::cerr << std::endl << "shadow: " << shadow;
+                g_shadowBuffer->getVector()[result.attribIndex]            = shadow;
+                g_shadowSampleCountBuffer->getVector()[result.attribIndex] = numStoredSamples;
+//                newShadowIndicator = 1.0f;
+              }
+#else
+              shadow = 1;
+#endif
 
 
+             float shading = 0.003921569*shadow/numStoredSamples*nDotL;
+
+              g_renderBuffer[pixelIndex++] = r*0.0006 + r*shading + newShadowIndicator; // <-- red
+              g_renderBuffer[pixelIndex++] = g*0.0006 + g*shading; // <-- green
+              g_renderBuffer[pixelIndex++] = b*0.0006 + b*shading; // <-- blue
+
+
+              break;
+            }
+          } // switch
         }
         else
         {
-//          boost::mutex::scoped_lock(g_bufferAccessMutex);
           g_renderBuffer[pixelIndex++] = 0.1;
           g_renderBuffer[pixelIndex++] = 0.1;
           g_renderBuffer[pixelIndex++] = 0.25;
         }
       }
 
+    } // for startIndex ... count
 
-
-    }
-
-  }
+  }// while job
 
   return true;
-
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
-/// main loop function, render with 3D setup
-
-void draw3d(void)
-{
-  /// clear the frame buffer and the depth buffer
-  glClearColor(0.25, 0.25, 0.25, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-  /// set the viewport
-  glViewport(0, 0, g_screenWidth, g_screenHeight);
-
-
-
-
-  g_camera->set();
-
-
-//  gloost::Matrix offset;
-//  offset.setIdentity();
-//  offset.setTranslate(g_modelOffset);
-
-
-  // draw model
-  glPushMatrix();
-  {
-
-  }
-  glPopMatrix();
-
-
 
 }
 
@@ -598,6 +668,11 @@ void draw3d(void)
 
 void draw2d()
 {
+  /// set the viewport
+  glViewport(0, 0, g_screenWidth, g_screenHeight);
+
+  glClearColor(0.25, 0.25, 0.25, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glPushMatrix();
   {
@@ -630,10 +705,7 @@ void draw2d()
       if (g_showRayCastImage)
       {
         gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
-
         glDisable(GL_CULL_FACE);
-
-
         frameBufferTexture->bind();
 
 
@@ -653,9 +725,9 @@ void draw2d()
 
       timeAccum += g_timePerFrame;
 
-      if (g_frameCounter % 20 == 0)
+      if (g_frameCounter % 5 == 0)
       {
-        avarageTimePerFrame = timeAccum / 20.0;
+        avarageTimePerFrame = timeAccum / 5.0;
         timeAccum = 0;
       }
 
@@ -670,18 +742,18 @@ void draw2d()
         {
           g_texter->renderTextLine(20, g_screenHeight -20, "raycast serialized cpu test");
           g_texter->renderFreeLine();
-          g_texter->renderTextLine("Time per frame: " + gloost::toString(avarageTimePerFrame));
-          g_texter->renderTextLine("fps: " + gloost::toString(1.0/avarageTimePerFrame));
+          g_texter->renderTextLine("frame counter:      " + gloost::toString(g_frameCounter));
+          g_texter->renderTextLine("Time per frame:     " + gloost::toString(avarageTimePerFrame));
+          g_texter->renderTextLine("fps:                " + gloost::toString(1.0/avarageTimePerFrame));
+          g_texter->renderTextLine("view mode (1...5):  " + g_viewModeText);
           g_texter->renderFreeLine();
           glColor4f(1.0f, 1.0f, 1.0f, 0.5);
-          g_texter->renderTextLine("(h) Show text info:     " + gloost::toString( g_showTextInfo )) ;
-          g_texter->renderTextLine("(3) Show octree nodes:  " + gloost::toString( g_showOctreeNodes )) ;
-          g_texter->renderTextLine("(4) Show octree leaves: " + gloost::toString( g_showOctreeLeaves )) ;
+          g_texter->renderTextLine("(h) Show text info: " + gloost::toString( g_showTextInfo )) ;
           g_texter->renderFreeLine();
           g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
-          g_texter->renderTextLine("g_maxRayCastDepth:      " + gloost::toString(g_svo->getMaxDepth()));
-          g_texter->renderTextLine("LOD multiplier:         " + gloost::toString(g_tScaleRatioMultiplyer));
+          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_svo->getMaxDepth()));
+          g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();
 
@@ -774,15 +846,49 @@ void key(int key, int state)
         cleanup();
         exit(0);
         break;
+
       case 'H':
         g_showTextInfo = !g_showTextInfo;
         break;
+
+
+      case '0':
+        g_viewMode = 0;
+        g_viewModeText = "color";
+        break;
+
+      case '1':
+        g_viewMode = 1;
+        g_viewModeText = "normals";
+        break;
+
+      case '2':
+        g_viewMode = 2;
+        g_viewModeText = "svo depth";
+        break;
+
       case '3':
-        g_showOctreeNodes = !g_showOctreeNodes;
+        g_viewMode = 3;
+        g_viewModeText = "ray t";
         break;
+
       case '4':
-        g_showOctreeLeaves = !g_showOctreeLeaves;
+        g_viewMode = 4;
+        g_viewModeText = "iterations";
         break;
+
+      case '5':
+        g_viewMode = 5;
+        g_viewModeText = "thread indication";
+        break;
+
+      case '6':
+        g_viewMode = 6;
+        g_viewModeText = "shaded";
+        break;
+
+
+
       case 'R':
         reloadShaders();
         break;
@@ -802,13 +908,6 @@ void key(int key, int state)
 
       case 'F':
         g_showRayCastImage = !g_showRayCastImage;
-        break;
-
-
-      case '0':
-        std::cerr << std::endl;
-        std::cerr << std::endl << "CLEARING ALL MESH DATA: ";
-        std::cerr << std::endl;
         break;
 
       case 'C':
@@ -901,7 +1000,6 @@ int main(int argc, char *argv[])
 
 
     frameStep();
-    draw3d();
     draw2d();
 
     // Swap front and back rendering buffers

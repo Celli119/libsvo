@@ -243,7 +243,7 @@ SvoBuilderFaces::buildRecursive(unsigned                   threadId,
   }
 
 
-  const float offset = 0.25;
+  static const float offset = 0.25;
 
   for (int z=0; z!=2; ++z)
   {

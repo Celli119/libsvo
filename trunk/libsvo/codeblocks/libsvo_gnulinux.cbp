@@ -117,6 +117,7 @@
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.h" />
+		<Unit filename="../../src/bla.vs" />
 		<Unit filename="../../src/trinangleAABBIntersect.h" />
 		<Extensions>
 			<code_completion />

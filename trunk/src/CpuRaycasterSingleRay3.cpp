@@ -117,8 +117,6 @@ CpuRaycasterSingleRay3::start(const gloost::Ray& ray,
   static gloost::BoundingBox svoBoundingBox(gloost::Point3(-0.5,-0.5,-0.5),
                                             gloost::Point3(0.5,0.5,0.5));
 
-//  std::cerr << std::endl << "CpuRaycastStackElement: " << sizeof(CpuRaycastStackElement);
-
   gloost::mathType tMin, tMax;
 
   if (svoBoundingBox.intersect(ray, tMin, tMax))
@@ -164,21 +162,20 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
   element.parentTMin      = tMin;
   element.parentTMax      = tMax;
   element.parentCenter    = gloost::Point3(0.0, 0.0, 0.0);
-//  element.nextChild    = 0;
 
   _stack[scale] = element;
 
 
-  // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
-  static float epsilon = 0.00001;
+  static const float epsilon = 0.00001;
 //  static float epsilon = pow(2, -(scaleMax+2));
 //  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
-
+//
   if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]) * 10.0f;
   if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]) * 10.0f;
   if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]) * 10.0f;
 
 
+  // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
   gloost::mathType dxReziprok = 1.0/direction[0];
   gloost::mathType minusPx_dx = -origin[0]*dxReziprok;
 
@@ -209,12 +206,10 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
   gloost::mathType tcMax;
 
   gloost::Point3 childEntryPoint;
-  unsigned childIndex;
+  int childIndex;
 
-  gloost::mathType childSizeHalf;
-
-  CpuRaycastStackElement* parent = 0;
-  bool refetchParent             = true;
+  gloost::mathType   childSizeHalf;
+  bool refetchParent  = true;
 
   unsigned         parentNodeIndex;
   gloost::mathType parentTMin;
@@ -224,7 +219,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
   unsigned        whileCounter = 0;
   static unsigned maxLoops     = (_svo->getMaxDepth()+1)*(_svo->getMaxDepth()+1)*5.0;
 
-  std::vector<CpuSvoNode>& svoSerialized =  _svo->getSerializedNodes();
+  std::vector<CpuSvoNode>& svoSerialized = _svo->getSerializedNodes();
 
 
   /////////////////// LOOP ///////////////////////////////
@@ -234,16 +229,12 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
     if (whileCounter == maxLoops)
     {
-      std::cerr << std::endl << "ERROR MAX LOOPS REACHED: " << maxLoops;
-      std::cerr << std::endl << "refetchParent:           " << refetchParent;
-      std::cerr << std::endl;
+      std::cerr << std::endl << "MAX LOOPS REACHED: " << maxLoops;
       return 0;
     }
 
     if (refetchParent)
     {
-//      parent = &_stack[scale];
-
       parentNodeIndex = _stack[scale].parentNodeIndex;
       parentTMin      = _stack[scale].parentTMin;
       parentTMax      = _stack[scale].parentTMax;
@@ -253,24 +244,21 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
       /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
       /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
       scale_exp2       = pow(2, scale - scaleMax);
-//      childOffsetScale = scale_exp2;
       childSizeHalf    = scale_exp2*0.5;
       refetchParent    = false;
     }
 
 
+    // POP if parent is behind the camera
     if ( parentTMax < 0.0)
     {
-      // POP
       ++scale;
       refetchParent = true;
       continue;
     }
-
-    if ( std::abs(parentTMin - parentTMax) < epsilon)
-//    if ( tcMin >= parentTMax)
+    // POP if position is outside parent voxel
+    if (std::abs(parentTMin - parentTMax) < epsilon)
     {
-      // POP
       ++scale;
       refetchParent = true;
       continue;
@@ -296,7 +284,6 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
       z0 = childCenter[2] - childSizeHalf;
       z1 = childCenter[2] + childSizeHalf;
 
-
       // tx(x) = (1/dx)x + (-px/dx)
       // dx...Direction of the Ray in x
       // px...Origin of the Ray in x
@@ -312,41 +299,42 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
       tz1 = dzReziprok*z1 + minusPz_dz;
       gloost::swapToIncreasing(tz0, tz1);
 
-
       tcMin = gloost::max(tx0, ty0, tz0); // <- you can only enter once
       tcMax = gloost::min(tx1, ty1, tz1); // <- you can only leave once
 
 
-
-      // handle children
-      if (svoSerialized[parentNodeIndex].getValidMask().getFlag(childIndex))
+      // if child is valid
+      if (svoSerialized[parentNodeIndex].getValidMaskFlag(childIndex))
       {
-        // terminate if voxel is a leaf
-        if (svoSerialized[parentNodeIndex].getLeafMask().getFlag(childIndex))
+
+        // TERMINATE if voxel is a leaf
+        if (svoSerialized[parentNodeIndex].getLeafMaskFlag(childIndex))
         {
           unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
 
-          result.hit         = true;
-          result.nodeIndex   = returnChildIndex;
-          result.attribIndex = svoSerialized[returnChildIndex].getAttribPosition();
-          result.depth       = scaleMax-scale;
-          result.t           = parentTMin;
-
+          result.hit           = true;
+          result.nodeIndex     = returnChildIndex;
+          result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
+          result.depth         = scaleMax-scale;
+          result.t             = parentTMin;
+          result.numWhileLoops = whileCounter;
+          result.nodeCenter    = childCenter;
           return true;
         }
         else
         {
-          // terminate if voxel is small enough
+          // TERMINATE if voxel is small enough
           if (_tScaleRatio*tcMax > scale_exp2)
           {
             unsigned returnChildIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
 
-            result.hit         = true;
-            result.nodeIndex   = returnChildIndex;
-            result.attribIndex = svoSerialized[returnChildIndex].getAttribPosition();
-            result.depth       = scaleMax-scale;
-            result.t           = parentTMin;
-
+            result.hit           = true;
+            result.nodeIndex     = returnChildIndex;
+            result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
+            result.depth         = scaleMax-scale;
+            result.t             = parentTMin;
+            result.numWhileLoops = whileCounter;
+            result.nodeCenter    = childCenter;
             return true;
           }
 
@@ -354,14 +342,11 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
           _stack[scale].parentTMin = tcMax;
 
           // PUSH
-          CpuRaycastStackElement newStackElement;
-          newStackElement.parentNodeIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
-          newStackElement.parentTMin      = tcMin;
-          newStackElement.parentTMax      = tcMax;
-          newStackElement.parentCenter    = childCenter;
-
           --scale;
-          _stack[scale] = newStackElement;
+          _stack[scale].parentNodeIndex = svoSerialized[parentNodeIndex].getNthChildIndex(childIndex);
+          _stack[scale].parentTMin      = tcMin;
+          _stack[scale].parentTMax      = tcMax;
+          _stack[scale].parentCenter    = childCenter;
 
           refetchParent = true;
           continue;
