@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="raycast_serialized_opencl" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="../../../bin/raycast_serialized_opencl" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../bin" />
+				<Option object_output="../o_files/release" />
+				<Option external_deps="../../../libsvo/lib/libsvo.a;../../../../gloost/gnulinux/bin/libgloost.a;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-O2" />
+					<Add option="-O1" />
+					<Add option="-O" />
+					<Add option="-Wall" />
+					<Add option="-W" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="libsvo" />
+					<Add library="gloost" />
+					<Add library="freeimage" />
+					<Add library="boost_thread" />
+					<Add library="OpenCL" />
+				</Linker>
+			</Target>
+			<Target title="Debug">
+				<Option output="../../../bin/raycast_serialized_opencl_db" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../bin" />
+				<Option object_output="../o_files/debug" />
+				<Option external_deps="../../../libsvo/lib/libsvo_db.a;../../../../gloost/gnulinux/bin/libgloost_db.a;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-W" />
+				</Compiler>
+				<Linker>
+					<Add library="libsvo_db" />
+					<Add library="gloost_db" />
+					<Add library="freeimage" />
+					<Add library="boost_thread" />
+					<Add library="OpenCL" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-DGLOOST_GNULINUX" />
+			<Add directory="../src" />
+			<Add directory="../../../src" />
+			<Add directory="../../../../gloost/src" />
+			<Add directory="/usr/local/cuda/include" />
+		</Compiler>
+		<Linker>
+			<Add library="GL" />
+			<Add library="GLEW" />
+			<Add library="glfw" />
+			<Add library="GLU" />
+			<Add library="libtinyxml" />
+			<Add directory="../../../../gloost/gnulinux/bin" />
+			<Add directory="../../../libsvo/lib" />
+		</Linker>
+		<Unit filename="../../../opencl/fillFrameBuffer_rgba.cl" />
+		<Unit filename="../src/raycast_serialized_opencl.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+			<lib_finder>
+				<lib name="glew" />
+			</lib_finder>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

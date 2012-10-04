@@ -123,6 +123,19 @@ SvoBuilderFaces::build(Svo* svo, gloost::Mesh* mesh)
   // take start time
 //  auto t0 = std::chrono::high_resolution_clock::now();
 
+  // mix up triangles to better distribute load to build threads
+    // mix screen coords
+  for (unsigned i=0; i!=triangles.size()*4; ++i)
+  {
+    unsigned index1 = (unsigned)(gloost::frand()*triangles.size());
+    unsigned index2 = (unsigned)(gloost::frand()*triangles.size());
+
+    gloost::TriangleFace tmp  = triangles[index1];
+    triangles[index1]    = triangles[index2];
+    triangles[index2]    = tmp;
+  }
+
+
 
   unsigned range = triangles.size()/_numBuildThreads;
 
