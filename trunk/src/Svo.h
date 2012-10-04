@@ -202,6 +202,7 @@ class Svo
 
     // serialized svo nodes
     std::vector<CpuSvoNode> _serializedCpuSvoNodes;
+    std::vector<unsigned>   _serializedAttributeIndices;
     gloost::BinaryBundle*   _serializedSvoBundle;
 
 

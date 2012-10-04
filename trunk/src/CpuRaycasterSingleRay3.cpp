@@ -81,6 +81,18 @@ CpuRaycasterSingleRay3::CpuRaycasterSingleRay3(bool verboseMode):
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+gloost::Point3
+CpuRaycasterSingleRay3::getChildRelativPos(char childIndex)
+{
+  float x = (childIndex%2) * -0.5;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -151,9 +163,13 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
                                     ResultStruct& result)
 {
   // STACK INIT
+//
   static const int scaleMax   = _svo->getMaxDepth();
   int              scale      = scaleMax-1;
   float            scale_exp2 = 0.5f;// exp2f(scale - s_max)
+  static const float epsilon = 0.00001;
+//  static float epsilon = pow(2, -(scaleMax+2));
+//  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
 
   _stack.resize(scaleMax+1);
 
@@ -165,11 +181,6 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
   _stack[scale] = element;
 
-
-  static const float epsilon = 0.00001;
-//  static float epsilon = pow(2, -(scaleMax+2));
-//  static float epsilon = pow(2, (_svo->getMaxDepth()+1.0)*-1.0);
-//
   if ( gloost::abs(direction[0]) < epsilon) direction[0] = epsilon * gloost::sign(direction[0]) * 10.0f;
   if ( gloost::abs(direction[1]) < epsilon) direction[1] = epsilon * gloost::sign(direction[1]) * 10.0f;
   if ( gloost::abs(direction[2]) < epsilon) direction[2] = epsilon * gloost::sign(direction[2]) * 10.0f;
@@ -275,7 +286,10 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
 
       // childCenter in world coordinates
-      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*scale_exp2 + parentCenter;
+//      gloost::Point3 childCenter = _idToPositionLookUp[childIndex]*scale_exp2 + parentCenter;
+      gloost::Point3 childCenter = gloost::Point3(-0.5 + bool(childIndex & 4),
+                                                  -0.5 + bool(childIndex & 2),
+                                                  -0.5 + bool(childIndex & 1))*scale_exp2 + parentCenter;
 
       x0 = childCenter[0] - childSizeHalf;
       x1 = childCenter[0] + childSizeHalf;
@@ -371,7 +385,6 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
   return 0;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////

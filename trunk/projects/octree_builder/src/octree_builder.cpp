@@ -138,10 +138,10 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-const unsigned g_maxSvoDepth        = 12;
+const unsigned g_maxSvoDepth        = 11;
 const unsigned g_nodesVisDepth      = 99;
 
-const unsigned g_numBuildingThreads = 4;
+const unsigned g_numBuildingThreads = 8;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -232,9 +232,9 @@ void init()
 //  g_meshFilename = "malaysia.ply";
 //  g_meshFilename = "victoria-standing2.ply";
 //  g_meshFilename = "frog2_vertex_ao.ply";
-//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "blue_quad.ply";
 //  g_meshFilename = "frog2_seperated_ao.ply";
+//  g_meshFilename = "frog2_seperated.ply";
 //  g_meshFilename = "two_triangles.ply";
 //  g_meshFilename = "human/secretary.ply";
 //  g_meshFilename = "human/Girl N270309.ply";
@@ -247,7 +247,10 @@ void init()
 //  g_meshFilename = "flunder.ply";
 //  g_meshFilename = "frog_anglerfish.ply";
 //  g_meshFilename = "women.ply";
-  g_meshFilename = "victoria-standing2.ply";
+//  g_meshFilename = "victoria-standing2.ply";
+  g_meshFilename = "planes_and_teapot.ply";
+//  g_meshFilename = "conference2.ply";
+//  g_meshFilename = "frog_landscape.ply";
   }
 
   std::cerr << std::endl << "Loading geometry: " << g_plyPath + g_meshFilename;
@@ -362,12 +365,12 @@ void init()
                                    + ".svo" );
 
 
-  generator.writeAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-                                       + gloost::pathToBasename(g_meshFilename)
-                                       + "_" + gloost::toString(g_maxSvoDepth)
-                                       + ".ia" );
-
-
+//  generator.writeAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
+//                                       + gloost::pathToBasename(g_meshFilename)
+//                                       + "_" + gloost::toString(g_maxSvoDepth)
+//                                       + ".ia" );
+//
+//
   generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
                                                  + gloost::pathToBasename(g_meshFilename)
                                                  + "_" + gloost::toString(g_maxSvoDepth) + "c"

@@ -61,9 +61,9 @@ class CpuRaycasterSingleRay3
       CpuRaycastStackElement()
       {}
 
-      unsigned         parentNodeIndex;
-      gloost::mathType parentTMin;
-      gloost::mathType parentTMax;
+      unsigned parentNodeIndex;
+      float    parentTMin;
+      float    parentTMax;
 
       gloost::Point3   parentCenter;
 
@@ -114,6 +114,10 @@ class CpuRaycasterSingleRay3
 
 
     int _max_stack_size;
+
+
+    gloost::Point3 getChildRelativPos(char childIndex);
+
 
 
 	private:
