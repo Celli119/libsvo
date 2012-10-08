@@ -67,9 +67,8 @@ gloost::Shader*     g_SvoVisualizingShader      = 0;
 
 std::string g_gloostFolder = "../../gloost/";
 std::string g_dataPath     = "../data/";
-std::string g_plyPath      = "/home/otaco/Desktop/ply/";
-std::string g_gbmPath      = "/home/otaco/Desktop/gbm/";
-std::string g_meshFilename;
+std::string g_inputPath    = "";
+std::string g_outputPath   = "";
 
 #include <gloost/Matrix.h>
 gloost::Matrix g_sizeAndCenterMatrix;
@@ -138,10 +137,10 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-const unsigned g_maxSvoDepth        = 11;
-const unsigned g_nodesVisDepth      = 99;
+unsigned g_maxSvoDepth        = 11;
+unsigned g_nodesVisDepth      = 99;
 
-const unsigned g_numBuildingThreads = 12;
+unsigned g_numBuildingThreads = 12;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -162,99 +161,100 @@ void init()
 //  #define BUILD_VISUALIZATION_NODES
 //  #define BUILD_VISUALIZATION_LEAVES
 
+  if (g_inputPath == "")
   {
-//  g_meshFilename = "bogenschuetze-01.ply";
-//  g_meshFilename = "vcg_david_1M_ao.ply";
-//  g_meshFilename = "david_2mm_final_ao.ply";
-//  g_meshFilename = "omotondo500k-manifold.ply";
-//  g_meshFilename = "david_2mm_final_ao.ply";
-//  g_meshFilename = "Hitachi_FH200.ply";
-//  g_meshFilename = "xyzrgb_statuette.ply";
-//  g_meshFilename = "xyzrgb_dragon_low.ply";
-//  g_meshFilename = "xyzrgb_dragon.ply";
-//  g_meshFilename = "dragon_vrip_verylow.ply";
-//  g_meshFilename = "dragon_vrip_low.ply";
-//  g_meshFilename = "dragon_vrip.ply";
-//  g_meshFilename = "david_angel_low.ply";
-//  g_meshFilename = "david_angel.ply";
-//  g_meshFilename = "Decimated_Head.ply";
-//  g_meshFilename = "Decimated_Head_low.ply";
-//  g_meshFilename = "skelet.ply";
-//  g_meshFilename = "alligator_head.ply";
-//  g_meshFilename = "furniture_leg_color.ply";
-//  g_meshFilename = "GlenRoseTrack.ply";
-//  g_meshFilename = "throttle_low.ply";
-  g_meshFilename = "throttle.ply";
-//  g_meshFilename = "face_p.ply";
-//  g_meshFilename = "stego_color.ply";
-//  g_meshFilename = "female02.ply";
-//  g_meshFilename = "women.ply";
-//  g_meshFilename = "women_low.ply";
-//  g_meshFilename = "lambo.ply";
-//  g_meshFilename = "GlenRoseTrack_high.ply";
-//  g_meshFilename = "monster.ply";
-//  g_meshFilename = "monster_medium.ply";
-//  g_meshFilename = "monster_verylow.ply";
-//  g_meshFilename = "malaysia.ply";
-//  g_meshFilename = "incendia.ply";
-//  g_meshFilename = "julia.ply";
-//  g_meshFilename = "quaternion_julia.ply";
-//  g_meshFilename = "venus.ply";
-//  g_meshFilename = "venus_medium.ply";
-//  g_meshFilename = "face_figurine.ply";
-//  g_meshFilename = "Infinite-Level_02.ply";
-//  g_meshFilename = "teeth_5mp.ply";
-//  g_meshFilename = "dental_crown.ply";
-//  g_meshFilename = "dental_scan.ply";
-//  g_meshFilename = "Sam_Body_Hat.ply";
-//  g_meshFilename = "3d_face.ply";
-//  g_meshFilename = "full_body.ply";
-//  g_meshFilename = "lucy.ply";
-//  g_meshFilename = "lucy_0.5.ply";
-//  g_meshFilename = "lucy_0.25.ply";
-//  g_meshFilename = "lucy_0.125.ply";
-//  g_meshFilename = "male02.ply";
-//  g_meshFilename = "happy.ply";
-//  g_meshFilename = "bunny_1100k.ply";
-//  g_meshFilename = "bunny_55k.ply";
-//  g_meshFilename = "Women_hair.ply";
-//  g_meshFilename = "Women_hair_low.ply";
-//  g_meshFilename = "box.ply";
-//  g_meshFilename = "Women_hair_undressed_low.ply";
-//  g_meshFilename = "sphere.ply";
-//  g_meshFilename = "wacky_planet.ply";
-//  g_meshFilename = "plane.ply";
-//  g_meshFilename = "baahm_toroid.ply";
-//  g_meshFilename = "gg_logo.ply";
-//  g_meshFilename = "fancy_art.ply";
-//  g_meshFilename = "fancy_art_high.ply";
-//  g_meshFilename = "frog_landscape.ply";
-//  g_meshFilename = "malaysia.ply";
-//  g_meshFilename = "victoria-standing2.ply";
-//  g_meshFilename = "frog2_vertex_ao.ply";
-//  g_meshFilename = "blue_quad.ply";
-//  g_meshFilename = "frog2_seperated_ao.ply";
-//  g_meshFilename = "frog2_seperated.ply";
-//  g_meshFilename = "two_triangles.ply";
-//  g_meshFilename = "human/secretary.ply";
-//  g_meshFilename = "human/Girl N270309.ply";
-//  g_meshFilename = "triplane.ply";
-//  g_meshFilename = "Infinite-Level_02.ply";
-//  g_meshFilename = "terrain_05.ply";
-//  g_meshFilename = "ring.ply";
-//  g_meshFilename = "hammer.ply";
-//  g_meshFilename = "fancy_art_floor.ply";
-//  g_meshFilename = "flunder.ply";
-//  g_meshFilename = "frog_anglerfish.ply";
-//  g_meshFilename = "women.ply";
-//  g_meshFilename = "victoria-standing2.ply";
-//  g_meshFilename = "planes_and_teapot.ply";
-//  g_meshFilename = "conference2.ply";
-//  g_meshFilename = "frog_landscape.ply";
+//  g_inputPath = "bogenschuetze-01.ply";
+//  g_inputPath = "vcg_david_1M_ao.ply";
+//  g_inputPath = "david_2mm_final_ao.ply";
+//  g_inputPath = "omotondo500k-manifold.ply";
+//  g_inputPath = "david_2mm_final_ao.ply";
+//  g_inputPath = "Hitachi_FH200.ply";
+//  g_inputPath = "xyzrgb_statuette.ply";
+//  g_inputPath = "xyzrgb_dragon_low.ply";
+//  g_inputPath = "xyzrgb_dragon.ply";
+//  g_inputPath = "dragon_vrip_verylow.ply";
+//  g_inputPath = "dragon_vrip_low.ply";
+//  g_inputPath = "dragon_vrip.ply";
+//  g_inputPath = "david_angel_low.ply";
+//  g_inputPath = "david_angel.ply";
+//  g_inputPath = "Decimated_Head.ply";
+//  g_inputPath = "Decimated_Head_low.ply";
+//  g_inputPath = "skelet.ply";
+//  g_inputPath = "alligator_head.ply";
+//  g_inputPath = "furniture_leg_color.ply";
+//  g_inputPath = "GlenRoseTrack.ply";
+//  g_inputPath = "throttle_low.ply";
+//  g_inputPath = "throttle.ply";
+//  g_inputPath = "face_p.ply";
+//  g_inputPath = "stego_color.ply";
+//  g_inputPath = "female02.ply";
+//  g_inputPath = "women.ply";
+//  g_inputPath = "women_low.ply";
+//  g_inputPath = "lambo.ply";
+//  g_inputPath = "GlenRoseTrack_high.ply";
+//  g_inputPath = "monster.ply";
+//  g_inputPath = "monster_medium.ply";
+//  g_inputPath = "monster_verylow.ply";
+//  g_inputPath = "malaysia.ply";
+//  g_inputPath = "incendia.ply";
+//  g_inputPath = "julia.ply";
+//  g_inputPath = "quaternion_julia.ply";
+//  g_inputPath = "venus.ply";
+//  g_inputPath = "venus_medium.ply";
+//  g_inputPath = "face_figurine.ply";
+//  g_inputPath = "Infinite-Level_02.ply";
+//  g_inputPath = "teeth_5mp.ply";
+//  g_inputPath = "dental_crown.ply";
+//  g_inputPath = "dental_scan.ply";
+//  g_inputPath = "Sam_Body_Hat.ply";
+//  g_inputPath = "3d_face.ply";
+//  g_inputPath = "full_body.ply";
+//  g_inputPath = "lucy.ply";
+//  g_inputPath = "lucy_0.5.ply";
+//  g_inputPath = "lucy_0.25.ply";
+//  g_inputPath = "lucy_0.125.ply";
+//  g_inputPath = "male02.ply";
+//  g_inputPath = "happy.ply";
+//  g_inputPath = "bunny_1100k.ply";
+//  g_inputPath = "bunny_55k.ply";
+//  g_inputPath = "Women_hair.ply";
+//  g_inputPath = "Women_hair_low.ply";
+//  g_inputPath = "box.ply";
+//  g_inputPath = "Women_hair_undressed_low.ply";
+//  g_inputPath = "sphere.ply";
+//  g_inputPath = "wacky_planet.ply";
+//  g_inputPath = "plane.ply";
+//  g_inputPath = "baahm_toroid.ply";
+//  g_inputPath = "gg_logo.ply";
+//  g_inputPath = "fancy_art.ply";
+//  g_inputPath = "fancy_art_high.ply";
+//  g_inputPath = "frog_landscape.ply";
+//  g_inputPath = "malaysia.ply";
+//  g_inputPath = "victoria-standing2.ply";
+//  g_inputPath = "frog2_vertex_ao.ply";
+//  g_inputPath = "blue_quad.ply";
+//  g_inputPath = "frog2_seperated_ao.ply";
+//  g_inputPath = "frog2_seperated.ply";
+//  g_inputPath = "two_triangles.ply";
+//  g_inputPath = "human/secretary.ply";
+//  g_inputPath = "human/Girl N270309.ply";
+//  g_inputPath = "triplane.ply";
+//  g_inputPath = "Infinite-Level_02.ply";
+//  g_inputPath = "terrain_05.ply";
+//  g_inputPath = "ring.ply";
+//  g_inputPath = "hammer.ply";
+//  g_inputPath = "fancy_art_floor.ply";
+//  g_inputPath = "flunder.ply";
+//  g_inputPath = "frog_anglerfish.ply";
+//  g_inputPath = "women.ply";
+//  g_inputPath = "victoria-standing2.ply";
+//  g_inputPath = "planes_and_teapot.ply";
+//  g_inputPath = "conference2.ply";
+//  g_inputPath = "frog_landscape.ply";
   }
 
-  std::cerr << std::endl << "Loading geometry: " << g_plyPath + g_meshFilename;
-  gloost::PlyLoader ply(g_plyPath + g_meshFilename);
+  std::cerr << std::endl << "Loading geometry: " << g_inputPath;
+  gloost::PlyLoader ply(g_inputPath);
   g_mesh = ply.getMesh();
   std::cerr << std::endl << "                 Memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
 
@@ -359,24 +359,21 @@ void init()
 
   g_svo->serializeSvo();
 
-  g_svo->writeSerializedSvoToFile("/home/otaco/Desktop/SVO_DATA/"
-                                   + gloost::pathToBasename(g_meshFilename)
+  g_svo->writeSerializedSvoToFile(g_outputPath
+                                   + gloost::pathToBasename(g_inputPath)
                                    + "_" + gloost::toString(g_maxSvoDepth)
                                    + ".svo" );
 
-
-//  generator.writeAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-//                                       + gloost::pathToBasename(g_meshFilename)
-//                                       + "_" + gloost::toString(g_maxSvoDepth)
-//                                       + ".ia" );
-//
-//
-  generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-                                                 + gloost::pathToBasename(g_meshFilename)
+  generator.writeCompressedAttributeBufferToFile(g_outputPath
+                                                 + gloost::pathToBasename(g_inputPath)
                                                  + "_" + gloost::toString(g_maxSvoDepth) + "c"
                                                  + ".ia" );
 
 
+
+    std::cerr << std::endl;
+    std::cerr << std::endl;
+    std::cerr << std::endl;
 
 #endif
 
@@ -458,6 +455,7 @@ void reloadShaders()
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+
 
 void frameStep()
 {
@@ -794,15 +792,61 @@ void key(int key, int state)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <gloost/CmdParser.h>
 
 int main(int argc, char *argv[])
 {
-//  glfwCreateThread( pollEvents, NULL);
+  gloost::CmdParser cmdp("");
 
-  /// enable sync to vblank on linux to control the demo fps
-//#ifdef GLOOST_GNULINUX
-//  setenv("__GL_SYNC_TO_VBLANK","1",true);
-//#endif
+  cmdp.addOpt("t", 1,  "threads  ", "number of threads (default: 12)");
+  cmdp.addOpt("d", 1,  "svo depth", "max depth of the resulting svo (default: " + gloost::toString(g_maxSvoDepth) + ")");
+  cmdp.addOpt("i", 1,  "input", "input file path, loads *.ply files with per vertex color and normals");
+  cmdp.addOpt("o", 1,  "output", "output directory path (default: input file path)");
+
+  cmdp.init(argc,argv);
+
+
+  if (!cmdp.isOptSet("i"))
+  {
+    std::cerr << std::endl << "Hey sucker! No input file was specified.";
+    std::cerr << std::endl << "Use the -i parameter to do it.";
+    std::cerr << std::endl;
+    std::cerr << std::endl;
+  }
+
+
+  if (argc == 1)
+  {
+    cmdp.showHelp();
+    exit(EXIT_SUCCESS);
+  }
+
+
+
+
+
+  if (cmdp.isOptSet("t"))
+  {
+    g_numBuildingThreads = cmdp.getOptsInt("t")[0];
+  }
+  if (cmdp.isOptSet("d"))
+  {
+    g_maxSvoDepth = cmdp.getOptsInt("d")[0];
+  }
+  if (cmdp.isOptSet("i"))
+  {
+    g_inputPath = cmdp.getOptsString("i")[0];
+    g_outputPath = gloost::pathToBasePath(g_inputPath);
+  }
+  if (cmdp.isOptSet("o"))
+  {
+    g_outputPath = cmdp.getOptsString("o")[0];
+  }
+
+
+
+
+
 
 
 
