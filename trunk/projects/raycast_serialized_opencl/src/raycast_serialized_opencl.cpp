@@ -30,7 +30,7 @@
 
 /// general setup
 static unsigned int g_screenWidth  = 1024;
-static unsigned int g_screenHeight = 640;
+static unsigned int g_screenHeight = 768;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
 static unsigned int g_bufferHeight  = g_bufferHeight;
@@ -124,8 +124,8 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth /4.0;
-  g_bufferHeight       = g_screenHeight/4.0;
+  g_bufferWidth        = g_screenWidth /1.0;
+  g_bufferHeight       = g_screenHeight/1.0;
 //  g_bufferWidth        = 1920*0.5;
 //  g_bufferHeight       = 1080*0.5;
 
@@ -150,9 +150,11 @@ void init()
 //  const std::string svoBaseName = "venus_11";
 //  const std::string svoBaseName = "fancy_art_floor_11";
 //  const std::string svoBaseName = "flunder_11";
-  const std::string svoBaseName = "planes_and_teapot_11";
+//  const std::string svoBaseName = "planes_and_teapot_11";
 //  const std::string svoBaseName = "conference2_11";
-//  const std::string svoBaseName = "frog_landscape_12";
+//  const std::string svoBaseName = "frog_landscape_11";
+//  const std::string svoBaseName = "david_2mm_final_ao_12";
+  const std::string svoBaseName = "throttle_11";
 
 
   // loading svo and attributes
@@ -270,7 +272,7 @@ void initCl()
   // assign attrib data
   gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
                                                             (char*)g_voxelAttributes->getData(),
-                                                            g_voxelAttributes->getVector().size()*4);
+                                                            g_voxelAttributes->getVector().size()*g_voxelAttributes->getPackageStride());
 
   g_context->setKernelArgBuffer("renderToBuffer", 2, attribDataGid);
 
@@ -295,9 +297,6 @@ void cleanup()
 void frameStep()
 {
   ++g_frameCounter;
-
-
-
 
   int x,y;
   glfwGetMousePos(&x,&y);
@@ -359,7 +358,8 @@ void frameStep()
     g_context->enqueueKernel(g_deviceGid,
                              "renderToBuffer",
                              2,
-                             gloost::Vector3(g_bufferWidth, g_bufferHeight, 1));
+                             gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
+                             gloost::Vector3(8, 8, 0));
   }
   g_context->releaseGlObjects(g_deviceGid);
 
@@ -637,7 +637,7 @@ int main(int argc, char *argv[])
   }
 
 
-  glfwSetWindowPos( 0, 0);
+  glfwSetWindowPos( 160, 0);
   glfwSetWindowSizeCallback(resize);
   glfwSetKeyCallback(key);
 

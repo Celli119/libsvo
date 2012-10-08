@@ -260,7 +260,7 @@ sample( __global const SvoNode* svo,
   const int   scaleMax   = 12;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
-  const float epsilon    = 0.00001f;
+  const float epsilon    = 0.00004f;
 
   StackElement stack[12];
 
@@ -273,6 +273,8 @@ sample( __global const SvoNode* svo,
   if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x);
   if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y);
   if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z);
+//  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
+
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
   float dxReziprok = 1.0f/rayDirection.x;
@@ -302,11 +304,10 @@ sample( __global const SvoNode* svo,
 
     if (whileCounter == maxLoops)
     {
-//      std::cerr << std::endl << "MAX LOOPS REACHED: " << maxLoops;
       break;
     }
 
-    if (parent == 0)
+    if (!parent)
     {
       parent = &stack[scale];
       /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
@@ -329,9 +330,9 @@ sample( __global const SvoNode* svo,
     {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
-      int childIndex         =  (int) (   4.0f*(childEntryPoint.x > 0.0f)
-                                        + 2.0f*(childEntryPoint.y > 0.0f)
-                                        +      (childEntryPoint.z > 0.0f));
+      int childIndex         =  (int) (   4*(childEntryPoint.x > 0.0f)
+                                        + 2*(childEntryPoint.y > 0.0f)
+                                        +   (childEntryPoint.z > 0.0f));
 
 
       // childCenter in world coordinates
@@ -361,7 +362,6 @@ sample( __global const SvoNode* svo,
       // if child is valid
       if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIndex))
       {
-//
         // TERMINATE if voxel is a leaf
         if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIndex))
         {
@@ -564,56 +564,52 @@ shade_diffuse_color_reflection(const SampleResult* result,
                                 int          numReflections)
 {
 
-  SampleResult refectResult = *result;
-
-  float4 resultcolor   = (float4)(0.0f,0.0f,0.0f,0.0f);
-  float3 viewDirection = rayDirection;
-
-  int reflectCounter = numReflections;
-
-  float stength = 1.0f;
-
-  while (true)
+  if (result->hit)
   {
-    // color and normal for current sample
-    float3 normal = getNormal(refectResult.attribIndex, attribs);
+    SampleResult refectResult = *result;
 
-    resultcolor += shade_diffuse_color(&refectResult,
-                                          svo,
-                                          attribs)*stength;
+    float4 resultcolor   = (float4)(0.0f,0.0f,0.0f,0.0f);
+    float3 viewDirection = rayDirection;
 
-    stength *= 0.75f;
+    int reflectCounter = numReflections;
 
-    if (reflectCounter == 0 || !refectResult.hit)
+    float strength = 0.75f;
+
+    while (true)
     {
-      break;
+      // color and normal for current sample
+      float3 normal = getNormal(refectResult.attribIndex, attribs);
+
+      resultcolor = resultcolor * (1.0-strength) + shade_diffuse_color(&refectResult, svo, attribs)*strength;
+
+      strength *= 0.75f;
+
+      if (reflectCounter == 0 || !refectResult.hit)
+      {
+        break;
+      }
+      else
+      {
+
+        const float3 reflectDir    = normalize(viewDirection + ( -2.0f * normal * dot( normal, viewDirection )));
+        float3       reflectOrigin = refectResult.nodeCenter  + normal*0.01f;
+
+        sample( svo,
+                reflectOrigin, reflectDir,
+                0.001f,
+                &refectResult);
+
+        viewDirection = reflectDir;
+
+        --reflectCounter;
+      }
     }
-    else
-    {
-
-      const float3 reflectDir    = normalize(viewDirection + ( -2.0f * normal * dot( normal, viewDirection )));
-      float3       reflectOrigin = refectResult.nodeCenter  + normal*0.01f;
-
-      sample( svo,
-              reflectOrigin, reflectDir,
-              0.001f,
-              &refectResult);
-
-      viewDirection = reflectDir;
-
-      --reflectCounter;
-    }
-  }
-
-//  if (reflectCounter != numReflections)
-  {
     return resultcolor;
   }
-
-//  return (float4)( 0.2f,
-//                   0.3f,
-//                   0.2f,
-//                   1.0f);
+  return (float4)( 0.2f,
+                   0.3f,
+                   0.2f,
+                   1.0f);
 }
 
 
@@ -656,14 +652,22 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
   {
     case 0:
         {
-          float4 color = getColor(result.attribIndex, attribs);
-          color.w = 1.0;
+          if (result.hit)
+          {
+            float4 color = getColor(result.attribIndex, attribs);
+            color.w = 1.0;
 
-          write_imagef ( renderbuffer,
-                        (int2)(x,y),
-                        color);
-        }
-        break;
+            write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          color);
+            return;
+          }
+
+           write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(0.2f,0.3f,0.2f,1.0f));
+          }
+          break;
     case 1:
         write_imagef ( renderbuffer,
                       (int2)(x,y),
@@ -701,31 +705,11 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
     case 6:
         write_imagef ( renderbuffer,
                       (int2)(x,y),
-                      (float4)(x/frameBufferSize.x,
-                               y/frameBufferSize.y,
-                               0.0,
-                               1.0));
+                      shade_diffuse_color(&result,
+                                          svo,
+                                          attribs));
         break;
   }
-
-
-
-//  write_imagef ( renderbuffer,
-//                (int2)(x,y),
-//                shade_diffuse_color(&result,
-//                                    svo,
-//                                    attribs));
-//  write_imagef ( renderbuffer,
-//                (int2)(x,y),
-//                shade_diffuse_color_reflection(&result,
-//                                                svo,
-//                                                attribs,
-//                                                rayDirection.xyz,
-//                                                1));
-
-//  write_imagef ( renderbuffer,
-//                (int2)(x,y),
-//                shade_iterationDepth(&result));
 }
 
 

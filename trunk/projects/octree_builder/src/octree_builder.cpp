@@ -141,7 +141,7 @@ void idle(void);
 const unsigned g_maxSvoDepth        = 11;
 const unsigned g_nodesVisDepth      = 99;
 
-const unsigned g_numBuildingThreads = 8;
+const unsigned g_numBuildingThreads = 12;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ void init()
 //  g_meshFilename = "furniture_leg_color.ply";
 //  g_meshFilename = "GlenRoseTrack.ply";
 //  g_meshFilename = "throttle_low.ply";
-//  g_meshFilename = "throttle.ply";
+  g_meshFilename = "throttle.ply";
 //  g_meshFilename = "face_p.ply";
 //  g_meshFilename = "stego_color.ply";
 //  g_meshFilename = "female02.ply";
@@ -248,7 +248,7 @@ void init()
 //  g_meshFilename = "frog_anglerfish.ply";
 //  g_meshFilename = "women.ply";
 //  g_meshFilename = "victoria-standing2.ply";
-  g_meshFilename = "planes_and_teapot.ply";
+//  g_meshFilename = "planes_and_teapot.ply";
 //  g_meshFilename = "conference2.ply";
 //  g_meshFilename = "frog_landscape.ply";
   }

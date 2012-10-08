@@ -157,7 +157,7 @@ void init()
 //  g_bufferWidth        = 1920;
 //  g_bufferHeight       = 1200;
   g_num_render_Threads = 4;
-  g_num_jobsPerThread  = 16;
+  g_num_jobsPerThread  = 2;
   g_linesPerJob        = 4; // power of 2
   g_join_threads       = true;
 
@@ -174,12 +174,12 @@ void init()
 
 //  const std::string svoBaseName = "dragon_vrip_9";
 //  const std::string svoBaseName = "frog2_seperated_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_11";
+  const std::string svoBaseName = "david_2mm_final_ao_12";
 //  const std::string svoBaseName = "dental_scan_11";
 //  const std::string svoBaseName = "wacky_planet_11";
 //  const std::string svoBaseName = "Decimated_Head_11";
 //  const std::string svoBaseName = "Decimated_Head_8";
-  const std::string svoBaseName = "frog_landscape_12";
+//  const std::string svoBaseName = "frog_landscape_11";
 //  const std::string svoBaseName = "women_11";
 //  const std::string svoBaseName = "frog_anglerfish_11";
 //  const std::string svoBaseName = "fancy_art_high_11";
