@@ -41,8 +41,8 @@ typedef struct
 {
   unsigned _firstChildIndex;
   unsigned _masks;
-  unsigned _attibutePos;
-} SvoNode;
+//  unsigned _attibutePos;
+} __attribute__ ( ( aligned ( 8 ) ) ) SvoNode;
 
 
 //
@@ -50,7 +50,7 @@ typedef struct
 {
   unsigned _packed_normal;
   unsigned _packed_color;
-} Attribs;
+} __attribute__ ( ( aligned ( 8 ) ) ) Attribs;
 
 
 //
@@ -60,7 +60,7 @@ typedef struct
   float    parentTMin;
   float    parentTMax;
   float3   parentCenter;
-} StackElement;
+} __attribute__ ( ( aligned ( 32 ) ) ) StackElement;
 
 
 //
@@ -73,7 +73,7 @@ typedef struct
   float    t;
   unsigned numWhileLoops;
   float3   nodeCenter;
-} SampleResult;
+} __attribute__ ( ( aligned ( 32 ) ) ) SampleResult;
 
 
 
@@ -270,9 +270,9 @@ sample( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x);
-  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y);
-  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z);
+  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*10.0f;
+  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*10.0f;
+  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*10.0f;
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
 
@@ -295,6 +295,7 @@ sample( __global const SvoNode* svo,
   const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5.0f;
 //  const unsigned maxLoops     = 500;
 
+//  return false;
 
 /////////////////// LOOP ///////////////////////////////XS
 
@@ -371,7 +372,7 @@ sample( __global const SvoNode* svo,
 
           result->hit           = true;
           result->nodeIndex     = returnChildIndex;
-          result->attribIndex   = svo[returnChildIndex]._attibutePos;
+//          result->attribIndex   = svo[returnChildIndex]._attibutePos;
           result->depth         = scaleMax-scale;
           result->t             = parent->parentTMin;
           result->numWhileLoops = whileCounter;
@@ -388,7 +389,7 @@ sample( __global const SvoNode* svo,
                                                          childIndex);
             result->hit           = true;
             result->nodeIndex     = returnChildIndex;
-            result->attribIndex   = svo[returnChildIndex]._attibutePos;
+//            result->attribIndex   = svo[returnChildIndex]._attibutePos;
             result->depth         = scaleMax-scale;
             result->t             = parent->parentTMin;
             result->numWhileLoops = whileCounter;
@@ -580,7 +581,7 @@ shade_diffuse_color_reflection(const SampleResult* result,
       // color and normal for current sample
       float3 normal = getNormal(refectResult.attribIndex, attribs);
 
-      resultcolor = resultcolor * (1.0-strength) + shade_diffuse_color(&refectResult, svo, attribs)*strength;
+      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color(&refectResult, svo, attribs)*strength;
 
       strength *= 0.75f;
 
@@ -619,6 +620,7 @@ shade_diffuse_color_reflection(const SampleResult* result,
 __kernel void
 renderToBuffer ( __write_only image2d_t renderbuffer,
                  __global SvoNode*      svo,
+                 __global unsigned*     attribIndices,
                  __global Attribs*      attribs,
                  const float4           frameBufferSize,
                  const float4           pixelFarVectorH,
@@ -654,9 +656,12 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
         {
           if (result.hit)
           {
-            float4 color = getColor(result.attribIndex, attribs);
-            color.w = 1.0;
+            result.attribIndex = attribIndices[result.nodeIndex];
 
+
+            float4 color = getColor(result.attribIndex, attribs);
+            color.w = 1.0f;
+//
             write_imagef ( renderbuffer,
                           (int2)(x,y),
                           color);
@@ -699,7 +704,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                                                 svo,
                                                 attribs,
                                                 rayDirection.xyz,
-                                                1));
+                                                2));
         break;
 
     case 6:

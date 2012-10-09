@@ -240,6 +240,7 @@ Svo::serializeSvo()
   std::cerr << std::endl << "           " << getNumNodes() << " nodes to serialize";
 
   _serializedCpuSvoNodes.resize(getNumNodes());
+  _serializedAttributeIndices.resize(getNumNodes());
   unsigned currentNodeIndex = 0;
 
 
@@ -258,7 +259,8 @@ Svo::serializeSvo()
                      _root->getLeafMask(),
                      _root->getAttribPosition());
 
-  _serializedCpuSvoNodes[currentNodeIndex] = cpuNode;  // child pointer (unknown for now)
+  _serializedCpuSvoNodes[currentNodeIndex]      = cpuNode;  // child pointer (unknown for now)
+  _serializedAttributeIndices[currentNodeIndex] = _root->getAttribPosition();
   ++currentNodeIndex;
 
 
@@ -299,7 +301,8 @@ Svo::serializeSvo()
                                 child->getLeafMask(),
                                 child->getAttribPosition());
 
-        _serializedCpuSvoNodes[currentNodeIndex] = cpuChildNode;
+        _serializedCpuSvoNodes[currentNodeIndex]      = cpuChildNode;
+        _serializedAttributeIndices[currentNodeIndex] = child->getAttribPosition();
         ++currentNodeIndex;
       }
     }
@@ -349,6 +352,8 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
   outfile.writeString(gloost::toString(_numNodes) + " ");                 // write numNodes
   outfile.writeBuffer((unsigned char*)&_serializedCpuSvoNodes.front(),    // write Nodes
                       _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
+  outfile.writeBuffer((unsigned char*)&_serializedAttributeIndices.front(),    // write attribute indices
+                      _serializedAttributeIndices.size()*sizeof(unsigned));
 
   outfile.close();
 }
@@ -390,9 +395,13 @@ Svo::loadSerializedSvoFromFile(const std::string& filePath)
   std::cerr << std::endl << "             nodes:   " << _numNodes;
 
   _serializedCpuSvoNodes.resize(_numNodes);
+  _serializedAttributeIndices.resize(_numNodes);
 
   gloost::unserialize((unsigned char*)&_serializedCpuSvoNodes.front(),
                       _numNodes*sizeof(CpuSvoNode),
+                      infile);
+  gloost::unserialize((unsigned char*)&_serializedAttributeIndices.front(),
+                      _numNodes*sizeof(unsigned),
                       infile);
 
   infile.unload();
@@ -429,6 +438,22 @@ CpuSvoNode
 Svo::getSerializedNodeForIndex(unsigned index)
 {
   return _serializedCpuSvoNodes[index];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns a vector with serialized attribute indices
+  \param ...
+  \remarks ...
+*/
+
+std::vector<unsigned>&
+Svo::getSerializedAttributeIndices()
+{
+  return _serializedAttributeIndices;
 }
 
 
@@ -660,5 +685,4 @@ Svo::getNumOneChildNodes() const
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace svo
-
 

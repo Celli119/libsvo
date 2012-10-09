@@ -132,6 +132,9 @@ class Svo
     // returns a serialized SvoNode for an index
     CpuSvoNode getSerializedNodeForIndex(unsigned index);
 
+    // returns a vector with serialized attribute indices
+    std::vector<unsigned>& getSerializedAttributeIndices();
+
 
 
     typedef std::vector< std::vector<DiscreteSample> > SampleListVector;

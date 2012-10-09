@@ -88,11 +88,11 @@ class CpuSvoNode
     // returns leaf mask
     bool getLeafMaskFlag(unsigned i);
 
-    // returns attribute position in attrib buffer
-    unsigned int getAttribPosition() const;
-
-    // sets the attribute position within the attribute buffer
-    void setAttribPosition(unsigned i);
+//    // returns attribute position in attrib buffer
+//    unsigned int getAttribPosition() const;
+//
+//    // sets the attribute position within the attribute buffer
+//    void setAttribPosition(unsigned i);
 
 	private:
 
@@ -101,7 +101,7 @@ class CpuSvoNode
 
     gloost::BitMask _masks; // 8 bit leaf mask (0..7) + 8 bit valid mask (8..15)
 
-    unsigned _attribPosition;
+//    unsigned _attribPosition;
 
 };
 

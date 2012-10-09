@@ -90,6 +90,7 @@ bool        g_showTextInfo     = true;
 bool        g_showRayCastImage = true;
 unsigned    g_viewMode         = 0;
 std::string g_viewModeText     = "color";
+bool        g_frameDirty       = true;
 
 
 std::vector<gloost::Vector2> g_screenCoords;
@@ -124,38 +125,15 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth /1.0;
-  g_bufferHeight       = g_screenHeight/1.0;
+  g_bufferWidth        = g_screenWidth /2.0;
+  g_bufferHeight       = g_screenHeight/2.0;
 //  g_bufferWidth        = 1920*0.5;
 //  g_bufferHeight       = 1080*0.5;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-//  const std::string svoBaseName = "dragon_vrip_9";
-//  const std::string svoBaseName = "frog2_seperated_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_11";
-//  const std::string svoBaseName = "dental_scan_11";
-//  const std::string svoBaseName = "wacky_planet_11";
-//  const std::string svoBaseName = "Decimated_Head_11";
-//  const std::string svoBaseName = "Decimated_Head_8";
-//  const std::string svoBaseName = "frog_landscape_11";
-//  const std::string svoBaseName = "frog2_seperated_11";
-//  const std::string svoBaseName = "frog_anglerfish_11";
-//  const std::string svoBaseName = "women_11";
-//  const std::string svoBaseName = "fancy_art_high_11";
-//  const std::string svoBaseName = "malaysia_11";
-//  const std::string svoBaseName = "victoria-standing2_11";
-//  const std::string svoBaseName = "conference_11";
-//  const std::string svoBaseName = "venus_11";
-//  const std::string svoBaseName = "fancy_art_floor_11";
-//  const std::string svoBaseName = "flunder_11";
-//  const std::string svoBaseName = "planes_and_teapot_11";
-//  const std::string svoBaseName = "conference2_11";
-//  const std::string svoBaseName = "frog_landscape_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_12";
-  const std::string svoBaseName = "throttle_11";
-
+  const std::string svoBaseName = "flunder_11";
 
   // loading svo and attributes
   g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
@@ -215,9 +193,11 @@ void init()
 
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_BASE_LEVEL, 0);
+  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
 
-  g_camera = new gloost::PerspectiveCamera(65.0,
+  g_camera = new gloost::PerspectiveCamera(38.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);
@@ -268,13 +248,20 @@ void initCl()
 
   g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 
+  // assign attribute indices
+  gloost::gloostId attribIndicesDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+                                                          (char*)&g_svo->getSerializedAttributeIndices().front(),
+                                                          g_svo->getSerializedNodes().size()*sizeof(unsigned));
+
+  g_context->setKernelArgBuffer("renderToBuffer", 2, attribIndicesDataGid);
+
 
   // assign attrib data
   gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
                                                             (char*)g_voxelAttributes->getData(),
                                                             g_voxelAttributes->getVector().size()*g_voxelAttributes->getPackageStride());
 
-  g_context->setKernelArgBuffer("renderToBuffer", 2, attribDataGid);
+  g_context->setKernelArgBuffer("renderToBuffer", 3, attribDataGid);
 
 
 
@@ -310,11 +297,15 @@ void frameStep()
     g_cameraRotateX += g_mouse.getSpeed()[1]*-0.005;
 
     g_cameraRotateX = gloost::clamp(g_cameraRotateX, -3.0f, 3.0f);
+
+    g_frameDirty = true;
   }
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_2 ))
   {
     g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
     g_cameraDistance = gloost::clamp(g_cameraDistance, 0.05f, 20.0f);
+
+    g_frameDirty = true;
   }
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
   {
@@ -326,42 +317,50 @@ void frameStep()
     gloost::Vector3 offsetAdd = viewMatrixInv*(g_mouse.getSpeed()*-0.0005);
 
     g_modelOffset += offsetAdd;
+
+    g_frameDirty = true;
   }
 
-  g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
+
+  if (g_frameDirty)
+  {
+    g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
                                    g_cameraRotateX,
                                    cos(g_cameraRotateY)).normalized() * g_cameraDistance,
                                    gloost::Point3(0.0f, 0.0f, 0.0f),
                                    gloost::Vector3(0.0f, 1.0f, 0.0f));
 
 
-  // start raycasting
+   // start raycasting
+    const gloost::Frustum& frustum = g_camera->getFrustum();
 
-  const gloost::Frustum& frustum = g_camera->getFrustum();
-
-  gloost::Vector3 frustumH_vec         = frustum.far_lower_right - frustum.far_lower_left;
-  gloost::Vector3 frustumOnePixelWidth = frustumH_vec/g_bufferWidth;
-  gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
-  gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
+    gloost::Vector3 frustumH_vec         = frustum.far_lower_right - frustum.far_lower_left;
+    gloost::Vector3 frustumOnePixelWidth = frustumH_vec/g_bufferWidth;
+    gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
+    gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
 
 
-  g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
-  g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
-  g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
-  g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
-  g_context->setKernelArgFloat4("renderToBuffer", 7, g_modelOffset + g_camera->getPosition());
-  g_context->setKernelArgFloat4("renderToBuffer", 8, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+    g_context->setKernelArgFloat4("renderToBuffer", 4, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
+    g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelWidth);
+    g_context->setKernelArgFloat4("renderToBuffer", 6, frustumOnePixelHeight);
+    g_context->setKernelArgFloat4("renderToBuffer", 7, frustum.far_lower_left);
+    g_context->setKernelArgFloat4("renderToBuffer", 8, g_modelOffset + g_camera->getPosition());
+    g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
-  g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
-  {
+    g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
+    {
 
-    g_context->enqueueKernel(g_deviceGid,
-                             "renderToBuffer",
-                             2,
-                             gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
-                             gloost::Vector3(8, 8, 0));
+      g_context->enqueueKernel(g_deviceGid,
+                               "renderToBuffer",
+                               2,
+                               gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
+                               gloost::Vector3(8, 8, 0));
+    }
+    g_context->releaseGlObjects(g_deviceGid);
   }
-  g_context->releaseGlObjects(g_deviceGid);
+
+  g_frameDirty = false;
+
 
 }
 
@@ -508,6 +507,8 @@ void key(int key, int state)
 {
   if (state)
   {
+
+    g_frameDirty = true;
 
     switch (key)
     {

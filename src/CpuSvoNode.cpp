@@ -60,8 +60,8 @@ namespace svo
 
 CpuSvoNode::CpuSvoNode():
  _firstChildIndex(0),
- _masks(0),
- _attribPosition(SVO_EMPTY_ATTRIB_POS)
+ _masks(0)
+// _attribPosition(SVO_EMPTY_ATTRIB_POS)
 {
 
 }
@@ -80,8 +80,8 @@ CpuSvoNode::CpuSvoNode( unsigned        firstchildIndex,
                         const BitMask8& leafMask,
                         unsigned        attribPosition):
  _firstChildIndex(firstchildIndex),
- _masks(0),
- _attribPosition(attribPosition)
+ _masks(0)
+// _attribPosition(attribPosition)
 {
   _masks = validMask.getValue();
   _masks.getValue() <<= 8;
@@ -199,11 +199,11 @@ CpuSvoNode::getLeafMaskFlag(unsigned i)
   \remarks ...
 */
 
-unsigned int
-CpuSvoNode::getAttribPosition() const
-{
-  return _attribPosition;
-}
+//unsigned int
+//CpuSvoNode::getAttribPosition() const
+//{
+//  return _attribPosition;
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -215,11 +215,11 @@ CpuSvoNode::getAttribPosition() const
   \remarks ...
 */
 
-void
-CpuSvoNode::setAttribPosition(unsigned i)
-{
-  _attribPosition = i;
-}
+//void
+//CpuSvoNode::setAttribPosition(unsigned i)
+//{
+//  _attribPosition = i;
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
