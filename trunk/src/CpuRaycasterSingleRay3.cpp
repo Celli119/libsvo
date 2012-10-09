@@ -328,7 +328,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
           result.hit           = true;
           result.nodeIndex     = returnChildIndex;
-          result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
+//          result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
           result.depth         = scaleMax-scale;
           result.t             = parentTMin;
           result.numWhileLoops = whileCounter;
@@ -344,7 +344,7 @@ CpuRaycasterSingleRay3::traversSvo( gloost::Point3 origin,
 
             result.hit           = true;
             result.nodeIndex     = returnChildIndex;
-            result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
+//            result.attribIndex   = svoSerialized[returnChildIndex].getAttribPosition();
             result.depth         = scaleMax-scale;
             result.t             = parentTMin;
             result.numWhileLoops = whileCounter;

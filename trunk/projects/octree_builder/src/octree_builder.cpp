@@ -116,7 +116,7 @@ void init()
   g_mesh->normalizeNormals();
 
 
-  g_mesh->printMeshInfo();
+//  g_mesh->printMeshInfo();
 
 
   // SVO builder
