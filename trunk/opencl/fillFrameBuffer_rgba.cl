@@ -172,12 +172,9 @@ intersectAABB( const float3 rayOrigin,
   // parallel to plane 0..1
 	for (int i=0; i!=3; ++i)
 	{
-    if (rayDirectionArray[i] == 0)
+    if (rayDirectionArray[i] == 0 && (-boxRadius > rayOriginArray[i] || boxRadius < rayOriginArray[i]))
     {
-      if ((-boxRadius > rayOriginArray[i] || boxRadius < rayOriginArray[i]))
-      {
-        return false;
-      }
+      return false;
     }
 
     float t1 = (-boxRadius - rayOriginArray[i]) / rayDirectionArray[i];
@@ -256,13 +253,13 @@ sample( __global const SvoNode* svo,
     return false;
   }
 
-  const int   scaleMax   = 12;
+  const int   scaleMax   = 13;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
 //  const float epsilon    = 0.00004f;
   const float epsilon    = pow(2.0f, (float)-scaleMax-1.0f);
 
-  StackElement stack[12];
+  StackElement stack[13];
 
   // init stack with root node
   stack[scale].parentNodeIndex = 0;
@@ -303,20 +300,20 @@ sample( __global const SvoNode* svo,
   {
     ++whileCounter;
 
-    if (whileCounter == maxLoops)
-    {
-      break;
-    }
+//    if (whileCounter == maxLoops)
+//    {
+//      break;
+//    }
 
-    if (!parent)
-    {
+//    if (!parent)
+//    {
       parent = &stack[scale];
       /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
       /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
       /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
       scale_exp2       = pow(2.0f, scale - scaleMax);
       childSizeHalf    = scale_exp2*0.5f;
-    }
+//    }
 
 
     // POP if parent is behind the camera
@@ -416,7 +413,6 @@ sample( __global const SvoNode* svo,
       else
       {
         // ADVANCE
-//        parentTMin = tcMax;
         parent->parentTMin = tcMax;
       }
     }
