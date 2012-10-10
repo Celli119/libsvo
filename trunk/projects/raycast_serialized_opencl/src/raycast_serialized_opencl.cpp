@@ -91,6 +91,7 @@ bool        g_showRayCastImage = true;
 unsigned    g_viewMode         = 0;
 std::string g_viewModeText     = "color";
 bool        g_frameDirty       = true;
+bool        g_raycastEveryFrame = false;
 
 
 std::vector<gloost::Vector2> g_screenCoords;
@@ -133,7 +134,10 @@ void init()
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-  const std::string svoBaseName = "flunder_11";
+//  const std::string svoBaseName = "flunder_11";
+//  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "alligator_head_11";
+  const std::string svoBaseName = "anteater_1m_11";
 
   // loading svo and attributes
   g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
@@ -152,33 +156,11 @@ void init()
   g_shadowBuffer->fill(-1.0f);
 
 
-//  // create screencoords
-//  g_screenCoords = std::vector<gloost::Vector2>(g_bufferWidth*g_bufferHeight);
-//
-//  for (unsigned y=0; y!=g_bufferHeight; ++y)
-//    for (unsigned x=0; x!=g_bufferWidth; ++x)
-//    {
-//      unsigned index = y*g_bufferWidth +x;
-//      g_screenCoords[index] = gloost::Vector2(x,y);
-//    }
-//
-//  // mix screen coords
-//  for (unsigned i=0; i!=g_screenCoords.size()*4; ++i)
-//  {
-//    unsigned index1 = (unsigned)(gloost::frand()*g_screenCoords.size());
-//    unsigned index2 = (unsigned)(gloost::frand()*g_screenCoords.size());
-//
-//    gloost::Vector2 tmp    = g_screenCoords[index1];
-//    g_screenCoords[index1] = g_screenCoords[index2];
-//    g_screenCoords[index2] = tmp;
-//  }
-
-
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
 
 
   // setup framebuffer
-  std::cerr << std::endl << "seting up framebuffer: ";
+  std::cerr << std::endl << "setting up framebuffer: ";
   gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
                                                   g_bufferHeight,
                                                   1,
@@ -197,7 +179,7 @@ void init()
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
   gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
 
-  g_camera = new gloost::PerspectiveCamera(38.0,
+  g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);
@@ -322,7 +304,7 @@ void frameStep()
   }
 
 
-  if (g_frameDirty)
+  if (g_raycastEveryFrame || g_frameDirty)
   {
     g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
                                    g_cameraRotateX,
@@ -564,6 +546,10 @@ void key(int key, int state)
 
       case 'R':
         g_context->reloadProgram("../opencl/fillFrameBuffer_rgba.cl");
+        break;
+
+      case 'V':
+        g_raycastEveryFrame = !g_raycastEveryFrame;
         break;
 
 

@@ -256,11 +256,11 @@ sample( __global const SvoNode* svo,
     return false;
   }
 
-
   const int   scaleMax   = 12;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
-  const float epsilon    = 0.00004f;
+//  const float epsilon    = 0.00004f;
+  const float epsilon    = pow(2.0f, (float)-scaleMax-1.0f);
 
   StackElement stack[12];
 
@@ -653,12 +653,9 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
   switch ((int)otherParams.x) // rendermode select
   {
     case 0:
-        {
           if (result.hit)
           {
             result.attribIndex = attribIndices[result.nodeIndex];
-
-
             float4 color = getColor(result.attribIndex, attribs);
             color.w = 1.0f;
 //
@@ -667,16 +664,25 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                           color);
             return;
           }
+           write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(0.2f,0.3f,0.2f,1.0f));
+          break;
+    case 1:
+
+              if (result.hit)
+          {
+            result.attribIndex = attribIndices[result.nodeIndex];
+            write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(getNormal(result.attribIndex, attribs), 1.0));
+            return;
+          }
 
            write_imagef ( renderbuffer,
                           (int2)(x,y),
                           (float4)(0.2f,0.3f,0.2f,1.0f));
-          }
-          break;
-    case 1:
-        write_imagef ( renderbuffer,
-                      (int2)(x,y),
-                     (float4)(getNormal(result.attribIndex, attribs), 1.0));
+
         break;
 
     case 2:
