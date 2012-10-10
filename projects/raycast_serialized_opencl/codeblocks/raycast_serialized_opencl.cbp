@@ -30,6 +30,7 @@
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
 					<Add library="OpenCL" />
+					<Add library="GL" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -49,6 +50,7 @@
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
 					<Add library="OpenCL" />
+					<Add library="GL" />
 				</Linker>
 			</Target>
 		</Build>
@@ -62,7 +64,6 @@
 			<Add directory="/usr/local/cuda/include" />
 		</Compiler>
 		<Linker>
-			<Add library="GL" />
 			<Add library="GLEW" />
 			<Add library="glfw" />
 			<Add library="GLU" />
