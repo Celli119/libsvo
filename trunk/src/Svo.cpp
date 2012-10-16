@@ -79,8 +79,7 @@ Svo::Svo(int maxDepth):
   _numOneChildNodes(0),
   _discreteSamples(),
   _discreteSampleIndex(0),
-  _serializedCpuSvoNodes(),
-  _serializedSvoBundle(0)
+  _serializedCpuSvoNodes()
 {
 //	createDiscreteSampleList();
 }
@@ -105,8 +104,7 @@ Svo::Svo(const std::string svoFilePath):
   _numOneChildNodes(0),
   _discreteSamples(),
   _discreteSampleIndex(0),
-  _serializedCpuSvoNodes(),
-  _serializedSvoBundle(0)
+  _serializedCpuSvoNodes()
 {
   loadSerializedSvoFromFile(svoFilePath);
 }
@@ -140,7 +138,7 @@ Svo::insert(const gloost::Point3& point)
 {
 
   // check point with bounding box of svo
-//  for (unsigned int i=0; i!=3; ++i)
+//  for (unsigned i=0; i!=3; ++i)
 //  {
 //    if (point[i] < _boundingBox.getPMin()[i] || point[i] > _boundingBox.getPMax()[i])
 //    {
@@ -195,7 +193,7 @@ Svo::insertAndBuild(SvoNode*              currentParent,
   bool y = (localPos[1] >= 0);
   bool z = (localPos[2] >= 0);
 
-  unsigned int choosenChildIndex = 4*x+2*y+z;
+  unsigned choosenChildIndex = 4*x+2*y+z;
 
   // add a child node on this index if there wasn't one
   if (!currentNode->getValidMask().getFlag(choosenChildIndex))
@@ -226,12 +224,12 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 
 
 /**
-  \brief serializes the svo and returns TextureManager id of resulting texture
+  \brief serializes the svo in Breadth-first order
   \param ...
   \remarks ...
 */
 
-unsigned int
+unsigned
 Svo::serializeSvo()
 {
 
@@ -252,7 +250,6 @@ Svo::serializeSvo()
   nodeQueue.push(queuedNode);
 
 
-
   // push root node to position 0
   CpuSvoNode cpuNode(0,
                      _root->getValidMask(),
@@ -264,7 +261,6 @@ Svo::serializeSvo()
   ++currentNodeIndex;
 
 
-
   // add all nodes to the queue in a width search style
   while (nodeQueue.size())
   {
@@ -274,9 +270,8 @@ Svo::serializeSvo()
 
     unsigned childCount = 0;
 
-    for (unsigned int i=0; i!=8; ++i)
+    for (unsigned i=0; i!=8; ++i)
     {
-
       if (currentParent.node->getValidMask().getFlag(i))
       {
         ++childCount;
@@ -310,9 +305,6 @@ Svo::serializeSvo()
   std::cerr << std::endl;
   std::cerr << std::endl << "           number of nodes serialized: " << currentNodeIndex;
   std::cerr << std::endl;
-
-//  _serializedSvoBundle = new gloost::BinaryBundle((unsigned char*)&_serializedCpuSvoNodes.front(),
-//                                                  _serializedCpuSvoNodes.size()*sizeof(CpuSvoNode));
 }
 
 
@@ -375,12 +367,6 @@ Svo::loadSerializedSvoFromFile(const std::string& filePath)
   std::cerr << std::endl << "Message from Svo::loadSerializedSvoToFile():";
   std::cerr << std::endl << "             Reading *.svo file";
   std::cerr << std::endl << "             " << filePath;
-
-
-  if (_serializedSvoBundle)
-  {
-    delete _serializedSvoBundle;
-  }
 
   gloost::BinaryFile infile;
   infile.openAndLoad(filePath);
@@ -595,7 +581,7 @@ Svo::getBoundingBox() const
   \remarks ...
 */
 
-unsigned int
+unsigned
 Svo::getMaxDepth() const
 {
   return _maxDepth;

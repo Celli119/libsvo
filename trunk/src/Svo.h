@@ -113,11 +113,8 @@ class Svo
 
 
 
-    // serializes the svo and returns TextureManager id of resulting texture
-    unsigned int serializeSvo();
-
-    // serializes the attribute buffer and returns TextureManager id of resulting texture
-    unsigned int serializeAttributeBuffer();
+    // serializes the svo in Breadth-first order
+    unsigned serializeSvo();
 
     // writes the serialized svo and attributes to a file
     bool writeSerializedSvoToFile(const std::string& filePath);
@@ -167,7 +164,7 @@ class Svo
 
 
     // returns the depth of the svo
-    unsigned int getMaxDepth() const;
+    unsigned getMaxDepth() const;
 
     // returns number of nodes
     int getNumNodes() const;
@@ -206,7 +203,6 @@ class Svo
     // serialized svo nodes
     std::vector<CpuSvoNode> _serializedCpuSvoNodes;
     std::vector<unsigned>   _serializedAttributeIndices;
-    gloost::BinaryBundle*   _serializedSvoBundle;
 
 
 

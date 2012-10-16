@@ -272,7 +272,6 @@ sample( __global const SvoNode* svo,
   if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*10.0f;
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
-
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
   float dxReziprok = 1.0f/rayDirection.x;
   float minusPx_dx = -rayOrigin.x*dxReziprok;
@@ -287,12 +286,8 @@ sample( __global const SvoNode* svo,
 
   StackElement* parent = 0;
 
-
   unsigned       whileCounter = 0;
   const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5.0f;
-//  const unsigned maxLoops     = 500;
-
-//  return false;
 
 /////////////////// LOOP ///////////////////////////////XS
 
@@ -300,21 +295,17 @@ sample( __global const SvoNode* svo,
   {
     ++whileCounter;
 
-//    if (whileCounter == maxLoops)
-//    {
-//      break;
-//    }
+    if (whileCounter == maxLoops)
+    {
+      break;
+    }
 
 //    if (!parent)
 //    {
       parent = &stack[scale];
-      /// hier den Punkt tMin vom parent benutzen um einstiegskind zu bekommen
-      /// x0,x1,y0,y1,z0,z1 für das einstiegskind setzen.
-      /// dann mit tx1, ty1 und tz1 < tcmax die folgekinder bestimmen
       scale_exp2       = pow(2.0f, scale - scaleMax);
       childSizeHalf    = scale_exp2*0.5f;
 //    }
-
 
     // POP if parent is behind the camera
     if ( parent->parentTMax < 0.0f)
@@ -332,7 +323,6 @@ sample( __global const SvoNode* svo,
                                         + 2*(childEntryPoint.y > 0.0f)
                                         +   (childEntryPoint.z > 0.0f));
 
-
       // childCenter in world coordinates
       float3 childCenter = (float3)(-0.5f + (bool)(childIndex & 4),
                                     -0.5f + (bool)(childIndex & 2),
@@ -344,18 +334,15 @@ sample( __global const SvoNode* svo,
       float tx0 = dxReziprok*(childCenter.x - childSizeHalf) + minusPx_dx;
       float tx1 = dxReziprok*(childCenter.x + childSizeHalf) + minusPx_dx;
       swapToIncreasing(&tx0, &tx1);
-
       float ty0 = dyReziprok*(childCenter.y - childSizeHalf) + minusPy_dy;
       float ty1 = dyReziprok*(childCenter.y + childSizeHalf) + minusPy_dy;
       swapToIncreasing(&ty0, &ty1);
-
       float tz0 = dzReziprok*(childCenter.z - childSizeHalf) + minusPz_dz;
       float tz1 = dzReziprok*(childCenter.z + childSizeHalf) + minusPz_dz;
       swapToIncreasing(&tz0, &tz1);
 
       float tcMin = max(tx0, max(ty0, tz0)); // <- you can only enter once
       float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
-
 
       // if child is valid
       if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIndex))
@@ -366,7 +353,6 @@ sample( __global const SvoNode* svo,
           unsigned returnChildIndex = getNthChildIndex(svo[parent->parentNodeIndex]._masks,
                                                        svo[parent->parentNodeIndex]._firstChildIndex,
                                                        childIndex);
-
           result->hit           = true;
           result->nodeIndex     = returnChildIndex;
 //          result->attribIndex   = svo[returnChildIndex]._attibutePos;
@@ -506,21 +492,15 @@ shade_svoDepth(const SampleResult* result)
 
 
 inline float4
-shade_diffuse_color(const SampleResult* result,
-                    __global const SvoNode* svo,
-                    __global Attribs* attribs)
+shade_diffuse_color_shadow(const SampleResult* result,
+                           __global const SvoNode* svo,
+                           __global unsigned* attribIndices,
+                           __global Attribs* attribs)
 {
   if (result->hit)
   {
-    const unsigned normalPacked = attribs[result->attribIndex]._packed_normal;
-    const unsigned colorPacked  = attribs[result->attribIndex]._packed_color;
-
-    float3 normal = (unpackRgbaFromUnsigned(normalPacked)*0.003921569f).xyz;
-    normal.x = ((normal.x)-0.5f) * 2.0f;
-    normal.y = ((normal.y)-0.5f) * 2.0f;
-    normal.z = ((normal.z)-0.5f) * 2.0f;
-
-    float4 color = unpackRgbaFromUnsigned(colorPacked)*0.003921569f;
+    float3 normal = getNormal(result->attribIndex, attribs);
+    float4 color = getColor(result->attribIndex, attribs);
 
 
     const float3 lightDirection = normalize((float3)(-0.5f, 1.0f, 0.6f));
@@ -556,6 +536,7 @@ shade_diffuse_color(const SampleResult* result,
 inline float4
 shade_diffuse_color_reflection(const SampleResult* result,
                                 __global const SvoNode* svo,
+                                __global unsigned* attribIndices,
                                 __global Attribs* attribs,
                                 const float3 rayDirection,
                                 int          numReflections)
@@ -577,7 +558,10 @@ shade_diffuse_color_reflection(const SampleResult* result,
       // color and normal for current sample
       float3 normal = getNormal(refectResult.attribIndex, attribs);
 
-      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color(&refectResult, svo, attribs)*strength;
+      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color_shadow(&refectResult,
+                                                                               svo,
+                                                                               attribIndices,
+                                                                               attribs)*strength;
 
       strength *= 0.75f;
 
@@ -651,22 +635,18 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
     case 0:
           if (result.hit)
           {
-            result.attribIndex = attribIndices[result.nodeIndex];
-            float4 color = getColor(result.attribIndex, attribs);
-            color.w = 1.0f;
-//
             write_imagef ( renderbuffer,
                           (int2)(x,y),
-                          color);
+                          (float4)(getColor(attribIndices[result.nodeIndex], attribs).xyz,1.0f));
             return;
           }
-           write_imagef ( renderbuffer,
-                          (int2)(x,y),
-                          (float4)(0.2f,0.3f,0.2f,1.0f));
+          write_imagef (renderbuffer,
+                        (int2)(x,y),
+                        (float4)(0.2f,0.3f,0.2f,1.0f));
           break;
     case 1:
 
-              if (result.hit)
+          if (result.hit)
           {
             result.attribIndex = attribIndices[result.nodeIndex];
             write_imagef ( renderbuffer,
@@ -704,17 +684,21 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                       (int2)(x,y),
                       shade_diffuse_color_reflection(&result,
                                                 svo,
+                                                attribIndices,
                                                 attribs,
                                                 rayDirection.xyz,
                                                 2));
         break;
 
     case 6:
+
+        result.attribIndex = attribIndices[result.nodeIndex];
         write_imagef ( renderbuffer,
                       (int2)(x,y),
-                      shade_diffuse_color(&result,
-                                          svo,
-                                          attribs));
+                      shade_diffuse_color_shadow(&result,
+                                                  svo,
+                                                  attribIndices,
+                                                  attribs));
         break;
   }
 }
