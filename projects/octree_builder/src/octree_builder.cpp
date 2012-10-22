@@ -77,7 +77,7 @@ void idle(void);
 ////////////////////////////////////////////////////////////////////////////////
 
 
-unsigned g_maxSvoDepth        = 11;
+unsigned g_maxSvoDepth        = 8;
 unsigned g_nodesVisDepth      = 99;
 
 unsigned g_numBuildingThreads = 12;

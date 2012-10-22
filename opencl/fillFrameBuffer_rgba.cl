@@ -253,13 +253,13 @@ sample( __global const SvoNode* svo,
     return false;
   }
 
-  const int   scaleMax   = 13;
+  const int   scaleMax   = 15;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
 //  const float epsilon    = 0.00004f;
   const float epsilon    = pow(2.0f, (float)-scaleMax-1.0f);
 
-  StackElement stack[13];
+  StackElement stack[15];
 
   // init stack with root node
   stack[scale].parentNodeIndex = 0;

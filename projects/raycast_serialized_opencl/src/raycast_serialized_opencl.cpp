@@ -126,18 +126,24 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth /2.0;
-  g_bufferHeight       = g_screenHeight/2.0;
+  g_bufferWidth        = g_screenWidth /4.0;
+  g_bufferHeight       = g_screenHeight/4.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 //  const std::string svoBaseName = "flunder_11";
-  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "lucy_11";
+//  const std::string svoBaseName = "frog2_vertex_ao_8";
+//  const std::string svoBaseName = "frog2_mean_7";
+//  const std::string svoBaseName = "bridge_14";
+//  const std::string svoBaseName = "conference2_11";
+//  const std::string svoBaseName = "dragon_vrip_11";
 //  const std::string svoBaseName = "Decimated_Head_high_11";
 //  const std::string svoBaseName = "alligator_head_11";
 //  const std::string svoBaseName = "anteater_1m_12";
-//  const std::string svoBaseName = "frog2_vertex_ao_7";
+  const std::string svoBaseName = "frog2_vertex_ao_7";
 
   // loading svo and attributes
   g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
@@ -241,7 +247,7 @@ void initCl()
   // assign attrib data
   gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
                                                             (char*)g_voxelAttributes->getData(),
-                                                            g_voxelAttributes->getVector().size()*g_voxelAttributes->getPackageStride());
+                                                            g_voxelAttributes->getNumPackages()*g_voxelAttributes->getPackageStride());
 
   g_context->setKernelArgBuffer("renderToBuffer", 3, attribDataGid);
 
