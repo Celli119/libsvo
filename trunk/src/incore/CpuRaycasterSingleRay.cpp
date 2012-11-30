@@ -109,7 +109,7 @@ CpuRaycasterSingleRay::~CpuRaycasterSingleRay()
 //*/
 //
 //SvoNode*
-//CpuRaycasterSingleRay::start(const gloost::Ray& ray, Svo* svo)
+//CpuRaycasterSingleRay::start(const gloost::Ray& ray, SvoBranch* svo)
 //{
 //
 //  static int frameCounter = 0;
@@ -361,7 +361,7 @@ CpuRaycasterSingleRay::~CpuRaycasterSingleRay()
 */
 
 SvoNode*
-CpuRaycasterSingleRay::start(const gloost::Ray& ray, Svo* svo)
+CpuRaycasterSingleRay::start(const gloost::Ray& ray, SvoBranch* svo)
 {
   _svo = svo;
 

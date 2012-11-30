@@ -24,14 +24,14 @@
 
 
 
-#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY3
-#define H_SVO_CPU_RAYCASTER_SINGLE_RAY3
+#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY2
+#define H_SVO_CPU_RAYCASTER_SINGLE_RAY2
 
 
 
 /// svo system includes
 #include <SvoNode.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 /// gloost system includes
@@ -49,11 +49,29 @@
 namespace svo
 {
 
-  //  CpuRaycasterSingleRay3
+  //  CpuRaycasterSingleRay2
 
-class CpuRaycasterSingleRay3
+class CpuRaycasterSingleRay2
 {
 	public:
+
+    // class constructor
+    CpuRaycasterSingleRay2(bool verboseMode = false);
+
+    // class destructor
+	  ~CpuRaycasterSingleRay2();
+
+
+    // traverses a Svo with a single ray
+//	  SvoNode* start(const gloost::Ray& ray, SvoBranch* svo);
+	  SvoNode* start(const gloost::Ray& ray, SvoBranch* svo);
+
+    // traverses a Svo with a single ray
+//	  SvoNode* traversSvo(const gloost::Ray& ray);
+	  SvoNode* traversSvo(gloost::Point3 origin,
+                        gloost::Vector3 direction,
+                        float tMin,
+                        float tMax);
 
 
     struct CpuRaycastStackElement
@@ -61,63 +79,16 @@ class CpuRaycasterSingleRay3
       CpuRaycastStackElement()
       {}
 
-      unsigned parentNodeIndex;
-      float    parentTMin;
-      float    parentTMax;
+      SvoNode*         parentNode;
+      gloost::mathType parentTMin;
+      gloost::mathType parentTMax;
 
       gloost::Point3   parentCenter;
 
 //      char nextChild;
     };
 
-
-    struct ResultStruct
-    {
-      ResultStruct()
-      {
-        hit = 0;
-      }
-
-      bool           hit;
-      gloost::Point3 nodeCenter;
-      unsigned       nodeIndex;
-      unsigned       attribIndex;
-      unsigned       depth;
-      float          t;
-      unsigned       numWhileLoops;
-    };
-
-
-
-
-    // class constructor
-    CpuRaycasterSingleRay3(bool verboseMode = false);
-
-    // class destructor
-	  ~CpuRaycasterSingleRay3();
-
-
-    // traverses a Svo with a single ray
-//	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
-	  bool start(const gloost::Ray& ray,
-               float tScaleRatio,
-               Svo* svo,
-               ResultStruct& result);
-
-    // traverses a Svo with a single ray
-//	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  bool traversSvo(gloost::Point3 origin,
-                    gloost::Vector3 direction,
-                    float tMin,
-                    float tMax,
-                    ResultStruct& result);
-
-
     int _max_stack_size;
-
-
-    gloost::Point3 getChildRelativPos(char childIndex);
-
 
 
 	private:
@@ -127,12 +98,10 @@ class CpuRaycasterSingleRay3
 
    std::vector<CpuRaycastStackElement> _stack;
 
-   float _tScaleRatio;
-
    gloost::mathType _tMin;
    gloost::mathType _tMax;
 
-   Svo*             _svo;
+   SvoBranch*             _svo;
 
    std::vector<gloost::Point3> _idToPositionLookUp;
 
@@ -144,6 +113,6 @@ class CpuRaycasterSingleRay3
 } // namespace svo
 
 
-#endif // H_SVO_CPU_RAYCASTER_SINGLE_RAY3
+#endif // H_SVO_CPU_RAYCASTER_SINGLE_RAY
 
 

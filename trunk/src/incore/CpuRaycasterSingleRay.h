@@ -24,14 +24,14 @@
 
 
 
-#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY2
-#define H_SVO_CPU_RAYCASTER_SINGLE_RAY2
+#ifndef H_SVO_CPU_RAYCASTER_SINGLE_RAY
+#define H_SVO_CPU_RAYCASTER_SINGLE_RAY
 
 
 
 /// svo system includes
 #include <SvoNode.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 /// gloost system includes
@@ -49,59 +49,85 @@
 namespace svo
 {
 
-  //  CpuRaycasterSingleRay2
 
-class CpuRaycasterSingleRay2
+struct AxisAndTValue
+{
+  float _t;
+  int   _axis;
+
+  bool operator<(const AxisAndTValue& a)
+  {
+    return a._t < this->_t;
+  }
+
+};
+
+
+
+  //  CpuRaycasterSingleRay
+
+class CpuRaycasterSingleRay
 {
 	public:
 
     // class constructor
-    CpuRaycasterSingleRay2(bool verboseMode = false);
+    CpuRaycasterSingleRay(bool verboseMode = false);
 
     // class destructor
-	  ~CpuRaycasterSingleRay2();
+	  virtual ~CpuRaycasterSingleRay();
 
 
     // traverses a Svo with a single ray
-//	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
-	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
+//	  SvoNode* start(const gloost::Ray& ray, SvoBranch* svo);
+	  virtual SvoNode* start(const gloost::Ray& ray, SvoBranch* svo);
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
-	  SvoNode* traversSvo(gloost::Point3 origin,
-                        gloost::Vector3 direction,
-                        float tMin,
-                        float tMax);
+	  virtual SvoNode* traversSvo(gloost::Ray ray, float tMin, float tMax);
+
+
+	  // intersects the Svo BoundingBox and writes to _tMin and _tMax
+	  virtual bool intersectBoundingBox(const gloost::Ray& ray);
 
 
     struct CpuRaycastStackElement
     {
-      CpuRaycastStackElement()
+      CpuRaycastStackElement():
+        parentNode(0),
+        parentTMin(0),
+        parentTMax(0),
+        parentCenter(),
+        parentDepth(0)
       {}
 
       SvoNode*         parentNode;
+
       gloost::mathType parentTMin;
       gloost::mathType parentTMax;
 
       gloost::Point3   parentCenter;
-
-//      char nextChild;
+      int              parentDepth;
     };
 
-    int _max_stack_size;
+
+    unsigned _pushCounter;
+    unsigned _popCounter;
+    unsigned _whileCounter;
+    unsigned _maxStackDepth;
 
 
 	private:
 
 
-//	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
+	 void sortAxisAndTs(AxisAndTValue* axisAndTs);
 
-   std::vector<CpuRaycastStackElement> _stack;
+   std::stack<CpuRaycastStackElement> _stack;
+
 
    gloost::mathType _tMin;
    gloost::mathType _tMax;
 
-   Svo*             _svo;
+   SvoBranch*             _svo;
 
    std::vector<gloost::Point3> _idToPositionLookUp;
 

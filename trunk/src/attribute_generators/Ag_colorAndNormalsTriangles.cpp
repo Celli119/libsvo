@@ -26,7 +26,7 @@
 
 /// svo system includes
 #include <attribute_generators/Ag_colorAndNormalsTriangles.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 #include <BuilderTriangleFace.h>
 
 // gloost includes
@@ -97,7 +97,7 @@ Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
 */
 
 void
-Ag_colorAndNormalsTriangles::generate(Svo* svo,
+Ag_colorAndNormalsTriangles::generate(SvoBranch* svo,
                                       gloost::Mesh* mesh,
                                       gloost::ObjMatFile* materials,
                                       bool freeDiscreteSamplesAfterwards)

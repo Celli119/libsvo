@@ -26,7 +26,6 @@
 
 /// gloost system includes
 #include <CpuSvoNode.h>
-#include <Svo.h>
 
 
 
@@ -61,7 +60,6 @@ namespace svo
 CpuSvoNode::CpuSvoNode():
  _firstChildIndex(0),
  _masks(0)
-// _attribPosition(SVO_EMPTY_ATTRIB_POS)
 {
 
 }
@@ -81,7 +79,6 @@ CpuSvoNode::CpuSvoNode( unsigned        firstchildIndex,
                         unsigned        attribPosition):
  _firstChildIndex(firstchildIndex),
  _masks(0)
-// _attribPosition(attribPosition)
 {
   _masks = validMask.getValue();
   _masks.getValue() <<= 8;
@@ -178,6 +175,22 @@ CpuSvoNode::getValidMaskFlag(unsigned i)
 
 
 /**
+  \brief sets valid mask flag at position i
+  \param ...
+  \remarks ...
+*/
+
+void
+CpuSvoNode::setValidMaskFlag(unsigned i, bool flag)
+{
+  return _masks.setFlag(i+SVO_CPUSVONODE_OFFSET_VALIDMASK, flag);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief returns leaf mask bit at position i
   \param ...
   \remarks ...
@@ -187,6 +200,22 @@ bool
 CpuSvoNode::getLeafMaskFlag(unsigned i)
 {
   return _masks.getFlag(i+SVO_CPUSVONODE_OFFSET_LEAFMASK);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief sets leaf mask bit at position i
+  \param ...
+  \remarks ...
+*/
+
+void
+CpuSvoNode::setLeafMaskFlag(unsigned i, bool flag)
+{
+  return _masks.setFlag(i+SVO_CPUSVONODE_OFFSET_LEAFMASK, flag);
 }
 
 

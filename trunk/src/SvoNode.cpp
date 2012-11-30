@@ -26,7 +26,7 @@
 
 /// gloost system includes
 #include <SvoNode.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 

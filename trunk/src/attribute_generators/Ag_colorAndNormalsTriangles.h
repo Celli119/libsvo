@@ -55,7 +55,7 @@ namespace gloost
 namespace svo
 {
 
-  class Svo;
+  class SvoBranch;
 
 
   //  Retrieves colors and normals from Triangles of a Mesh
@@ -71,7 +71,7 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
 	  virtual ~Ag_colorAndNormalsTriangles();
 
     //
-	  void generate(Svo* svo,
+	  void generate(SvoBranch* svo,
                   gloost::Mesh* mesh,
                   gloost::ObjMatFile* materials = 0,
                   bool freeDiscreteSamplesAfterwards = true);

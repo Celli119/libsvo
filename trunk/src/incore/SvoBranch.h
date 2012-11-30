@@ -24,14 +24,14 @@
 
 
 
-#ifndef H_SVO_SVO
-#define H_SVO_SVO
+#ifndef H_SVO_SVOBRANCH
+#define H_SVO_SVOBRANCH
 
 #define SVO_EMPTY_ATTRIB_POS 999999999
 
 /// gloost system includes
 #include <gloost/gloostConfig.h>
-#include <gloost/BoundingBox.h>
+#include <gloost/Matrix.h>
 #include <gloost/Mesh.h>
 
 
@@ -70,39 +70,44 @@ namespace svo
   {
     DiscreteSample(unsigned primitiveId,
                    gloost::mathType u,
-                   gloost::mathType v)
+                   gloost::mathType v,
+                   const gloost::Matrix& AABBTransform)
     {
-      _primitiveId = primitiveId;
-      _u           = u;
-      _v           = v;
+      _primitiveId    = primitiveId;
+      _u              = u;
+      _v              = v;
+      _AABBTransform = AABBTransform;
     }
 
     unsigned _primitiveId;
 
     gloost::mathType _u;
     gloost::mathType _v;
+    gloost::Matrix   _AABBTransform;
   };
 
 
 
   //  Sparse Voxel Octree with utility functions
 
-class Svo
+class SvoBranch
 {
 	public:
 
     // class constructor
-    Svo(int maxDepth);
+    SvoBranch(int maxDepth);
 
     // class constructor
-    Svo(const std::string svoFilePath);
+    SvoBranch(const std::string svoFilePath);
 
     // class destructor
-	  virtual ~Svo();
+	  virtual ~SvoBranch();
 
 
 	  // inserts a position in the octree and returns its leaf node
     SvoNode* insert(const gloost::Point3& point);
+
+
 
 
     // normalizes attribs of voxels storing contributions of more than one primitive during creation
@@ -110,6 +115,7 @@ class Svo
 
     // generates attributes for inner nodes by averaging child attribs
     void generateInnerNodesAttributes(SvoNode* node, int currentDepth = 0);
+
 
 
 
@@ -225,6 +231,6 @@ class Svo
 } // namespace svo
 
 
-#endif // H_SVO_SVO
+#endif // H_SVO_SVOBRANCH
 
 

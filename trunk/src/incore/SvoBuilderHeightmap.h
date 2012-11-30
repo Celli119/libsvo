@@ -45,7 +45,7 @@
 namespace svo
 {
 
-  class Svo;
+  class SvoBranch;
 
 
   //  EmptyClass template
@@ -62,9 +62,9 @@ class SvoBuilderHeightmap
 
 
     // generates the svo from heightmap and a colormap
-	  Svo* build( unsigned int heightMapId,
-                unsigned int colorMapId,
-                unsigned int maxDepth);
+	  SvoBranch* build( unsigned int heightMapId,
+                      unsigned int colorMapId,
+                      unsigned int maxDepth);
 
 
 	private:

@@ -120,7 +120,7 @@ CpuRaycasterSingleRay3::~CpuRaycasterSingleRay3()
 bool
 CpuRaycasterSingleRay3::start(const gloost::Ray& ray,
                               float tScaleRatio,
-                              Svo* svo,
+                              SvoBranch* svo,
                               ResultStruct& result)
 {
   _tScaleRatio = tScaleRatio;

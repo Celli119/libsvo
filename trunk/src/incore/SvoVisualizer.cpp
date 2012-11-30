@@ -26,7 +26,7 @@
 
 /// svo system includes
 #include <SvoVisualizer.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 #include <SvoNode.h>
 
 
@@ -117,7 +117,7 @@ SvoVisualizer::~SvoVisualizer()
 */
 
 void
-SvoVisualizer::build(Svo* svo, gloost::InterleavedAttributes* attributes)
+SvoVisualizer::build(SvoBranch* svo, gloost::InterleavedAttributes* attributes)
 {
 
   _svo        = svo;
@@ -130,7 +130,7 @@ SvoVisualizer::build(Svo* svo, gloost::InterleavedAttributes* attributes)
 
 #ifndef GLOOST_SYSTEM_DISABLE_OUTPUT_MESSAGES
     std::cerr << std::endl;
-    std::cerr << std::endl << "Message from SvoVisualizer::build(Svo* svo):";
+    std::cerr << std::endl << "Message from SvoVisualizer::build(SvoBranch* svo):";
     std::cerr << std::endl << "             Building SVO visualisation:";
     std::cerr << std::endl << "               max depth                  " << _maxDepth;
     std::cerr << std::endl << "               Number of nodes:           " << svo->getNumNodes();

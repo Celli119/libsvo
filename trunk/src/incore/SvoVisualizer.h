@@ -57,7 +57,7 @@ namespace gloost
 namespace svo
 {
 
-  class Svo;
+  class SvoBranch;
   class SvoNode;
 
 
@@ -75,7 +75,7 @@ class SvoVisualizer
 	  virtual ~SvoVisualizer();
 
 	  // builds the visualization from a svo::Svo
-	  void build(Svo* svo, gloost::InterleavedAttributes* attributes);
+	  void build(SvoBranch* svo, gloost::InterleavedAttributes* attributes);
 
 
 	  // draws the svo visualization
@@ -115,7 +115,7 @@ class SvoVisualizer
 
 
 
-    Svo*                _svo;
+    SvoBranch*                _svo;
 
     gloost::InterleavedAttributes* _attributes;
 

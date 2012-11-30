@@ -24,76 +24,58 @@
 
 
 
-#ifndef H_SVO_SVO_BUILDER_FACES
-#define H_SVO_SVO_BUILDER_FACES
+#ifndef H_SVO_SVO_BUILDER_VERTICES
+#define H_SVO_SVO_BUILDER_VERTICES
 
 
 
 /// svo system includes
-#include <BuilderTriangleFace.h>
 
 
 /// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 #include <gloost/Mesh.h>
-#include <gloost/Vector3.h>
-#include <gloost/Point3.h>
-#include <gloost/MatrixStack.h>
 
 
 /// cpp includes
 #include <string>
-#include <boost/thread/mutex.hpp>
+
+
 
 namespace svo
 {
 
-  class Svo;
-  class SvoNode;
+  class SvoBranch;
 
 
-  //  generates the svo structure by discretising faces
+  //  generates the svo structure from a mesh using the vertices
 
-class SvoBuilderFaces
+class SvoBuilderVertices
 {
 	public:
 
     // class constructor
-    SvoBuilderFaces(unsigned numThreads = 16);
+    SvoBuilderVertices();
 
     // class destructor
-	  virtual ~SvoBuilderFaces();
+	  ~SvoBuilderVertices();
 
 
-    // generates the svo by discretising faces
-	  Svo* build(Svo* svo, gloost::Mesh* mesh);
-
-	protected:
-
-	  void runThreadOnRange(unsigned threadId,
-                          unsigned startIndex,
-                          unsigned endIndex);
-
-    // builds the svo recursive from triangle faces
-    void buildRecursive(unsigned                   threadId,
-                        unsigned                   currentDepth,
-                        const BuilderTriangleFace& triangle);
+    // generates the svo from vertices
+	  SvoBranch* build(SvoBranch* svo, gloost::Mesh* mesh);
 
 
-    Svo*                _svo;
-    gloost::Mesh*       _mesh;
+	private:
 
-    unsigned     _numBuildThreads;
-    boost::mutex _modifySvoMutex;;
+   // ...
 
-    std::vector<gloost::MatrixStack> _matrixStacks;
 };
 
 
 } // namespace svo
 
 
-#endif // H_SVO_SVO_BUILDER_FACES
+#endif // H_SVO_SVO_BUILDER_VERTICES
 
 

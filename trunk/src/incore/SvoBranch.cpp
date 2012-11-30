@@ -26,7 +26,7 @@
 
 
 /// svo system includes
-#include <Svo.h>
+#include <SvoBranch.h>
 #include <CpuSvoNode.h>
 
 
@@ -68,7 +68,7 @@ namespace svo
   \remarks ...
 */
 
-Svo::Svo(int maxDepth):
+SvoBranch::SvoBranch(int maxDepth):
   _root(new SvoNode()),
   _maxDepth(maxDepth),
   _boundingBox(gloost::Point3(-0.5, -0.5, -0.5), gloost::Point3(0.5, 0.5, 0.5)),
@@ -93,7 +93,7 @@ Svo::Svo(int maxDepth):
   \remarks ...
 */
 
-Svo::Svo(const std::string svoFilePath):
+SvoBranch::SvoBranch(const std::string svoFilePath):
   _root(new SvoNode()),
   _maxDepth(0),
   _boundingBox(gloost::Point3(-0.5, -0.5, -0.5), gloost::Point3(0.5, 0.5, 0.5)),
@@ -118,7 +118,7 @@ Svo::Svo(const std::string svoFilePath):
   \remarks ...
 */
 
-Svo::~Svo()
+SvoBranch::~SvoBranch()
 {
 	// insert your code here
 }
@@ -134,7 +134,7 @@ Svo::~Svo()
 */
 
 SvoNode*
-Svo::insert(const gloost::Point3& point)
+SvoBranch::insert(const gloost::Point3& point)
 {
 
   // check point with bounding box of svo
@@ -166,7 +166,7 @@ Svo::insert(const gloost::Point3& point)
 */
 
 SvoNode*
-Svo::insertAndBuild(SvoNode*              currentParent,
+SvoBranch::insertAndBuild(SvoNode*        currentParent,
                     int                   currentChildIndex,
                     SvoNode*              currentNode,
                     const gloost::Point3& localPos,
@@ -230,10 +230,10 @@ Svo::insertAndBuild(SvoNode*              currentParent,
 */
 
 unsigned
-Svo::serializeSvo()
+SvoBranch::serializeSvo()
 {
 
-  std::cerr << std::endl << "Message from Svo::serializeSvo(): ";
+  std::cerr << std::endl << "Message from SvoBranch::serializeSvo(): ";
   std::cerr << std::endl << "             serializing svo nodes structure";
   std::cerr << std::endl << "           " << getNumNodes() << " nodes to serialize";
 
@@ -318,7 +318,7 @@ Svo::serializeSvo()
 */
 
 bool
-Svo::writeSerializedSvoToFile(const std::string& filePath)
+SvoBranch::writeSerializedSvoToFile(const std::string& filePath)
 {
 
   if (!_serializedCpuSvoNodes.size())
@@ -327,7 +327,7 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
   }
 
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Svo::writeSerializedSvoToFile():";
+  std::cerr << std::endl << "Message from SvoBranch::writeSerializedSvoToFile():";
   std::cerr << std::endl << "  Writing SVO to:";
   std::cerr << std::endl << "    " << filePath;
 
@@ -361,10 +361,10 @@ Svo::writeSerializedSvoToFile(const std::string& filePath)
 */
 
 bool
-Svo::loadSerializedSvoFromFile(const std::string& filePath)
+SvoBranch::loadSerializedSvoFromFile(const std::string& filePath)
 {
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Svo::loadSerializedSvoToFile():";
+  std::cerr << std::endl << "Message from SvoBranch::loadSerializedSvoToFile():";
   std::cerr << std::endl << "             Reading *.svo file";
   std::cerr << std::endl << "             " << filePath;
 
@@ -405,7 +405,7 @@ Svo::loadSerializedSvoFromFile(const std::string& filePath)
 */
 
 std::vector<CpuSvoNode>&
-Svo::getSerializedNodes()
+SvoBranch::getSerializedNodes()
 {
   return _serializedCpuSvoNodes;
 }
@@ -421,7 +421,7 @@ Svo::getSerializedNodes()
 */
 
 CpuSvoNode
-Svo::getSerializedNodeForIndex(unsigned index)
+SvoBranch::getSerializedNodeForIndex(unsigned index)
 {
   return _serializedCpuSvoNodes[index];
 }
@@ -437,7 +437,7 @@ Svo::getSerializedNodeForIndex(unsigned index)
 */
 
 std::vector<unsigned>&
-Svo::getSerializedAttributeIndices()
+SvoBranch::getSerializedAttributeIndices()
 {
   return _serializedAttributeIndices;
 }
@@ -453,7 +453,7 @@ Svo::getSerializedAttributeIndices()
 */
 
 unsigned
-Svo::createDiscreteSampleList()
+SvoBranch::createDiscreteSampleList()
 {
   _discreteSamples.push_back(std::vector<DiscreteSample>());
   return _discreteSamples.size()-1;
@@ -469,8 +469,8 @@ Svo::createDiscreteSampleList()
   \remarks ...
 */
 
-std::vector< Svo::SampleList >&
-Svo::getDiscreteSampleLists()
+std::vector< SvoBranch::SampleList >&
+SvoBranch::getDiscreteSampleLists()
 {
   return _discreteSamples;
 }
@@ -485,8 +485,8 @@ Svo::getDiscreteSampleLists()
   \remarks ...
 */
 
-Svo::SampleList&
-Svo::getDiscreteSampleList(unsigned id)
+SvoBranch::SampleList&
+SvoBranch::getDiscreteSampleList(unsigned id)
 {
   return _discreteSamples[id];
 }
@@ -502,7 +502,7 @@ Svo::getDiscreteSampleList(unsigned id)
 */
 
 unsigned
-Svo::getNumDiscreteSamples() const
+SvoBranch::getNumDiscreteSamples() const
 {
 
   unsigned count = 0;
@@ -525,7 +525,7 @@ Svo::getNumDiscreteSamples() const
 */
 
 void
-Svo::clearDiscreteSamples()
+SvoBranch::clearDiscreteSamples()
 {
   unsigned freedMemory = 0;
 
@@ -537,7 +537,7 @@ Svo::clearDiscreteSamples()
   _discreteSamples.resize(1);
 
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Svo::clearDiscreteSamples(): ";
+  std::cerr << std::endl << "Message from SvoBranch::clearDiscreteSamples(): ";
   std::cerr << std::endl << "  " << freedMemory/1024.0/1024.0 << " MB freed.";
 }
 
@@ -551,7 +551,7 @@ Svo::clearDiscreteSamples()
 */
 
 SvoNode*
-Svo::getRootNode()
+SvoBranch::getRootNode()
 {
   return _root;
 }
@@ -567,7 +567,7 @@ Svo::getRootNode()
 */
 
 const gloost::BoundingBox&
-Svo::getBoundingBox() const
+SvoBranch::getBoundingBox() const
 {
   return _boundingBox;
 }
@@ -582,7 +582,7 @@ Svo::getBoundingBox() const
 */
 
 unsigned
-Svo::getMaxDepth() const
+SvoBranch::getMaxDepth() const
 {
   return _maxDepth;
 }
@@ -598,7 +598,7 @@ Svo::getMaxDepth() const
 */
 
 int
-Svo::getNumNodes() const
+SvoBranch::getNumNodes() const
 {
   return _numNodes;
 }
@@ -614,7 +614,7 @@ Svo::getNumNodes() const
 */
 
 int
-Svo::getNumLeaves() const
+SvoBranch::getNumLeaves() const
 {
   return _numLeaves;
 }
@@ -630,7 +630,7 @@ Svo::getNumLeaves() const
 */
 
 int
-Svo::getNumOutOfBoundPoints() const
+SvoBranch::getNumOutOfBoundPoints() const
 {
   return _numOutOfBoundPoints;
 }
@@ -646,7 +646,7 @@ Svo::getNumOutOfBoundPoints() const
 */
 
 int
-Svo::getNumDoublePoints() const
+SvoBranch::getNumDoublePoints() const
 {
   return _numDoublePoints;
 }
@@ -662,7 +662,7 @@ Svo::getNumDoublePoints() const
 */
 
 int
-Svo::getNumOneChildNodes() const
+SvoBranch::getNumOneChildNodes() const
 {
   return _numOneChildNodes;
 }
