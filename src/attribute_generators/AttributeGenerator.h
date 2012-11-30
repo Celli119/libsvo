@@ -50,7 +50,7 @@ namespace gloost
 namespace svo
 {
 
-  class Svo;
+  class SvoBranch;
   class SvoNode;
 
 
@@ -68,7 +68,7 @@ class AttributeGenerator
 
 
     // init the AttributeGenerator
-	  virtual void generate(Svo* svo,
+	  virtual void generate(SvoBranch* svo,
                           gloost::Mesh* mesh,
                           gloost::ObjMatFile* materials,
                           bool freeDiscreteSamplesAfterwards = true) = 0;

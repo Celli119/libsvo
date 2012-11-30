@@ -71,7 +71,7 @@ class Ag_colorAndNormalsFromTextures: public AttributeGenerator
 	  virtual ~Ag_colorAndNormalsFromTextures();
 
     //
-	  void generate(Svo* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials);
+	  void generate(SvoBranch* svo, gloost::Mesh* mesh, gloost::ObjMatFile* materials);
 
 	  //
 	  gloost::InterleavedAttributes* getAttributeBuffer();

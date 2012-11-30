@@ -58,7 +58,7 @@ class CpuSvoNode
 	public:
 
     // class constructor
-    CpuSvoNode( );
+    CpuSvoNode();
 
     // class constructor
     CpuSvoNode( unsigned        firstchildIndex,
@@ -84,9 +84,11 @@ class CpuSvoNode
 
     // returns valid mask
     bool getValidMaskFlag(unsigned i);
+    void setValidMaskFlag(unsigned i, bool flag);
 
     // returns leaf mask
     bool getLeafMaskFlag(unsigned i);
+    void setLeafMaskFlag(unsigned i, bool flag);
 
 //    // returns attribute position in attrib buffer
 //    unsigned int getAttribPosition() const;

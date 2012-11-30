@@ -31,7 +31,7 @@
 
 /// svo system includes
 #include <SvoNode.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 /// gloost system includes
@@ -63,8 +63,8 @@ class CpuRaycasterSingleRay4
 
 
     // traverses a Svo with a single ray
-//	  SvoNode* start(const gloost::Ray& ray, Svo* svo);
-	  virtual CpuSvoNode start(const gloost::Ray& ray, Svo* svo);
+//	  SvoNode* start(const gloost::Ray& ray, SvoBranch* svo);
+	  virtual CpuSvoNode start(const gloost::Ray& ray, SvoBranch* svo);
 
     // traverses a Svo with a single ray
 //	  SvoNode* traversSvo(const gloost::Ray& ray);
@@ -130,7 +130,7 @@ class CpuRaycasterSingleRay4
 
 	private:
 
-	  Svo* _svo;
+	  SvoBranch* _svo;
 
 
 };

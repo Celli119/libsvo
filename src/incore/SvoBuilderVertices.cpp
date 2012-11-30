@@ -26,7 +26,7 @@
 
 /// svo system includes
 #include <SvoBuilderVertices.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 /// gloost system includes
@@ -91,8 +91,8 @@ SvoBuilderVertices::~SvoBuilderVertices()
   \remarks ...
 */
 
-Svo*
-SvoBuilderVertices::build(Svo* svo, gloost::Mesh* mesh)
+SvoBranch*
+SvoBuilderVertices::build(SvoBranch* svo, gloost::Mesh* mesh)
 {
 
   std::vector<gloost::Point3>&       vertices  = mesh->getVertices();

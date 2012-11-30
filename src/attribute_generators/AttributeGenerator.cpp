@@ -26,7 +26,7 @@
 
 /// svo system includes
 #include <attribute_generators/AttributeGenerator.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 #include <SvoNode.h>
 
 // gloost includes

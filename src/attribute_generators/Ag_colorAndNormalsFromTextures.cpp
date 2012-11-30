@@ -26,7 +26,7 @@
 
 /// svo system includes
 #include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 #include <BuilderTriangleFace.h>
 
 // gloost includes
@@ -98,7 +98,7 @@ Ag_colorAndNormalsFromTextures::~Ag_colorAndNormalsFromTextures()
 */
 
 void
-Ag_colorAndNormalsFromTextures::generate(Svo* svo,
+Ag_colorAndNormalsFromTextures::generate(SvoBranch* svo,
                              gloost::Mesh* mesh,
                              gloost::ObjMatFile* materials)
 {
@@ -114,8 +114,8 @@ Ag_colorAndNormalsFromTextures::generate(Svo* svo,
   // for all lists with samples
   for (unsigned i=0; i!=svo->getDiscreteSampleLists().size(); ++i)
 	{
-    Svo::SampleList::iterator sampleIt    = svo->getDiscreteSampleList(i).begin();
-    Svo::SampleList::iterator sampleEndIt = svo->getDiscreteSampleList(i).end();
+    SvoBranch::SampleList::iterator sampleIt    = svo->getDiscreteSampleList(i).begin();
+    SvoBranch::SampleList::iterator sampleEndIt = svo->getDiscreteSampleList(i).end();
 
     gloost::Vector3 color(0.0,0.0,0.0);
     gloost::Vector3 normal(0.0,0.0,0.0);

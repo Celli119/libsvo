@@ -107,7 +107,7 @@
 //*/
 //
 //CpuSvoNode
-//CpuRaycasterSingleRay4::start(const gloost::Ray& ray, Svo* svo)
+//CpuRaycasterSingleRay4::start(const gloost::Ray& ray, SvoBranch* svo)
 //{
 //  _svo = svo;
 //

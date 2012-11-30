@@ -105,7 +105,7 @@ CpuRaycasterSingleRay2::~CpuRaycasterSingleRay2()
 */
 
 SvoNode*
-CpuRaycasterSingleRay2::start(const gloost::Ray& ray, Svo* svo)
+CpuRaycasterSingleRay2::start(const gloost::Ray& ray, SvoBranch* svo)
 {
   _svo = svo;
 

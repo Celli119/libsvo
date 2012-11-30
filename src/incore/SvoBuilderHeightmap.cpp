@@ -26,7 +26,7 @@
 
 /// gloost system includes
 #include <SvoBuilderHeightmap.h>
-#include <Svo.h>
+#include <SvoBranch.h>
 
 
 /// gloost system includes
@@ -90,7 +90,7 @@ SvoBuilderHeightmap::~SvoBuilderHeightmap()
   \remarks ...
 */
 
-Svo*
+SvoBranch*
 SvoBuilderHeightmap::build( unsigned int heightMapId,
                             unsigned int colorMapId,
                             unsigned int maxDepth)
@@ -124,7 +124,7 @@ SvoBuilderHeightmap::build( unsigned int heightMapId,
   gloost::mathType voxelsize = pow(2, -(int)depth);
 
 
-  Svo* svo = new Svo(depth);
+  SvoBranch* svo = new SvoBranch(depth);
 
 
   std::cerr << std::endl;
