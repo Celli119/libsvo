@@ -132,7 +132,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   }
 
 
-
+#if 0
   // Build Sub-Treelets
   unsigned numSubTreelets = _treelets[0]->getLeafQueueElements().size();
   _treelets.resize(numSubTreelets, 0);
@@ -173,7 +173,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
 
     ++subTreeletId;
   }
-
+#endif
 
 
 }

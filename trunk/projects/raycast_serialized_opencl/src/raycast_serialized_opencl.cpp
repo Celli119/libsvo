@@ -131,27 +131,7 @@ void init()
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-//  const std::string svoBaseName = "flunder_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_8";
-//  const std::string svoBaseName = "david_2mm_final_ao_11";
-//  const std::string svoBaseName = "frog_anglerfish_7";
-//  const std::string svoBaseName = "frog2_seperated_8";
-
-
   const std::string svoBaseName = "TreeMemoryManager_out_0";
-//  const std::string svoBaseName = "women_9";
-
-
-//  const std::string svoBaseName = "women_11";
-//  const std::string svoBaseName = "Decimated_Head_7";
-//  const std::string svoBaseName = "frog2_vertex_ao_8";
-//  const std::string svoBaseName = "frog2_mean_7";
-//  const std::string svoBaseName = "conference2_11";
-//  const std::string svoBaseName = "dragon_vrip_11";
-//  const std::string svoBaseName = "Decimated_Head_high_11";
-//  const std::string svoBaseName = "alligator_head_11";
-//  const std::string svoBaseName = "anteater_1m_12";
-//  const std::string svoBaseName = "frog2_vertex_ao_7";
 
   // loading svo and attributes
   g_treelet = new svo::Treelet(svo_dir_path + svoBaseName + ".svo");

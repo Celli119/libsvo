@@ -84,21 +84,21 @@ class Treelet
     struct QueueElement
     {
       QueueElement():
-        _nodeIndex(0u),
+        _localNodeIndex(0u),
         _idx(0u),
-        _parentNodeIndex(0u),
+        _parentLocalNodeIndex(0u),
         _depth(0u),
         _aabbTransform(),
         _primitiveIds()
       {
       }
 
-      unsigned              _nodeIndex;         /// index of the node within the serial structure
-      char                  _idx;               /// index 0...7 of the node within its parent
-      unsigned              _parentNodeIndex;   /// index of the nodes parent within the serial structure
-      unsigned              _depth;             /// depth of the node within this treelet
-      gloost::Matrix        _aabbTransform;     /// transformation of the AABB/voxel
-      std::vector<unsigned> _primitiveIds;      /// primitive ids of all primitives contributing to this node
+      unsigned              _localNodeIndex;         /// absolute local index of the node within the serial structure
+      char                  _idx;                    /// index 0...7 of the node within its parent
+      unsigned              _parentLocalNodeIndex;   /// index of the nodes parent within the serial structure
+      unsigned              _depth;                  /// depth of the node within this treelet
+      gloost::Matrix        _aabbTransform;          /// transformation of the AABB/voxel
+      std::vector<unsigned> _primitiveIds;           /// primitive ids of all primitives contributing to this node
     };
 
     typedef std::vector< std::vector<DiscreteSample> > SampleListVector;
