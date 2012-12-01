@@ -36,13 +36,12 @@
 
 
 /// svo includes
-#include <SvoNode.h>
 #include <CpuSvoNode.h>
 
 
 /// cpp includes
 #include <string>
-#include <list>
+#include <map>
 #include <vector>
 
 namespace
@@ -81,20 +80,25 @@ class Treelet
 {
 	public:
 
+    ///
     struct QueueElement
     {
       QueueElement():
         _nodeIndex(0u),
+        _idx(0u),
+        _parentNodeIndex(0u),
         _depth(0u),
         _aabbTransform(),
         _primitiveIds()
       {
       }
 
-      unsigned              _nodeIndex;
-      unsigned              _depth;
-      gloost::Matrix        _aabbTransform;
-      std::vector<unsigned> _primitiveIds;
+      unsigned              _nodeIndex;         /// index of the node within the serial structure
+      char                  _idx;               /// index 0...7 of the node within its parent
+      unsigned              _parentNodeIndex;   /// index of the nodes parent within the serial structure
+      unsigned              _depth;             /// depth of the node within this treelet
+      gloost::Matrix        _aabbTransform;     /// transformation of the AABB/voxel
+      std::vector<unsigned> _primitiveIds;      /// primitive ids of all primitives contributing to this node
     };
 
     typedef std::vector< std::vector<DiscreteSample> > SampleListVector;
@@ -102,7 +106,7 @@ class Treelet
 
 
     // class constructor
-    Treelet(unsigned maxSizeInByte, const gloost::Matrix& aabbTransform);
+    Treelet(unsigned maxSizeInByte);
 
     // class constructor
     Treelet(const std::string treeletFilePath);
@@ -111,16 +115,12 @@ class Treelet
 	  virtual ~Treelet();
 
 
-	  // inserts a position in the octree and returns its leaf node
-    SvoNode* insert(const gloost::Point3& point);
-
-
 
     // normalizes attribs of voxels storing contributions of more than one primitive during creation
     void normalizeLeafAttribs();
 
     // generates attributes for inner nodes by averaging child attribs
-    void generateInnerNodesAttributes(SvoNode* node, int currentDepth = 0);
+//    void generateInnerNodesAttributes(SvoNode* node, int currentDepth = 0);
 
 
 
@@ -143,25 +143,10 @@ class Treelet
 
 
 
-    // creates new set of samples for a leaf node and returns an id
-    unsigned createDiscreteSampleList();
-
-    // returns the vector of lists with DiscreteSamples
-    std::vector< SampleList >& getDiscreteSampleLists();
-
-    // returns a lists of DiscreteSamples
-    SampleList& getDiscreteSampleList(unsigned id);
-
-    // returns the number of discrete samples currently stored
-    unsigned getNumDiscreteSamples() const;
-
-    // clears all discrete samples to save some mem
-    void clearDiscreteSamples();
+    // returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
+    std::map<unsigned, QueueElement>& getLeafQueueElements();
 
 
-
-    // returns the root node
-    SvoNode* getRootNode();
 
     // returns the max size in Bytes
     unsigned getMaxSize() const;
@@ -181,6 +166,11 @@ class Treelet
 
     // serialized svo nodes
     std::vector<CpuSvoNode> _serializedNodes;
+
+    // map of all leaf QueueElements created while building the Treelet
+    std::map<unsigned, QueueElement> _leafQueueElements;
+
+
 };
 
 

@@ -68,28 +68,27 @@ namespace svo
   \remarks ...
 */
 
-Treelet::Treelet(unsigned maxSizeInByte, const gloost::Matrix& aabbTransform):
+Treelet::Treelet(unsigned maxSizeInByte):
   _maxSize(maxSizeInByte),
   _numNodes(1),
   _numLeaves(1),
   _serializedNodes()
 {
   unsigned maxNumNodes = _maxSize/sizeof(CpuSvoNode);
-  unsigned actualSize = maxNumNodes*sizeof(CpuSvoNode);
+  unsigned actualSize  = maxNumNodes*sizeof(CpuSvoNode);
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Creating Treelet";
 
   if (actualSize != _maxSize)
   {
-    std::cerr << std::endl << "    Size of    : " << _maxSize;
+    std::cerr << std::endl << "    Size of    : " << _maxSize << " Byte";
     std::cerr << std::endl << "    changed to : " << actualSize;
     _maxSize = actualSize;
   }
 
   std::cerr << std::endl << "Creating Treelet of size: " << _maxSize;
   std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
-
 
   _serializedNodes.resize(maxNumNodes);
 }
@@ -285,6 +284,22 @@ Treelet::loadTreeletFromFile(const std::string& filePath)
 
   infile.unload();
   return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
+  \param   ...
+  \remarks This map is only filled after building
+*/
+
+std::map<unsigned, Treelet::QueueElement>&
+Treelet::getLeafQueueElements()
+{
+  return _leafQueueElements;
 }
 
 

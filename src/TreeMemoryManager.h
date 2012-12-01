@@ -81,7 +81,6 @@ class TreeMemoryManager
 
 	private:
 
-   Treelet*              _rootTreelet;
    std::vector<Treelet*> _treelets;
 
 };

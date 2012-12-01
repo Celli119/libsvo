@@ -8,7 +8,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output="../lib/svo" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/libsvo" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/release" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -31,7 +31,7 @@
 				</Linker>
 			</Target>
 			<Target title="Debug">
-				<Option output="../lib/svo_db" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/libsvo_db" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/debug" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -85,34 +85,18 @@
 		<Unit filename="../../src/BitMask8.h" />
 		<Unit filename="../../src/BuilderTriangleFace.cpp" />
 		<Unit filename="../../src/BuilderTriangleFace.h" />
-		<Unit filename="../../src/CpuRaycasterSingleRay.cpp" />
-		<Unit filename="../../src/CpuRaycasterSingleRay.h" />
-		<Unit filename="../../src/CpuRaycasterSingleRay2.cpp" />
-		<Unit filename="../../src/CpuRaycasterSingleRay2.h" />
-		<Unit filename="../../src/CpuRaycasterSingleRay3.cpp" />
-		<Unit filename="../../src/CpuRaycasterSingleRay3.h" />
-		<Unit filename="../../src/CpuRaycasterSingleRay4.cpp" />
-		<Unit filename="../../src/CpuRaycasterSingleRay4.h" />
 		<Unit filename="../../src/CpuSvoNode.cpp" />
 		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />
 		<Unit filename="../../src/ImageToPointcloud.h" />
-		<Unit filename="../../src/Svo.cpp" />
-		<Unit filename="../../src/Svo.h" />
-		<Unit filename="../../src/SvoBuilderFaces.cpp" />
-		<Unit filename="../../src/SvoBuilderFaces.h" />
-		<Unit filename="../../src/SvoBuilderHeightmap.cpp" />
-		<Unit filename="../../src/SvoBuilderHeightmap.h" />
-		<Unit filename="../../src/SvoBuilderVertices.cpp" />
-		<Unit filename="../../src/SvoBuilderVertices.h" />
 		<Unit filename="../../src/SvoLoader.cpp" />
 		<Unit filename="../../src/SvoLoader.h" />
-		<Unit filename="../../src/SvoNode.cpp" />
-		<Unit filename="../../src/SvoNode.h" />
-		<Unit filename="../../src/SvoVisualizer.cpp" />
-		<Unit filename="../../src/SvoVisualizer.h" />
-		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.cpp" />
-		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsFromTextures.h" />
+		<Unit filename="../../src/TreeMemoryManager.cpp" />
+		<Unit filename="../../src/TreeMemoryManager.h" />
+		<Unit filename="../../src/Treelet.cpp" />
+		<Unit filename="../../src/Treelet.h" />
+		<Unit filename="../../src/TreeletBuilderFromFaces.cpp" />
+		<Unit filename="../../src/TreeletBuilderFromFaces.h" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.cpp" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />

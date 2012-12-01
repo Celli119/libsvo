@@ -69,13 +69,12 @@ float          g_cameraRotateX  = 0;
 float          g_cameraDistance = 1.0;
 
 // SVO
-#include <Svo.h>
-svo::Svo* g_svo = 0;
-#include <SvoNode.h>
+#include <Treelet.h>
+svo::Treelet* g_treelet = 0;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
-gloost::InterleavedAttributes* g_shadowBuffer    = 0;
+//gloost::InterleavedAttributes* g_shadowBuffer    = 0;
 
 
 // setup for rendering into frame buffer
@@ -88,7 +87,7 @@ unsigned g_framebufferTextureId = 0;
 // info
 bool        g_showTextInfo     = true;
 bool        g_showRayCastImage = true;
-unsigned    g_viewMode         = 0;
+unsigned    g_viewMode         = 4;
 std::string g_viewModeText     = "color";
 bool        g_frameDirty       = true;
 bool        g_raycastEveryFrame = false;
@@ -104,7 +103,7 @@ std::vector<gloost::Ray>     g_cameraRays;
 #include <gloost/bencl/ClContext.h>
 
 gloost::bencl::ClContext* g_context   = 0;
-unsigned                  g_deviceGid = 0;
+gloost::gloostId          g_deviceGid = 0;
 
 void init();
 void initCl();
@@ -126,40 +125,44 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth /4.0;
-  g_bufferHeight       = g_screenHeight/4.0;
+  g_bufferWidth        = g_screenWidth / 2.0;
+  g_bufferHeight       = g_screenHeight/ 2.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 //  const std::string svoBaseName = "flunder_11";
-//  const std::string svoBaseName = "david_2mm_final_ao_12";
-//  const std::string svoBaseName = "lucy_11";
+//  const std::string svoBaseName = "david_2mm_final_ao_8";
+//  const std::string svoBaseName = "david_2mm_final_ao_11";
+//  const std::string svoBaseName = "frog_anglerfish_7";
+//  const std::string svoBaseName = "frog2_seperated_8";
+
+
+  const std::string svoBaseName = "TreeMemoryManager_out_0";
+//  const std::string svoBaseName = "women_9";
+
+
+//  const std::string svoBaseName = "women_11";
+//  const std::string svoBaseName = "Decimated_Head_7";
 //  const std::string svoBaseName = "frog2_vertex_ao_8";
 //  const std::string svoBaseName = "frog2_mean_7";
-//  const std::string svoBaseName = "bridge_14";
 //  const std::string svoBaseName = "conference2_11";
 //  const std::string svoBaseName = "dragon_vrip_11";
 //  const std::string svoBaseName = "Decimated_Head_high_11";
 //  const std::string svoBaseName = "alligator_head_11";
 //  const std::string svoBaseName = "anteater_1m_12";
-  const std::string svoBaseName = "frog2_vertex_ao_7";
+//  const std::string svoBaseName = "frog2_vertex_ao_7";
 
   // loading svo and attributes
-  g_svo = new svo::Svo(svo_dir_path + svoBaseName + ".svo");
+  g_treelet = new svo::Treelet(svo_dir_path + svoBaseName + ".svo");
 
   const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
-  std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
-  g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);
-  std::cerr << std::endl << "num packages: " << g_voxelAttributes->getNumPackages();
-  std::cerr << std::endl << "num elements: " << g_voxelAttributes->getNumElementsPerPackage();
-  std::cerr << " ... done.";
 
-  // shadow buffer
-  g_shadowBuffer = new gloost::InterleavedAttributes();
-  g_shadowBuffer->addAttribute(1, 4, "shadow");
-  g_shadowBuffer->resize(g_voxelAttributes->getNumPackages());
-  g_shadowBuffer->fill(-1.0f);
+//  std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
+//  g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);
+//  std::cerr << std::endl << "num packages: " << g_voxelAttributes->getNumPackages();
+//  std::cerr << std::endl << "num elements: " << g_voxelAttributes->getNumElementsPerPackage();
+//  std::cerr << " ... done.";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -204,7 +207,6 @@ void init()
 
 void initCl()
 {
-
   // opencl init
   gloost::bencl::ocl::init();
 
@@ -213,12 +215,12 @@ void initCl()
   g_context = new gloost::bencl::ClContext(1);
 
   // change Device here!
-  g_deviceGid = 1;
+  g_deviceGid = 0;
 
   g_context->acquireDevice(g_deviceGid);
   g_context->createContextClFromGlContext();
 
-  g_context->loadProgram("../opencl/fillFrameBuffer_rgba.cl");
+  g_context->loadProgram("../opencl/treeletRenderer_rgba.cl");
 
 
   // assign render buffer
@@ -231,25 +233,26 @@ void initCl()
 
   // assign svo data
   gloost::gloostId svoDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (char*)&g_svo->getSerializedNodes().front(),
-                                                          g_svo->getSerializedNodes().size()*sizeof(svo::CpuSvoNode));
+                                                          (unsigned char*)&g_treelet->getSerializedNodes().front(),
+                                                          g_treelet->getSerializedNodes().size()*sizeof(svo::CpuSvoNode));
 
   g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 
-  // assign attribute indices
-  gloost::gloostId attribIndicesDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (char*)&g_svo->getSerializedAttributeIndices().front(),
-                                                          g_svo->getSerializedNodes().size()*sizeof(unsigned));
 
-  g_context->setKernelArgBuffer("renderToBuffer", 2, attribIndicesDataGid);
+  // assign attribute indices
+//  gloost::gloostId attribIndicesDataGid = g_context->createClBuffer( CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+//                                                                    (unsigned char*)&g_svo->getSerializedAttributeIndices().front(),
+//                                                                    g_svo->getSerializedNodes().size()*sizeof(unsigned));
+//
+//  g_context->setKernelArgBuffer("renderToBuffer", 2, attribIndicesDataGid);
 
 
   // assign attrib data
-  gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                            (char*)g_voxelAttributes->getData(),
-                                                            g_voxelAttributes->getNumPackages()*g_voxelAttributes->getPackageStride());
-
-  g_context->setKernelArgBuffer("renderToBuffer", 3, attribDataGid);
+//  gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+//                                                            (unsigned char*)g_voxelAttributes->getData(),
+//                                                            g_voxelAttributes->getNumPackages()*g_voxelAttributes->getPackageStride());
+//
+//  g_context->setKernelArgBuffer("renderToBuffer", 3, attribDataGid);
 
 
 
@@ -328,25 +331,26 @@ void frameStep()
     gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
 
 
-    g_context->setKernelArgFloat4("renderToBuffer", 4, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
-    g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelWidth);
-    g_context->setKernelArgFloat4("renderToBuffer", 6, frustumOnePixelHeight);
-    g_context->setKernelArgFloat4("renderToBuffer", 7, frustum.far_lower_left);
-    g_context->setKernelArgFloat4("renderToBuffer", 8, g_modelOffset + g_camera->getPosition());
-    g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+    g_context->setKernelArgFloat4("renderToBuffer", 2, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
+    g_context->setKernelArgFloat4("renderToBuffer", 3, frustumOnePixelWidth);
+    g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelHeight);
+    g_context->setKernelArgFloat4("renderToBuffer", 5, frustum.far_lower_left);
+    g_context->setKernelArgFloat4("renderToBuffer", 6, g_modelOffset + g_camera->getPosition());
+    g_context->setKernelArgFloat4("renderToBuffer", 7, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
     g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
     {
       g_context->enqueueKernel(g_deviceGid,
                                "renderToBuffer",
-                               2,
+                               2u,
                                gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
+                               true,
                                gloost::Vector3(8, 8, 0));
     }
     g_context->releaseGlObjects(g_deviceGid);
+    g_frameDirty = false;
   }
 
-  g_frameDirty = false;
 
 
 }
@@ -442,7 +446,7 @@ void draw2d()
           g_texter->renderFreeLine();
           g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
-          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_svo->getMaxDepth()));
+          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_treelet->getMaxSize()));
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();
@@ -585,19 +589,6 @@ void key(int key, int state)
 
 int main(int argc, char *argv[])
 {
-
-//
-//  for (unsigned i=0; i!=100; ++i)
-//  {
-//    bool bla = bool(i&4)
-//  }
-//
-//
-//
-//  exit(0);
-
-
-
 
   // init glfw
   if ( glfwInit( ) == GL_FALSE)

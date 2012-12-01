@@ -63,7 +63,6 @@ namespace svo
 */
 
 TreeMemoryManager::TreeMemoryManager():
-  _rootTreelet(0),
   _treelets()
 {
 	// insert your code here
@@ -107,67 +106,73 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
 //#endif
 
 
-  // Build trunk
-	_rootTreelet = new Treelet(treeletSizeInBytes, gloost::Matrix::createIdentity());
+  // Build root Treelet
+  _treelets.resize(1);
+  {
+    _treelets[0] = new Treelet(treeletSizeInBytes);
+//    _treelets[0] = new Treelet(1*1024);
 
-  svo::TreeletBuilderFromFaces fromTrianglesBuilder(numBuildingThreads);
-  fromTrianglesBuilder.build(_rootTreelet, mesh);
+    svo::TreeletBuilderFromFaces fromTrianglesBuilder(numBuildingThreads);
+    fromTrianglesBuilder.build(_treelets[0], mesh);
 
-  // attribute generator
-//  svo::Ag_colorAndNormalsTriangles generator;
-//  generator.generate(_trunk, mesh, new gloost::ObjMatFile());
+    // attribute generator
+    //  svo::Ag_colorAndNormalsTriangles generator;
+    //  generator.generate(_trunk, mesh, new gloost::ObjMatFile());
 
-  _rootTreelet->writeTreeletToFile("/home/otaco/Desktop/SVO_DATA/"
-                                   + std::string("TreeMemoryManager_out")
-                                   + "_" + gloost::toString(treeletSizeInBytes/1024)
-                                   + ".svo" );
+    _treelets[0]->writeTreeletToFile("/home/otaco/Desktop/SVO_DATA/"
+                                     + std::string("TreeMemoryManager_out")
+//                                     + "_" + gloost::toString(treeletSizeInBytes/1024)
+                                                + std::string("_") + "0"
+                                     + ".svo" );
 
-//  generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-//                                                 + std::string("TreeMemoryManager_out_trunk")
-//                                                 + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
-//                                                 + ".ia" );
+    //  generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
+    //                                                 + std::string("TreeMemoryManager_out_trunk")
+    //                                                 + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
+    //                                                 + ".ia" );
+  }
 
 
 
+  // Build Sub-Treelets
+  unsigned numSubTreelets = _treelets[0]->getLeafQueueElements().size();
+  _treelets.resize(numSubTreelets, 0);
 
-//  // Build branches
-//  unsigned numBranches = _trunk->getDiscreteSampleLists().size();
-//
-//  _branches.resize(numBranches, 0);
-//
-//  for (unsigned i=0; i!=numBranches; ++i)
-//  {
-//    std::cerr << std::endl;
-//    std::cerr << std::endl;
-//    std::cerr << std::endl;
-//    std::cerr << std::endl;
-//    std::cerr << std::endl;
-//    std::cerr << std::endl << "################################################";
-//    std::cerr << std::endl << "Message from SvoBuilderFaces::buildFromFaces():";
-//    std::cerr << std::endl << "             Building BRANCHE " << i << " of " << numBranches <<  " from triangle samples:";
-//
-//    _branches[i] = new SvoBranch(branchDepth);
-//
-//    svo::SvoBuilderFaces fromFaceBuilder2(numBuildingThreads);
-//    fromFaceBuilder2.build(_branches[i], mesh, _trunk->getDiscreteSampleLists()[i]);
-//
-////    svo::Ag_colorAndNormalsTriangles generator2;
-////    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
-//
-//    _branches[i]->serializeSvo();
-//
-//    _branches[i]->writeSerializedSvoToFile("/home/otaco/Desktop/SVO_DATA/"
-//                                            + std::string("TreeMemoryManager_out_")
-//                                            + i
-//                                            + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth)
-//                                            + ".svo" );
-//
-////    generator2.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-////                                                   + std::string("TreeMemoryManager_out_")
-////                                                   + i
-////                                                   + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
-////                                                   + ".ia" );
-//  }
+  std::map<unsigned, Treelet::QueueElement>::iterator queueElementsIt    = _treelets[0]->getLeafQueueElements().begin();
+  std::map<unsigned, Treelet::QueueElement>::iterator queueElementsEndIt = _treelets[0]->getLeafQueueElements().end();
+
+  unsigned subTreeletId = 1u;
+
+  for (; queueElementsIt!=queueElementsEndIt; ++queueElementsIt)
+  {
+    std::cerr << std::endl;
+    std::cerr << std::endl << "################################################";
+    std::cerr << std::endl;
+    std::cerr << std::endl << "Message from SvoBuilderFaces::buildFromFaces():";
+    std::cerr << std::endl << "             Building BRANCHE " << subTreeletId << " of " << numSubTreelets <<  " from triangle samples:";
+
+    _treelets[subTreeletId] = new Treelet(treeletSizeInBytes);
+
+    svo::TreeletBuilderFromFaces fromTrianglesBuilder(numBuildingThreads);
+    fromTrianglesBuilder.build(_treelets[subTreeletId], mesh, queueElementsIt->second);
+
+//    svo::Ag_colorAndNormalsTriangles generator2;
+//    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
+
+
+    _treelets[subTreeletId]->writeTreeletToFile("/home/otaco/Desktop/SVO_DATA/"
+                                                + std::string("TreeMemoryManager_out")
+//                                              + "_" + gloost::toString(treeletSizeInBytes/1024)
+                                                + std::string("_") + subTreeletId
+                                                + ".svo" );
+
+//    generator2.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
+//                                                   + std::string("TreeMemoryManager_out_")
+//                                                   + i
+//                                                   + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
+//                                                   + ".ia" );
+
+    ++subTreeletId;
+  }
 
 
 

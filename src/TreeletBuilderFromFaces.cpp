@@ -68,8 +68,7 @@ namespace svo
 TreeletBuilderFromFaces::TreeletBuilderFromFaces(unsigned treeletSizeInBytes,
                                                  unsigned numThreads):
     _treelet(0),
-    _mesh(0),
-    _matrixStack()
+    _mesh(0)
 {
 	// insert your code here
 }
@@ -93,8 +92,8 @@ TreeletBuilderFromFaces::~TreeletBuilderFromFaces()
 
 
 /**
-  \brief builds the svo structure from a mesh using the vertices
-  \param mesh gloost::Mesh with unique normal and color for each vertice
+  \brief builds a treelet by discretising triangles using all triangles of a mesh
+  \param mesh gloost::Mesh with normal and color for each vertice
   \remarks ...
 */
 
@@ -114,6 +113,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   std::cerr << std::endl << "             Building Octree from triangle faces:";
   std::cerr << std::endl << "               max size           " << _treelet->getMaxSize() << " byte";
   std::cerr << std::endl << "               triangles.size():  " << triangles.size();
+  std::cerr << std::endl;
 
   // choose all primitives as relevant
 
@@ -131,22 +131,53 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   _queue.push(queueElement);
 
   buildFromQueue();
+}
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief builds a treelet by discretising triangles using initial QueueElement
+  \param mesh gloost::Mesh with unique normal and color for each vertice
+  \remarks ...
+*/
+
+void
+TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treelet::QueueElement& initialQueueElement)
+{
+  _treelet  = treelet;
+  _mesh     = mesh;
+
+  std::vector<gloost::TriangleFace>& triangles = mesh->getTriangles();
+  std::vector<gloost::Point3>&       vertices  = mesh->getVertices();
+  std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
+  std::vector<gloost::vec4>&         colors    = mesh->getColors();
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
+  std::cerr << std::endl << "             Building Octree from triangle faces:";
+  std::cerr << std::endl << "               max size           " << _treelet->getMaxSize() << " byte";
+  std::cerr << std::endl << "               triangles.size():  " << initialQueueElement._primitiveIds.size();
+  std::cerr << std::endl;
+
+  // choose all primitives as relevant
+
+//  Treelet::QueueElement queueElement;
+//  queueElement._aabbTransform = gloost::Matrix::createIdentity();
+//  queueElement._primitiveIds.resize(triangles.size());
+//  queueElement._nodeIndex = 0;
 //
-//  std::cerr << std::endl;
-//  std::cerr << std::endl << "               Number of leaves:          " << _svo->getNumLeaves();
-//  std::cerr << std::endl << "               Number of nodes:           " << _svo->getNumNodes();
-//  std::cerr << std::endl << "               Number of OOB Points:      " << _svo->getNumOutOfBoundPoints();
-//  std::cerr << std::endl << "               Number of double Points:   " << _svo->getNumDoublePoints();
-//  std::cerr << std::endl << "               Octree memory real CPU:    " << _svo->getNumNodes()*sizeof(svo::SvoNode)/1024.0/1024.0 << " MB";
-//  std::cerr << std::endl << "               Discrete samples count:    " << _svo->getNumDiscreteSamples();
-//  std::cerr << std::endl << "               Discrete samples memory:   " << _svo->getNumDiscreteSamples()*sizeof(DiscreteSample)/1024.0/1024.0 << " MB";
-//  std::cerr << std::endl << "               Octree memory serialized:  " << _svo->getNumNodes()*svo::SvoNode::getSerializedNodeSize()/1024.0/1024.0 << " MB";
-//  std::cerr << std::endl << "               Number of one-child-nodes: " << _svo->getNumOneChildNodes() << " ( " << (100.0f*_svo->getNumOneChildNodes())/(float)_svo->getNumNodes() << " % )";
-//  std::cerr << std::endl;
-//
+//  for (unsigned i=0; i!=queueElement._primitiveIds.size(); ++i)
+//  {
+//    queueElement._primitiveIds[i] = i;
+//  }
 
+  // push root
+  _queue.push(initialQueueElement);
+  _queue.front()._nodeIndex = 0;
 
+  buildFromQueue();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,9 +202,10 @@ TreeletBuilderFromFaces::buildFromQueue()
   while (_queue.size() && (currentNodeIndex<_treelet->getSerializedNodes().size()-8) )
   {
     whileCounter++;
-    if (whileCounter % 10000 == 0)
+    if (whileCounter % 100000 == 0)
     {
-      std::cerr << std::endl << "Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getSerializedNodes().size())*100) << " %";
+      std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getSerializedNodes().size())*100) << " %"
+                             << " ( leaf count: " << _queue.size() << " )";
     }
 
 
@@ -264,19 +296,45 @@ TreeletBuilderFromFaces::buildFromQueue()
         _treelet->getSerializedNodes()[parentQueuedElement._nodeIndex].setValidMaskFlag(childIndex, true);
 
         // set the location within the serialized svo to the queueElement
-        _childQueueElements[childIndex]._nodeIndex = currentNodeIndex++;
+        _childQueueElements[childIndex]._nodeIndex       = currentNodeIndex++;
+        _childQueueElements[childIndex]._idx             = childIndex;
+        _childQueueElements[childIndex]._parentNodeIndex = parentQueuedElement._nodeIndex;
 
         // queue element for this child
         _queue.push(_childQueueElements[childIndex]);
+      }
+      else
+      {
+        // set child NOT valid (Note: It's unknown for now if this child is a leaf)
+        _treelet->getSerializedNodes()[parentQueuedElement._nodeIndex].setValidMaskFlag(childIndex, false);
       }
     }
 
     // unqueue parent element
     _queue.pop();
 
-
-
   } // while (_queue.size())
+
+
+  /* Finishing treelet by setting leaf node flags of parents of leafes to TRUE.
+     Copy all QueueElements to the Treelets _leafQueueElements so that sub-Treelets
+     can be build from them :-)
+  */
+  std::cerr << std::endl;
+  std::cerr << std::endl << "  -> Finishing treelet with leaf count: " << _queue.size();
+
+
+  std::map<unsigned, Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
+
+  while (_queue.size())
+  {
+    const Treelet::QueueElement& leafQueuedElement = _queue.front();
+    _treelet->getSerializedNodes()[leafQueuedElement._parentNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
+
+    treeletLeafQueueElements[leafQueuedElement._nodeIndex] = leafQueuedElement;
+
+    _queue.pop();
+  }
 
 }
 

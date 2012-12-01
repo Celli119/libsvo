@@ -23,8 +23,13 @@
 #include <iostream>
 #include <cmath>
 #include <stdlib.h>
+
+// default values
 std::string g_inputPath    = "";
 std::string g_outputPath   = "";
+unsigned g_treeletSizeInByte  = 512*1024;
+unsigned g_nodesVisDepth      = 99;
+unsigned g_numBuildingThreads = 12;
 
 #include <gloost/Matrix.h>
 gloost::Matrix g_sizeAndCenterMatrix;
@@ -36,20 +41,16 @@ gloost::Matrix g_sizeAndCenterMatrix;
 gloost::Mesh* g_mesh = 0;
 
 // SVO
-#include <Svo.h>
-svo::Svo* g_svo = 0;
-#include <SvoNode.h>
+//#include <SvoBranch.h>
+//svo::SvoBranch* g_svo = 0;
 
-#include <SvoBuilderFaces.h>
+#include <TreeMemoryManager.h>
+svo::TreeMemoryManager g_treeMemoryManager;
 
-#include <SvoVisualizer.h>
-svo::SvoVisualizer* g_svoVisualizerNodes  = 0;
-svo::SvoVisualizer* g_svoVisualizerLeaves = 0;
 
 //#include <chrono>
 #include <attribute_generators/Ag_colorAndNormalsTriangles.h>
 #include <attribute_generators/Ag_colorAndNormalsFromTextures.h>
-
 
 
 // info
@@ -76,11 +77,6 @@ void idle(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-unsigned g_maxSvoDepth        = 8;
-unsigned g_nodesVisDepth      = 99;
-
-unsigned g_numBuildingThreads = 12;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,30 +112,34 @@ void init()
   g_mesh->normalizeNormals();
 
 
-//  g_mesh->printMeshInfo();
-
-
   // SVO builder
-  g_svo = new svo::Svo(g_maxSvoDepth);
-  svo::SvoBuilderFaces fromFaceBuilder(g_numBuildingThreads);
-  fromFaceBuilder.build(g_svo, g_mesh);
+  g_treeMemoryManager.buildFromFaces(g_treeletSizeInByte,
+                                     g_numBuildingThreads,
+                                     g_mesh);
+
+
+
+
+//  g_svo = new svo::SvoBranch(g_trunkDepth);
+//  svo::SvoBuilderFaces fromFaceBuilder(g_numBuildingThreads);
+//  fromFaceBuilder.build(g_svo, g_mesh);
 
   // attribute generator
-  svo::Ag_colorAndNormalsTriangles generator;
-  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
-
-
-  g_svo->serializeSvo();
-
-  g_svo->writeSerializedSvoToFile(g_outputPath
-                                   + gloost::pathToBasename(g_inputPath)
-                                   + "_" + gloost::toString(g_maxSvoDepth)
-                                   + ".svo" );
-
-  generator.writeCompressedAttributeBufferToFile(g_outputPath
-                                                 + gloost::pathToBasename(g_inputPath)
-                                                 + "_" + gloost::toString(g_maxSvoDepth) + "c"
-                                                 + ".ia" );
+//  svo::Ag_colorAndNormalsTriangles generator;
+//  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
+//
+//
+//  g_svo->serializeSvo();
+//
+//  g_svo->writeSerializedSvoToFile(g_outputPath
+//                                   + gloost::pathToBasename(g_inputPath)
+//                                   + "_" + gloost::toString(g_trunkDepth)
+//                                   + ".svo" );
+//
+//  generator.writeCompressedAttributeBufferToFile(g_outputPath
+//                                                 + gloost::pathToBasename(g_inputPath)
+//                                                 + "_" + gloost::toString(g_trunkDepth) + "c"
+//                                                 + ".ia" );
 
   std::cerr << std::endl;
   std::cerr << std::endl;
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
   gloost::CmdParser cmdp("");
 
   cmdp.addOpt("t", 1,  "threads  ", "number of threads (default: 12)");
-  cmdp.addOpt("d", 1,  "svo depth", "max depth of the resulting svo (default: " + gloost::toString(g_maxSvoDepth) + ")");
+  cmdp.addOpt("s", 1,  "<uint treelet size in KB>", "size of a treelet in Kilobyte(default: " + gloost::toString(g_treeletSizeInByte) + ")");
   cmdp.addOpt("i", 1,  "input", "input file path, loads *.ply files with per vertex color and normals");
   cmdp.addOpt("o", 1,  "output", "output directory path (default: input file path)");
 
@@ -181,17 +181,20 @@ int main(int argc, char *argv[])
   }
 
 
-
-
-
   if (cmdp.isOptSet("t"))
   {
     g_numBuildingThreads = cmdp.getOptsInt("t")[0];
   }
-  if (cmdp.isOptSet("d"))
+  if (cmdp.isOptSet("s"))
   {
-    g_maxSvoDepth = cmdp.getOptsInt("d")[0];
+    g_treeletSizeInByte = cmdp.getOptsInt("s")[0]*1024u;
   }
+  else
+  {
+    std::cerr << std::endl << " USE THE -d argument to set trunkDepth and branchDepth: ";
+    exit(0);
+  }
+
   if (cmdp.isOptSet("i"))
   {
     g_inputPath = cmdp.getOptsString("i")[0];
