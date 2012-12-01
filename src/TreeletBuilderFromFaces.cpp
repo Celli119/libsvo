@@ -120,7 +120,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   Treelet::QueueElement queueElement;
   queueElement._aabbTransform = gloost::Matrix::createIdentity();
   queueElement._primitiveIds.resize(triangles.size());
-  queueElement._nodeIndex = 0;
+  queueElement._localNodeIndex = 0;
 
   for (unsigned i=0; i!=queueElement._primitiveIds.size(); ++i)
   {
@@ -175,7 +175,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treel
 
   // push root
   _queue.push(initialQueueElement);
-  _queue.front()._nodeIndex = 0;
+  _queue.front()._localNodeIndex = 0;
 
   buildFromQueue();
 }
@@ -288,17 +288,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         if (isFirstValidChild)
         {
           // set first child index of the parent
-          _treelet->getSerializedNodes()[parentQueuedElement._nodeIndex].setFirstChildIndex(currentNodeIndex);
+          _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setFirstChildIndex((int)currentNodeIndex-(int)parentQueuedElement._localNodeIndex);
           isFirstValidChild = false;
         }
 
         // set child valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getSerializedNodes()[parentQueuedElement._nodeIndex].setValidMaskFlag(childIndex, true);
+        _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, true);
 
         // set the location within the serialized svo to the queueElement
-        _childQueueElements[childIndex]._nodeIndex       = currentNodeIndex++;
-        _childQueueElements[childIndex]._idx             = childIndex;
-        _childQueueElements[childIndex]._parentNodeIndex = parentQueuedElement._nodeIndex;
+        _childQueueElements[childIndex]._localNodeIndex       = currentNodeIndex++;
+        _childQueueElements[childIndex]._idx                  = childIndex;
+        _childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localNodeIndex;
 
         // queue element for this child
         _queue.push(_childQueueElements[childIndex]);
@@ -306,7 +306,7 @@ TreeletBuilderFromFaces::buildFromQueue()
       else
       {
         // set child NOT valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getSerializedNodes()[parentQueuedElement._nodeIndex].setValidMaskFlag(childIndex, false);
+        _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, false);
       }
     }
 
@@ -329,9 +329,9 @@ TreeletBuilderFromFaces::buildFromQueue()
   while (_queue.size())
   {
     const Treelet::QueueElement& leafQueuedElement = _queue.front();
-    _treelet->getSerializedNodes()[leafQueuedElement._parentNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
+    _treelet->getSerializedNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
 
-    treeletLeafQueueElements[leafQueuedElement._nodeIndex] = leafQueuedElement;
+    treeletLeafQueueElements[leafQueuedElement._localNodeIndex] = leafQueuedElement;
 
     _queue.pop();
   }
