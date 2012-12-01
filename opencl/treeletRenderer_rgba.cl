@@ -385,7 +385,7 @@ sample( __global const SvoNode* svo,
 
           // ### PUSH
           --scale;
-          stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
+          stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
                                                           svo[parent->parentNodeIndex]._firstchildIdx,
                                                           childIdx);
           stack[scale].parentTMin      = tcMin;

@@ -68,26 +68,27 @@ namespace svo
   \remarks ...
 */
 
-Treelet::Treelet(unsigned maxSizeInByte):
-  _maxSize(maxSizeInByte),
-  _numNodes(1),
-  _numLeaves(1),
+Treelet::Treelet(unsigned memSizeInByte):
+  _memSize(memSizeInByte),
+  _numNodes(0),
+  _numLeaves(0),
+  _firstLeafIndex(0),
   _serializedNodes()
 {
-  unsigned maxNumNodes = _maxSize/sizeof(CpuSvoNode);
+  unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
   unsigned actualSize  = maxNumNodes*sizeof(CpuSvoNode);
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Creating Treelet";
 
-  if (actualSize != _maxSize)
+  if (actualSize != _memSize)
   {
-    std::cerr << std::endl << "    Size of    : " << _maxSize << " Byte";
+    std::cerr << std::endl << "    Size of    : " << _memSize << " Byte";
     std::cerr << std::endl << "    changed to : " << actualSize;
-    _maxSize = actualSize;
+    _memSize = actualSize;
   }
 
-  std::cerr << std::endl << "Creating Treelet of size: " << _maxSize;
+  std::cerr << std::endl << "Creating Treelet of size: " << _memSize;
   std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
 
   _serializedNodes.resize(maxNumNodes);
@@ -103,9 +104,10 @@ Treelet::Treelet(unsigned maxSizeInByte):
 */
 
 Treelet::Treelet(const std::string treeletFilePath):
-  _maxSize(0),
-  _numNodes(1),
+  _memSize(0),
+  _numNodes(0),
   _numLeaves(0),
+  _firstLeafIndex(0),
   _serializedNodes()
 {
   loadTreeletFromFile(treeletFilePath);
@@ -168,9 +170,9 @@ Treelet::getSerializedNodeForIndex(unsigned index)
 */
 
 unsigned
-Treelet::getMaxSize() const
+Treelet::getMemSize() const
 {
-  return _maxSize;
+  return _memSize;
 }
 
 
@@ -183,10 +185,26 @@ Treelet::getMaxSize() const
   \remarks ...
 */
 
-int
+unsigned
 Treelet::getNumNodes() const
 {
   return _numNodes;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief sets the number of nodes
+  \param ...
+  \remarks ...
+*/
+
+void
+Treelet::setNumNodes(unsigned value)
+{
+  _numNodes = value;
 }
 
 
@@ -199,10 +217,58 @@ Treelet::getNumNodes() const
   \remarks ...
 */
 
-int
+unsigned
 Treelet::getNumLeaves() const
 {
   return _numLeaves;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief sets the number of leafes
+  \param ...
+  \remarks ...
+*/
+
+void
+Treelet::setNumLeaves(unsigned value)
+{
+  _numLeaves = value;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief returns the index of the first leaf node
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+Treelet::getFirstLeafIndex() const
+{
+  return _firstLeafIndex;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief sets the index of the first leafe node
+  \param ...
+  \remarks ...
+*/
+
+void
+Treelet::setFirstLeafIndex(unsigned value)
+{
+  _firstLeafIndex = value;
 }
 
 

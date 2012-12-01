@@ -132,7 +132,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   }
 
 
-#if 0
+#if 1
   // Build Sub-Treelets
   unsigned numSubTreelets = _treelets[0]->getLeafQueueElements().size();
   _treelets.resize(numSubTreelets, 0);
@@ -155,6 +155,9 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
     svo::TreeletBuilderFromFaces fromTrianglesBuilder(numBuildingThreads);
     fromTrianglesBuilder.build(_treelets[subTreeletId], mesh, queueElementsIt->second);
 
+    // clear primitive ids since we need them anymore
+    queueElementsIt->second.clearPrimitiveIds();
+
 //    svo::Ag_colorAndNormalsTriangles generator2;
 //    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
 
@@ -174,6 +177,8 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
     ++subTreeletId;
   }
 #endif
+
+  _treelets.clear();
 
 
 }

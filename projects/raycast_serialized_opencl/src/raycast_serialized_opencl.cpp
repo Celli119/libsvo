@@ -131,7 +131,7 @@ void init()
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-  const std::string svoBaseName = "TreeMemoryManager_out_0";
+  const std::string svoBaseName = "TreeMemoryManager_out_1111";
 
   // loading svo and attributes
   g_treelet = new svo::Treelet(svo_dir_path + svoBaseName + ".svo");
@@ -426,7 +426,7 @@ void draw2d()
           g_texter->renderFreeLine();
           g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
-          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_treelet->getMaxSize()));
+          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_treelet->getMemSize()));
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();

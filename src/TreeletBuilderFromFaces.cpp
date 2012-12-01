@@ -111,7 +111,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
   std::cerr << std::endl << "             Building Octree from triangle faces:";
-  std::cerr << std::endl << "               max size           " << _treelet->getMaxSize() << " byte";
+  std::cerr << std::endl << "               max size           " << _treelet->getMemSize() << " byte";
   std::cerr << std::endl << "               triangles.size():  " << triangles.size();
   std::cerr << std::endl;
 
@@ -157,7 +157,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treel
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
   std::cerr << std::endl << "             Building Octree from triangle faces:";
-  std::cerr << std::endl << "               max size           " << _treelet->getMaxSize() << " byte";
+  std::cerr << std::endl << "               max size           " << _treelet->getMemSize() << " byte";
   std::cerr << std::endl << "               triangles.size():  " << initialQueueElement._primitiveIds.size();
   std::cerr << std::endl;
 
@@ -322,6 +322,9 @@ TreeletBuilderFromFaces::buildFromQueue()
   */
   std::cerr << std::endl;
   std::cerr << std::endl << "  -> Finishing treelet with leaf count: " << _queue.size();
+
+  _treelet->setNumNodes((int)currentNodeIndex-1);
+  _treelet->setNumLeaves(_queue.size());
 
 
   std::map<unsigned, Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
