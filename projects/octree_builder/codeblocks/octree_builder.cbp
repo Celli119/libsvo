@@ -13,6 +13,7 @@
 				<Option external_deps="../../../libsvo/lib/libsvo.a;../../../../gloost/gnulinux/bin/libgloost.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
@@ -27,10 +28,6 @@
 					<Add option="-s" />
 					<Add library="libsvo" />
 					<Add library="gloost" />
-					<Add library="boost_thread" />
-					<Add library="freeimage" />
-					<Add library="GLU" />
-					<Add library="GLEW" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -40,6 +37,7 @@
 				<Option external_deps="../../../libsvo/lib/libsvo_db.a;../../../../gloost/gnulinux/bin/libgloost_db.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-o /home/otaco/Desktop/SVO_DATA/ -t 8 -i /home/otaco/Desktop/ply/frog2_seperated.ply -d 4 10" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
@@ -53,10 +51,6 @@
 				<Linker>
 					<Add library="libsvo_db" />
 					<Add library="gloost_db" />
-					<Add library="boost_thread" />
-					<Add library="freeimage" />
-					<Add library="GLU" />
-					<Add library="GLEW" />
 				</Linker>
 			</Target>
 		</Build>
@@ -70,8 +64,12 @@
 		</Compiler>
 		<Linker>
 			<Add library="GL" />
+			<Add library="GLEW" />
 			<Add library="glfw" />
+			<Add library="GLU" />
 			<Add library="libtinyxml" />
+			<Add library="freeimage" />
+			<Add library="boost_thread" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>
