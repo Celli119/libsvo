@@ -13,6 +13,7 @@
 				<Option external_deps="../../../libsvo/lib/libsvo.a;../../../../gloost/gnulinux/bin/libgloost.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
@@ -62,6 +63,7 @@
 			<Add directory="../../../src" />
 			<Add directory="../../../../gloost/src" />
 			<Add directory="/usr/local/cuda/include" />
+			<Add directory="/opt/AMDAPP/include" />
 		</Compiler>
 		<Linker>
 			<Add library="GLEW" />
@@ -72,6 +74,7 @@
 			<Add directory="../../../libsvo/lib" />
 		</Linker>
 		<Unit filename="../../../opencl/fillFrameBuffer_rgba.cl" />
+		<Unit filename="../../../opencl/treeletRenderer_rgba.cl" />
 		<Unit filename="../src/raycast_serialized_opencl.cpp" />
 		<Extensions>
 			<code_completion />

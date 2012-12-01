@@ -66,9 +66,14 @@ class TreeletBuilderFromFaces
 	  virtual ~TreeletBuilderFromFaces();
 
 
-    // generates the svo by discretising faces
+
+    // builds a treelet by discretising triangles using all triangles of a mesh
 	  void build(Treelet* treelet, gloost::Mesh* mesh);
-//	  void build(Treelet* treelet, gloost::Mesh* mesh, Treelet::SampleList& sampleList);
+
+    // builds a treelet by discretising triangles using initial QueueElement
+	  void build(Treelet* treelet, gloost::Mesh* mesh, const Treelet::QueueElement& initialQueueElement);
+
+
 
 	protected:
 
@@ -83,9 +88,9 @@ class TreeletBuilderFromFaces
 
     unsigned     _numBuildThreads;
 
-    gloost::MatrixStack _matrixStack;
-
     std::queue<Treelet::QueueElement> _queue;
+
+//    std::map
 
 
 
