@@ -93,6 +93,11 @@ class Treelet
       {
       }
 
+      void clearPrimitiveIds()
+      {
+        _primitiveIds.clear();
+      }
+
       unsigned              _localNodeIndex;         /// absolute local index of the node within the serial structure
       char                  _idx;                    /// index 0...7 of the node within its parent
       unsigned              _parentLocalNodeIndex;   /// index of the nodes parent within the serial structure
@@ -148,20 +153,33 @@ class Treelet
 
 
 
-    // returns the max size in Bytes
-    unsigned getMaxSize() const;
+    // returns the memory size in Bytes
+    unsigned getMemSize() const;
+
 
     // returns number of nodes
-    int getNumNodes() const;
+    unsigned getNumNodes() const;
+    // sets the number of nodes
+    void setNumNodes(unsigned value);
+
 
     // returns number of leafes
-    int getNumLeaves() const;
+    unsigned getNumLeaves() const;
+    // sets the number of nodes
+    void setNumLeaves(unsigned value);
+
+
+    // returns the index of the first leaf node
+    unsigned getFirstLeafIndex() const;
+    // sets the index of the first leafe node
+    void setFirstLeafIndex(unsigned value);
 
 
 	protected:
-    int                 _maxSize;
+    int                 _memSize;
     int                 _numNodes;
     int                 _numLeaves;
+    int                 _firstLeafIndex;
 
 
     // serialized svo nodes
