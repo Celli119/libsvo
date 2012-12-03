@@ -88,7 +88,7 @@ Treelet::Treelet(unsigned memSizeInByte):
     _memSize = actualSize;
   }
 
-  std::cerr << std::endl << "Creating Treelet of size: " << _memSize;
+  std::cerr << std::endl << "Creating Treelet of size: " << _memSize << "( " << (float)_memSize/1024/1024 << "MB )";
   std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
 
   _serializedNodes.resize(maxNumNodes);
@@ -138,7 +138,7 @@ Treelet::~Treelet()
 */
 
 std::vector<CpuSvoNode>&
-Treelet::getSerializedNodes()
+Treelet::getNodes()
 {
   return _serializedNodes;
 }
@@ -154,7 +154,7 @@ Treelet::getSerializedNodes()
 */
 
 CpuSvoNode
-Treelet::getSerializedNodeForIndex(unsigned index)
+Treelet::getNodeForIndex(unsigned index)
 {
   return _serializedNodes[index];
 }

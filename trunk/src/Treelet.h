@@ -122,7 +122,7 @@ class Treelet
 
 
     // normalizes attribs of voxels storing contributions of more than one primitive during creation
-    void normalizeLeafAttribs();
+//    void normalizeLeafAttribs();
 
     // generates attributes for inner nodes by averaging child attribs
 //    void generateInnerNodesAttributes(SvoNode* node, int currentDepth = 0);
@@ -138,10 +138,10 @@ class Treelet
 
 
     // returns a vector with serialized nodes
-    std::vector<CpuSvoNode>& getSerializedNodes();
+    std::vector<CpuSvoNode>& getNodes();
 
     // returns a serialized SvoNode for an index
-    CpuSvoNode getSerializedNodeForIndex(unsigned index);
+    CpuSvoNode getNodeForIndex(unsigned index);
 
     // returns a vector with serialized attribute indices
     std::vector<unsigned>& getSerializedAttributeIndices();
