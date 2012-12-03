@@ -125,13 +125,13 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth / 2.0;
-  g_bufferHeight       = g_screenHeight/ 2.0;
+  g_bufferWidth        = g_screenWidth / 4.0;
+  g_bufferHeight       = g_screenHeight/ 4.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
-  const std::string svoBaseName = "TreeMemoryManager_out_1111";
+  const std::string svoBaseName = "TreeMemoryManager_out_0";
 
   // loading svo and attributes
   g_treelet = new svo::Treelet(svo_dir_path + svoBaseName + ".svo");
@@ -213,8 +213,8 @@ void initCl()
 
   // assign svo data
   gloost::gloostId svoDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (unsigned char*)&g_treelet->getSerializedNodes().front(),
-                                                          g_treelet->getSerializedNodes().size()*sizeof(svo::CpuSvoNode));
+                                                          (unsigned char*)&g_treelet->getNodes().front(),
+                                                          g_treelet->getNodes().size()*sizeof(svo::CpuSvoNode));
 
   g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 

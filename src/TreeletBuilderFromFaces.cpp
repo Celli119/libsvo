@@ -199,12 +199,12 @@ TreeletBuilderFromFaces::buildFromQueue()
 
   unsigned whileCounter = 0;
 
-  while (_queue.size() && (currentNodeIndex<_treelet->getSerializedNodes().size()-8) )
+  while (_queue.size() && (currentNodeIndex<_treelet->getNodes().size()-8) )
   {
     whileCounter++;
     if (whileCounter % 100000 == 0)
     {
-      std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getSerializedNodes().size())*100) << " %"
+      std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getNodes().size())*100) << " %"
                              << " ( leaf count: " << _queue.size() << " )";
     }
 
@@ -288,12 +288,12 @@ TreeletBuilderFromFaces::buildFromQueue()
         if (isFirstValidChild)
         {
           // set first child index of the parent
-          _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setFirstChildIndex((int)currentNodeIndex-(int)parentQueuedElement._localNodeIndex);
+          _treelet->getNodes()[parentQueuedElement._localNodeIndex].setFirstChildIndex((int)currentNodeIndex-(int)parentQueuedElement._localNodeIndex);
           isFirstValidChild = false;
         }
 
         // set child valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, true);
+        _treelet->getNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, true);
 
         // set the location within the serialized svo to the queueElement
         _childQueueElements[childIndex]._localNodeIndex       = currentNodeIndex++;
@@ -306,7 +306,7 @@ TreeletBuilderFromFaces::buildFromQueue()
       else
       {
         // set child NOT valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getSerializedNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, false);
+        _treelet->getNodes()[parentQueuedElement._localNodeIndex].setValidMaskFlag(childIndex, false);
       }
     }
 
@@ -332,7 +332,7 @@ TreeletBuilderFromFaces::buildFromQueue()
   while (_queue.size())
   {
     const Treelet::QueueElement& leafQueuedElement = _queue.front();
-    _treelet->getSerializedNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
+    _treelet->getNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
 
     treeletLeafQueueElements[leafQueuedElement._localNodeIndex] = leafQueuedElement;
 
