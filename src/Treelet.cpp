@@ -68,7 +68,11 @@ namespace svo
   \remarks ...
 */
 
-Treelet::Treelet(unsigned memSizeInByte):
+Treelet::Treelet( gloost::gloostId  treeletGid,
+                  gloost::gloostId  parentTreeletGid,
+                  unsigned          memSizeInByte):
+  _treeletGid(treeletGid),
+  _parentTreeletGid(parentTreeletGid),
   _memSize(memSizeInByte),
   _numNodes(0),
   _numLeaves(0),
@@ -80,6 +84,8 @@ Treelet::Treelet(unsigned memSizeInByte):
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Creating Treelet";
+  std::cerr << std::endl << "    Gid        : " << _treeletGid;
+  std::cerr << std::endl << "    parent Gid : " << _parentTreeletGid;
 
   if (actualSize != _memSize)
   {
@@ -88,7 +94,7 @@ Treelet::Treelet(unsigned memSizeInByte):
     _memSize = actualSize;
   }
 
-  std::cerr << std::endl << "Creating Treelet of size: " << _memSize << "( " << (float)_memSize/1024/1024 << "MB )";
+  std::cerr << std::endl << "Creating Treelet of size: " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
   std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
 
   _serializedNodes.resize(maxNumNodes);
@@ -285,7 +291,7 @@ bool
 Treelet::writeTreeletToFile(const std::string& filePath)
 {
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from SvoBranch::writeSerializedSvoToFile():";
+  std::cerr << std::endl << "Message from Treelet::writeSerializedSvoToFile():";
   std::cerr << std::endl << "  Writing SVO to:";
   std::cerr << std::endl << "    " << filePath;
 
@@ -322,7 +328,7 @@ bool
 Treelet::loadTreeletFromFile(const std::string& filePath)
 {
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from SvoBranch::loadSerializedSvoToFile():";
+  std::cerr << std::endl << "Message from Treelet::loadSerializedSvoToFile():";
   std::cerr << std::endl << "             Reading *.svo file";
   std::cerr << std::endl << "             " << filePath;
 
@@ -366,6 +372,38 @@ std::map<unsigned, Treelet::QueueElement>&
 Treelet::getLeafQueueElements()
 {
   return _leafQueueElements;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returs treeletId
+  \param   ...
+  \remarks
+*/
+
+gloost::gloostId
+Treelet::getTreeletGid() const
+{
+  return _treeletGid;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returs treeletId
+  \param   ...
+  \remarks
+*/
+
+gloost::gloostId
+Treelet::getParentTreeletGid() const
+{
+  return _parentTreeletGid;
 }
 
 

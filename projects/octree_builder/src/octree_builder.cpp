@@ -27,9 +27,10 @@
 // default values
 std::string g_inputPath    = "";
 std::string g_outputPath   = "";
-unsigned g_treeletSizeInByte  = 512*1024;
-unsigned g_nodesVisDepth      = 99;
-unsigned g_numBuildingThreads = 12;
+unsigned g_treeletSizeInByte  = 512u*1024u;
+unsigned g_maxSvoDepth        = 8u;
+unsigned g_nodesVisDepth      = 99u;
+unsigned g_numBuildingThreads = 12u;
 
 #include <gloost/Matrix.h>
 gloost::Matrix g_sizeAndCenterMatrix;
@@ -111,6 +112,7 @@ void init()
 
   // SVO builder
   g_treeMemoryManager.buildFromFaces(g_treeletSizeInByte,
+                                     g_maxSvoDepth,
                                      g_numBuildingThreads,
                                      g_mesh);
 
@@ -154,6 +156,7 @@ int main(int argc, char *argv[])
 
   cmdp.addOpt("t", 1,  "threads  ", "number of threads (default: 12)");
   cmdp.addOpt("s", 1,  "<uint treelet size in KB>", "size of a treelet in Kilobyte(default: " + gloost::toString(g_treeletSizeInByte) + ")");
+  cmdp.addOpt("d", 1,  "<uint max svo depth>", "maximum number of svo levels (default: " + gloost::toString(g_maxSvoDepth) + ")");
   cmdp.addOpt("i", 1,  "input", "input file path, loads *.ply files with per vertex color and normals");
   cmdp.addOpt("o", 1,  "output", "output directory path (default: input file path)");
 
@@ -182,13 +185,27 @@ int main(int argc, char *argv[])
   {
     g_numBuildingThreads = cmdp.getOptsInt("t")[0];
   }
+
+
   if (cmdp.isOptSet("s"))
   {
     g_treeletSizeInByte = cmdp.getOptsInt("s")[0]*1024u;
   }
   else
   {
-    std::cerr << std::endl << " USE THE -d argument to set trunkDepth and branchDepth: ";
+    std::cerr << std::endl << " USE THE -s argument to set Treelet size in kilobyte: ";
+    std::cerr << std::endl;
+    exit(0);
+  }
+
+  if (cmdp.isOptSet("d"))
+  {
+    g_maxSvoDepth = cmdp.getOptsInt("d")[0];
+  }
+  else
+  {
+    std::cerr << std::endl << " USE THE -d argument to set the global maximal depth of the svo: ";
+    std::cerr << std::endl;
     exit(0);
   }
 
@@ -197,6 +214,14 @@ int main(int argc, char *argv[])
     g_inputPath = cmdp.getOptsString("i")[0];
     g_outputPath = gloost::pathToBasePath(g_inputPath);
   }
+  else
+  {
+    std::cerr << std::endl << " USE THE -i argument to specify an input file (*.ply): ";
+    std::cerr << std::endl;
+    exit(0);
+  }
+
+
   if (cmdp.isOptSet("o"))
   {
     g_outputPath = cmdp.getOptsString("o")[0];

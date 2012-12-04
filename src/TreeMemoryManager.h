@@ -29,7 +29,8 @@
 
 
 
-
+// libsvo includes
+#include <CpuSvoNode.h>
 
 
 /// gloost system includes
@@ -70,18 +71,25 @@ class TreeMemoryManager
 
     // builds trunk and all branches from triangle Mesh
 	  void buildFromFaces(unsigned treeletSizeInBytes,
+                        unsigned maxSvoDepth,
                         unsigned numBuildingThreads,
                         gloost::Mesh* mesh);
 
 
+
+
+
 	protected:
 
-   // ...
+   bool insertIntoGpuBuffer(gloost::gloostId treeletGid);
 
 
 	private:
 
-   std::vector<Treelet*> _treelets;
+	  unsigned _treeletSizeInBytes;
+
+    std::vector<Treelet*>   _treelets;
+    std::vector<CpuSvoNode> _treeletGpuBuffer;
 
 };
 
