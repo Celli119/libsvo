@@ -111,7 +111,9 @@ class Treelet
 
 
     // class constructor
-    Treelet(unsigned maxSizeInByte);
+    Treelet(gloost::gloostId  treeletGid,
+            gloost::gloostId  parentTreeletGid,
+            unsigned          memSizeInByte);
 
     // class constructor
     Treelet(const std::string treeletFilePath);
@@ -152,10 +154,16 @@ class Treelet
     std::map<unsigned, QueueElement>& getLeafQueueElements();
 
 
+    // returs treeletId
+    gloost::gloostId getTreeletGid() const;
+
+    // returs parents treeletId
+    gloost::gloostId getParentTreeletGid() const;
+
+
 
     // returns the memory size in Bytes
     unsigned getMemSize() const;
-
 
     // returns number of nodes
     unsigned getNumNodes() const;
@@ -176,6 +184,10 @@ class Treelet
 
 
 	protected:
+
+    gloost::gloostId    _treeletGid;
+    gloost::gloostId    _parentTreeletGid;
+
     int                 _memSize;
     int                 _numNodes;
     int                 _numLeaves;

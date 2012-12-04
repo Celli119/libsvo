@@ -65,8 +65,9 @@ namespace svo
   \remarks ...
 */
 
-TreeletBuilderFromFaces::TreeletBuilderFromFaces(unsigned treeletSizeInBytes,
+TreeletBuilderFromFaces::TreeletBuilderFromFaces(unsigned maxDepth,
                                                  unsigned numThreads):
+    _maxDepth(maxDepth),
     _treelet(0),
     _mesh(0)
 {
@@ -199,6 +200,10 @@ TreeletBuilderFromFaces::buildFromQueue()
 
   unsigned whileCounter = 0;
 
+  unsigned maxLeafDepth = 0;
+
+
+
   while (_queue.size() && (currentNodeIndex<_treelet->getNodes().size()-8) )
   {
     whileCounter++;
@@ -207,7 +212,6 @@ TreeletBuilderFromFaces::buildFromQueue()
       std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getNodes().size())*100) << " %"
                              << " ( leaf count: " << _queue.size() << " )";
     }
-
 
     const Treelet::QueueElement& parentQueuedElement = _queue.front();
     std::vector<Treelet::QueueElement> _childQueueElements(8);
@@ -259,6 +263,13 @@ TreeletBuilderFromFaces::buildFromQueue()
           _childQueueElements[childIndex]._depth         = parentQueuedElement._depth +1;
 
 
+
+          if (_childQueueElements[childIndex]._depth > maxLeafDepth)
+          {
+            maxLeafDepth = _childQueueElements[childIndex]._depth;
+          }
+
+
           gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
           bbox.transform(aabbTransform);
 
@@ -276,6 +287,7 @@ TreeletBuilderFromFaces::buildFromQueue()
         }
       }
     }
+
 
     // update parent node and build serial svo structure by checking content of new QueueElement
     bool isFirstValidChild = true;
@@ -321,7 +333,7 @@ TreeletBuilderFromFaces::buildFromQueue()
      can be build from them :-)
   */
   std::cerr << std::endl;
-  std::cerr << std::endl << "  -> Finishing treelet with leaf count: " << _queue.size();
+  std::cerr << std::endl << "  -> Finishing Treelet with leaf count: " << _queue.size();
 
   _treelet->setNumNodes((int)currentNodeIndex-1);
   _treelet->setNumLeaves(_queue.size());
@@ -334,10 +346,17 @@ TreeletBuilderFromFaces::buildFromQueue()
     const Treelet::QueueElement& leafQueuedElement = _queue.front();
     _treelet->getNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
 
-    treeletLeafQueueElements[leafQueuedElement._localNodeIndex] = leafQueuedElement;
-
+#if 1
+    if (leafQueuedElement._depth < _maxDepth)
+    {
+      treeletLeafQueueElements[leafQueuedElement._localNodeIndex] = leafQueuedElement;
+    }
+#endif
     _queue.pop();
   }
+
+  std::cerr << std::endl << "       leafes with depth < maxDepth: " << _queue.size();
+  std::cerr << std::endl << "       max leaf depth                " << maxLeafDepth;
 
 }
 

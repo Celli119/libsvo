@@ -267,9 +267,9 @@ sample( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
-  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
-  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*1000.0f;
+  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*1000.0f;
+  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*1000.0f;
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -373,7 +373,7 @@ sample( __global const SvoNode* svo,
             result->hit           = true;
             result->nodeIndex     = returnchildIdx;
 //            result->attribIndex   = svo[returnchildIdx]._attibutePos;
-            result->depth         = scaleMax-scale;
+            result->depth         = scaleMax-scale+1;
             result->t             = parent->parentTMin;
             result->numWhileLoops = whileCounter;
             result->nodeCenter    = childCenter;

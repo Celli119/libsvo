@@ -125,8 +125,8 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth / 4.0;
-  g_bufferHeight       = g_screenHeight/ 4.0;
+  g_bufferWidth        = g_screenWidth / 2.0;
+  g_bufferHeight       = g_screenHeight/ 2.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";

@@ -59,7 +59,7 @@ class TreeletBuilderFromFaces
 	public:
 
     // class constructor
-    TreeletBuilderFromFaces(unsigned treeletSizeInBytes,
+    TreeletBuilderFromFaces(unsigned maxDepth,
                             unsigned numThreads = 6);
 
     // class destructor
@@ -81,7 +81,7 @@ class TreeletBuilderFromFaces
     void buildFromQueue();
 
 
-    unsigned          _treeletSizeInBytes;
+    unsigned          _maxDepth;
 
     Treelet*          _treelet;
     gloost::Mesh*     _mesh;
