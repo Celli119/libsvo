@@ -33,6 +33,7 @@
 
 // gloost system includes
 #include <gloost/Mesh.h>
+#include <gloost/BinaryFile.h>
 
 
 /// cpp includes
@@ -63,7 +64,7 @@ namespace svo
 */
 
 TreeMemoryManager::TreeMemoryManager():
-  _treeletSizeInBytes(0),
+  _treeletSizeInByte(0),
   _treelets(),
   _treeletGpuBuffer()
 {
@@ -95,13 +96,13 @@ TreeMemoryManager::~TreeMemoryManager()
 */
 
 void
-TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
+TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
                                   unsigned maxSvoDepth,
                                   unsigned numBuildingThreads,
                                   gloost::Mesh* mesh)
 {
 
-  _treeletSizeInBytes = treeletSizeInBytes;
+  _treeletSizeInByte = treeletSizeInByte;
 
   std::cerr << std::endl;
   std::cerr << std::endl << "################################################";
@@ -117,7 +118,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   {
     _treelets[0] = new Treelet(0u,
                                0u,
-                               _treeletSizeInBytes);
+                               _treeletSizeInByte);
 
     svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
     fromTrianglesBuilder.build(_treelets[0],
@@ -127,11 +128,10 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
     //  svo::Ag_colorAndNormalsTriangles generator;
     //  generator.generate(_trunk, mesh, new gloost::ObjMatFile());
 
-    _treelets[0]->writeTreeletToFile("/home/otaco/Desktop/SVO_DATA/"
-                                     + std::string("TreeMemoryManager_out")
-//                                     + "_" + gloost::toString(treeletSizeInBytes/1024)
-                                                + std::string("_") + "0"
-                                     + ".svo" );
+//    _treelets[0]->writeToFile("/home/otaco/Desktop/SVO_DATA/"
+//                               + std::string("TreeMemoryManager_out")
+//                               + std::string("_") + "0"
+//                               + ".treelet" );
 
     //  generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
     //                                                 + std::string("TreeMemoryManager_out_trunk")
@@ -144,24 +144,25 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   /**
     Build Treelets as long as there are leafes that have not maxDepth within the svo
   */
-  std::queue<Treelet*> _treeletsWithSubTreelets;
+  std::queue<Treelet*> treeletsWithSubTreeletsQueue;
 
   if (_treelets[0]->getLeafQueueElements().size())
   {
-    _treeletsWithSubTreelets.push(_treelets[0]);
+    treeletsWithSubTreeletsQueue.push(_treelets[0]);
   }
 
   unsigned treeletId      = 1u;
-  unsigned queueItemCount = 1u;
+  unsigned queueItemCount = _treelets[0]->getLeafQueueElements().size();
 
 
-  while(_treeletsWithSubTreelets.size())
+  while(treeletsWithSubTreeletsQueue.size())
   {
-    Treelet* parentTreelet = _treeletsWithSubTreelets.front();
-    _treeletsWithSubTreelets.pop();
+
+    Treelet* parentTreelet = treeletsWithSubTreeletsQueue.front();
+    treeletsWithSubTreeletsQueue.pop();
 
     std::cerr << std::endl;
-    std::cerr << std::endl << "Treelet global queue size: " << _treeletsWithSubTreelets.size();
+    std::cerr << std::endl << "Treelet global queue size: " << treeletsWithSubTreeletsQueue.size();
     std::cerr << std::endl;
 
     // Build Sub-Treelets
@@ -178,12 +179,12 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
       std::cerr << std::endl << "################################################";
       std::cerr << std::endl;
       std::cerr << std::endl << "Message from TreeMemoryManager::buildFromFaces():";
-      std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount+numSubTreelets <<  " from triangle samples:";
+      std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples:";
       std::cerr << std::endl << "             current depth: " << queueElementsIt->second._depth;
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
-                                          _treeletSizeInBytes);
+                                          _treeletSizeInByte);
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
       fromTrianglesBuilder.build(_treelets[treeletId],
@@ -196,15 +197,11 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
        parentTreelet->getNodes()[queueElementsIt->first].setFirstChildIndex(treeletId);
      }
 
-
-
-
-
       // push sub treelet to global queue if it has leafes with depth < maxDepth
       if (_treelets[treeletId]->getLeafQueueElements().size())
       {
-        _treeletsWithSubTreelets.push(_treelets[treeletId]);
-        ++queueItemCount;
+        treeletsWithSubTreeletsQueue.push(_treelets[treeletId]);
+        queueItemCount += _treelets[treeletId]->getLeafQueueElements().size();
       }
 
       // clear primitive ids since we need them anymore
@@ -214,11 +211,10 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   //    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
 
 
-      _treelets[treeletId]->writeTreeletToFile("/home/otaco/Desktop/SVO_DATA/"
-                                               + std::string("TreeMemoryManager_out")
-  //                                           + "_" + gloost::toString(treeletSizeInBytes/1024)
-                                               + std::string("_") + treeletId
-                                               + ".svo" );
+//      _treelets[treeletId]->writeToFile("/home/otaco/Desktop/SVO_DATA/"
+//                                         + std::string("TreeMemoryManager_out")
+//                                         + std::string("_") + treeletId
+//                                         + ".treelet" );
 
   //    generator2.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
   //                                                   + std::string("TreeMemoryManager_out_")
@@ -231,7 +227,109 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInBytes,
   }
 #endif
 
-  _treelets.clear();
+  writeToFile( "/home/otaco/Desktop/SVO_DATA/"
+               + std::string("TreeMemoryManager_out")
+               + ".svo" );
+
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   writes svo/Treelet structure to file
+  \param   ...
+  \remarks ...
+*/
+
+bool
+TreeMemoryManager::writeToFile(const std::string& filePath) const
+{
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from TreeMemoryManager::writeToFile():";
+  std::cerr << std::endl << "  Writing SVO to:";
+  std::cerr << std::endl << "    " << filePath;
+
+  if (!_treelets.size())
+  {
+    return false;
+  }
+
+  gloost::BinaryFile outFile;
+  if (!outFile.openToWrite(filePath))
+  {
+    return false;
+  }
+
+  // write svo header
+  outFile.writeUInt32(_treelets.size());
+  outFile.writeUInt32(_treelets[0]->getMemSize());
+
+  for (unsigned i=0; i!=_treelets.size(); ++i)
+  {
+    _treelets[i]->writeToFile(outFile);
+  }
+
+
+  outFile.close();
+  return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   loads svo/Treelet structure from file
+  \param   ...
+  \remarks ...
+*/
+
+bool
+TreeMemoryManager::loadFromFile(const std::string& filePath)
+{
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Treelet::loadFromFile():";
+  std::cerr << std::endl << "             Reading *.svo file";
+  std::cerr << std::endl << "             " << filePath;
+
+  gloost::BinaryFile inFile;
+  inFile.openAndLoad(filePath);
+
+  unsigned numTreelets = inFile.readUInt32();
+  _treeletSizeInByte   = inFile.readUInt32();
+
+  std::cerr << std::endl << "             number of Treelets: " << numTreelets;
+  std::cerr << std::endl << "             Treelet size:       " << _treeletSizeInByte << " (" << _treeletSizeInByte/1024 << " KB)";
+
+  _treelets.resize(numTreelets);
+
+  for (unsigned i=0; i!=numTreelets; ++i)
+  {
+    _treelets[i] = new Treelet();
+    _treelets[i]->loadFromFile(inFile);
+  }
+
+  inFile.unload();
+  return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a Treelet for a given Gid
+  \param   ...
+  \remarks ...
+*/
+
+Treelet*
+TreeMemoryManager::getTreelet(gloost::gloostId id)
+{
+  return _treelets[id];
 }
 
 

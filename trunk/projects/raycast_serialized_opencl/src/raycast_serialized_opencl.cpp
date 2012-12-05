@@ -69,6 +69,9 @@ float          g_cameraRotateX  = 0;
 float          g_cameraDistance = 1.0;
 
 // SVO
+#include <TreeMemoryManager.h>
+svo::TreeMemoryManager g_svo;
+
 #include <Treelet.h>
 svo::Treelet* g_treelet = 0;
 
@@ -130,13 +133,15 @@ void init()
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
+  const std::string svoBaseName = "TreeMemoryManager_out.svo";
 
-  const std::string svoBaseName = "TreeMemoryManager_out_0";
+
+  g_svo.loadFromFile(svo_dir_path + svoBaseName);
 
   // loading svo and attributes
-  g_treelet = new svo::Treelet(svo_dir_path + svoBaseName + ".svo");
+  g_treelet = g_svo.getTreelet(2000);
 
-  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
+//  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
 //  std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
 //  g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);

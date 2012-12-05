@@ -68,12 +68,24 @@ class TreeMemoryManager
     // class destructor
 	  virtual ~TreeMemoryManager();
 
-
     // builds trunk and all branches from triangle Mesh
-	  void buildFromFaces(unsigned treeletSizeInBytes,
+	  void buildFromFaces(unsigned treeletSizeInByte,
                         unsigned maxSvoDepth,
                         unsigned numBuildingThreads,
                         gloost::Mesh* mesh);
+
+
+    // writes svo/Treelet structure to file
+    bool writeToFile(const std::string& filePath) const;
+
+    // loads svo/Treelet structure from file
+    bool loadFromFile(const std::string& filePath);
+
+
+
+
+    // returns a Treelet for a given Gid
+    Treelet* getTreelet(gloost::gloostId id);
 
 
 
@@ -86,7 +98,7 @@ class TreeMemoryManager
 
 	private:
 
-	  unsigned _treeletSizeInBytes;
+	  unsigned _treeletSizeInByte;
 
     std::vector<Treelet*>   _treelets;
     std::vector<CpuSvoNode> _treeletGpuBuffer;
