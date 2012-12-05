@@ -68,6 +68,26 @@ namespace svo
   \remarks ...
 */
 
+Treelet::Treelet():
+  _treeletGid(0),
+  _parentTreeletGid(0),
+  _memSize(0),
+  _numNodes(0),
+  _numLeaves(0),
+  _serializedNodes()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief Class constructor
+
+  \remarks ...
+*/
+
 Treelet::Treelet( gloost::gloostId  treeletGid,
                   gloost::gloostId  parentTreeletGid,
                   unsigned          memSizeInByte):
@@ -76,7 +96,7 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
   _memSize(memSizeInByte),
   _numNodes(0),
   _numLeaves(0),
-  _firstLeafIndex(0),
+//  _firstLeafIndex(0),
   _serializedNodes()
 {
   unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
@@ -84,8 +104,8 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Creating Treelet";
-  std::cerr << std::endl << "    Gid        : " << _treeletGid;
-  std::cerr << std::endl << "    parent Gid : " << _parentTreeletGid;
+  std::cerr << std::endl << "    Gid        :          " << _treeletGid;
+  std::cerr << std::endl << "    parent Gid :          " << _parentTreeletGid;
 
   if (actualSize != _memSize)
   {
@@ -94,7 +114,7 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
     _memSize = actualSize;
   }
 
-  std::cerr << std::endl << "Creating Treelet of size: " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
+  std::cerr << std::endl << "     size:                " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
   std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
 
   _serializedNodes.resize(maxNumNodes);
@@ -113,10 +133,10 @@ Treelet::Treelet(const std::string treeletFilePath):
   _memSize(0),
   _numNodes(0),
   _numLeaves(0),
-  _firstLeafIndex(0),
+//  _firstLeafIndex(0),
   _serializedNodes()
 {
-  loadTreeletFromFile(treeletFilePath);
+  loadFromFile(treeletFilePath);
 }
 
 
@@ -258,23 +278,54 @@ Treelet::setNumLeaves(unsigned value)
 unsigned
 Treelet::getFirstLeafIndex() const
 {
-  return _firstLeafIndex;
+  return (int)_numNodes-(int)_numLeaves;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
+///**
+//  \brief sets the index of the first leafe node
+//  \param ...
+//  \remarks ...
+//*/
+//
+//void
+//Treelet::setFirstLeafIndex(unsigned value)
+//{
+//  _firstLeafIndex = value;
+//}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 /**
-  \brief sets the index of the first leafe node
+  \brief writes the serialized svo and attributes to a file
   \param ...
   \remarks ...
 */
 
-void
-Treelet::setFirstLeafIndex(unsigned value)
+bool
+Treelet::writeToFile(const std::string& filePath)
 {
-  _firstLeafIndex = value;
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Treelet::writeToFile():";
+  std::cerr << std::endl << "  Writing Treelet to:";
+  std::cerr << std::endl << "    " << filePath;
+
+//  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
+
+  gloost::BinaryFile outfile;
+  if (!outfile.openToWrite(filePath))
+  {
+    return false;
+  }
+
+  writeToFile(outfile);
+
+  outfile.close();
 }
 
 
@@ -288,30 +339,17 @@ Treelet::setFirstLeafIndex(unsigned value)
 */
 
 bool
-Treelet::writeTreeletToFile(const std::string& filePath)
+Treelet::writeToFile(gloost::BinaryFile& outFileToAppend)
 {
-  std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Treelet::writeSerializedSvoToFile():";
-  std::cerr << std::endl << "  Writing SVO to:";
-  std::cerr << std::endl << "    " << filePath;
-
-//  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
-
-  gloost::BinaryFile outfile;
-  if (!outfile.openToWrite(filePath))
-  {
-    return false;
-  }
-
-  outfile.writeString(gloost::toString("v1") + " ");                // write version
-//  outfile.writeString(gloost::toString(_maxSize) + " ");          // write maxDepth
-  outfile.writeString(gloost::toString(_serializedNodes.size()) + " ");           // write numNodes
-  outfile.writeBuffer((unsigned char*)&_serializedNodes.front(),    // write Nodes
-                      _serializedNodes.size()*sizeof(CpuSvoNode));
+  outFileToAppend.writeUInt32(_numNodes);                                   // write number of nodes
+  outFileToAppend.writeUInt32(_numLeaves);                                  // write number of leaves
+  outFileToAppend.writeUInt32(_memSize);                                    // write mem size
+  outFileToAppend.writeUInt32(_treeletGid);                                 // treeletGid
+  outFileToAppend.writeUInt32(_parentTreeletGid);                           // write parents treeletGid
+  outFileToAppend.writeBuffer((unsigned char*)&_serializedNodes.front(),    // write Nodes
+                              _serializedNodes.size()*sizeof(CpuSvoNode));
 //  outfile.writeBuffer((unsigned char*)&_serializedAttributeIndices.front(),    // write attribute indices
 //                      _serializedAttributeIndices.size()*sizeof(unsigned));
-
-  outfile.close();
 }
 
 
@@ -319,43 +357,63 @@ Treelet::writeTreeletToFile(const std::string& filePath)
 
 
 /**
-  \brief reads a serialized svo and attribute files
+  \brief loads a *.treelet file
   \param ...
   \remarks ...
 */
 
 bool
-Treelet::loadTreeletFromFile(const std::string& filePath)
+Treelet::loadFromFile(const std::string& filePath)
 {
   std::cerr << std::endl;
-  std::cerr << std::endl << "Message from Treelet::loadSerializedSvoToFile():";
-  std::cerr << std::endl << "             Reading *.svo file";
+  std::cerr << std::endl << "Message from Treelet::loadFromFile():";
+  std::cerr << std::endl << "             Reading *.treelet file";
   std::cerr << std::endl << "             " << filePath;
 
-  gloost::BinaryFile infile;
-  infile.openAndLoad(filePath);
+  gloost::BinaryFile inFile;
+  inFile.openAndLoad(filePath);
 
-  std::string versionString = infile.readWord();
-  std::cerr << std::endl << "             version: " << versionString;
+  loadFromFile(inFile);
 
-//  _maxDepth = atoi(infile.readWord().c_str());
-//  std::cerr << std::endl << "             depth:   " << _maxDepth;
 
-  _numNodes = atoi(infile.readWord().c_str());
-  std::cerr << std::endl << "             nodes:   " << _numNodes;
+  inFile.unload();
+  return true;
+}
 
-  _serializedNodes.resize(_numNodes);
-//  _serializedAttributeIndices.resize(_numNodes);
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief loads a Treelet from a *.svo file
+  \param ...
+  \remarks ...
+*/
+
+bool
+Treelet::loadFromFile(gloost::BinaryFile& inFile)
+{
+  _numNodes         = inFile.readUInt32();
+  _numLeaves        = inFile.readUInt32();
+  _memSize          = inFile.readUInt32();
+  _treeletGid       = inFile.readUInt32();
+  _parentTreeletGid = inFile.readUInt32();
+
+//  std::cerr << std::endl << "Loaded Treelet with: ";
+//  std::cerr << std::endl << "    _treeletGid:       " << _treeletGid;
+//  std::cerr << std::endl << "    _parentTreeletGid: " << _parentTreeletGid;
+//  std::cerr << std::endl << "    _numNodes:         " << _numNodes;
+//  std::cerr << std::endl << "    _numLeaves:        " << _numLeaves;
+//  std::cerr << std::endl << "    _memSize:          " << _memSize;
+
+  _serializedNodes.resize(_memSize/sizeof(CpuSvoNode));
 
   gloost::unserialize((unsigned char*)&_serializedNodes.front(),
-                      _numNodes*sizeof(CpuSvoNode),
-                      infile);
+                      _memSize,
+                      inFile);
 //  gloost::unserialize((unsigned char*)&_serializedAttributeIndices.front(),
 //                      _numNodes*sizeof(unsigned),
 //                      infile);
-
-  infile.unload();
-  return true;
 }
 
 

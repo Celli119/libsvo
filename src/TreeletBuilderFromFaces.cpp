@@ -200,11 +200,9 @@ TreeletBuilderFromFaces::buildFromQueue()
 
   unsigned whileCounter = 0;
 
-  unsigned maxLeafDepth = 0;
 
-
-
-  while (_queue.size() && (currentNodeIndex<_treelet->getNodes().size()-8) )
+  // as long there is space within this treelet
+  while (_queue.size() && (currentNodeIndex < _treelet->getNodes().size()-7) )
   {
     whileCounter++;
     if (whileCounter % 100000 == 0)
@@ -261,14 +259,6 @@ TreeletBuilderFromFaces::buildFromQueue()
 
           _childQueueElements[childIndex]._aabbTransform = aabbTransform;
           _childQueueElements[childIndex]._depth         = parentQueuedElement._depth +1;
-
-
-
-          if (_childQueueElements[childIndex]._depth > maxLeafDepth)
-          {
-            maxLeafDepth = _childQueueElements[childIndex]._depth;
-          }
-
 
           gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
           bbox.transform(aabbTransform);
@@ -338,13 +328,21 @@ TreeletBuilderFromFaces::buildFromQueue()
   _treelet->setNumNodes((int)currentNodeIndex-1);
   _treelet->setNumLeaves(_queue.size());
 
+  unsigned maxLeafDepth = 0;
+  unsigned minLeafDepth = 1000;
+
 
   std::map<unsigned, Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
 
   while (_queue.size())
   {
     const Treelet::QueueElement& leafQueuedElement = _queue.front();
+
+    // set the leaf flag within leafes parent node
     _treelet->getNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
+
+    maxLeafDepth = gloost::max(maxLeafDepth, leafQueuedElement._depth);
+    minLeafDepth = gloost::min(minLeafDepth, leafQueuedElement._depth);
 
 #if 1
     if (leafQueuedElement._depth < _maxDepth)
@@ -355,7 +353,8 @@ TreeletBuilderFromFaces::buildFromQueue()
     _queue.pop();
   }
 
-  std::cerr << std::endl << "       leafes with depth < maxDepth: " << _queue.size();
+  std::cerr << std::endl << "       leafes with depth < maxDepth: " << treeletLeafQueueElements.size();
+  std::cerr << std::endl << "       min leaf depth                " << minLeafDepth;
   std::cerr << std::endl << "       max leaf depth                " << maxLeafDepth;
 
 }
