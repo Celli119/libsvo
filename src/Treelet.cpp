@@ -285,17 +285,33 @@ Treelet::getFirstLeafIndex() const
 ////////////////////////////////////////////////////////////////////////////////
 
 
-///**
-//  \brief sets the index of the first leafe node
-//  \param ...
-//  \remarks ...
-//*/
-//
-//void
-//Treelet::setFirstLeafIndex(unsigned value)
-//{
-//  _firstLeafIndex = value;
-//}
+/**
+  \brief returns the absolute position of the root node of this treelet within the gpu buffer
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+Treelet::getIncorePosition() const
+{
+  return _incorePosition;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief sets the absolute position of the Treelet within the gpu buffer
+  \param ...
+  \remarks ...
+*/
+
+void
+Treelet::setIncorePosition(unsigned incorePosition)
+{
+  _incorePosition = incorePosition;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,8 +330,6 @@ Treelet::writeToFile(const std::string& filePath)
   std::cerr << std::endl << "Message from Treelet::writeToFile():";
   std::cerr << std::endl << "  Writing Treelet to:";
   std::cerr << std::endl << "    " << filePath;
-
-//  return gloost::BinaryFile::write(filePath, *_serializedSvoBundle);
 
   gloost::BinaryFile outfile;
   if (!outfile.openToWrite(filePath))
@@ -426,7 +440,7 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
   \remarks This map is only filled after building
 */
 
-std::map<unsigned, Treelet::QueueElement>&
+std::vector<Treelet::QueueElement>&
 Treelet::getLeafQueueElements()
 {
   return _leafQueueElements;

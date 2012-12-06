@@ -88,6 +88,10 @@ class TreeMemoryManager
     Treelet* getTreelet(gloost::gloostId id);
 
 
+    // returns the incore buffer
+    std::vector<CpuSvoNode>& getIncoreBuffer();
+
+
 
 
 
@@ -101,7 +105,7 @@ class TreeMemoryManager
 	  unsigned _treeletSizeInByte;
 
     std::vector<Treelet*>   _treelets;
-    std::vector<CpuSvoNode> _treeletGpuBuffer;
+    std::vector<CpuSvoNode> _incoreBuffer;
 
 };
 

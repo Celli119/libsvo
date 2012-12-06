@@ -157,7 +157,7 @@ class Treelet
 
 
     // returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
-    std::map<unsigned, QueueElement>& getLeafQueueElements();
+    std::vector<QueueElement>& getLeafQueueElements();
 
 
     // returs treeletId
@@ -185,8 +185,12 @@ class Treelet
 
     // returns the index of the first leaf node
     unsigned getFirstLeafIndex() const;
-//    // sets the index of the first leafe node
-//    void setFirstLeafIndex(unsigned value);
+
+
+    // returns the absolute position of the root node of this treelet within the gpu buffer
+    unsigned getIncorePosition() const;
+    // sets the absolute position of the Treelet within the gpu buffer
+    void setIncorePosition(unsigned incorePos);
 
 
 	protected:
@@ -194,9 +198,10 @@ class Treelet
     gloost::gloostId    _treeletGid;
     gloost::gloostId    _parentTreeletGid;
 
-    int                 _memSize;
-    int                 _numNodes;
-    int                 _numLeaves;
+    unsigned            _memSize;
+    unsigned            _numNodes;
+    unsigned            _numLeaves;
+    unsigned            _incorePosition;  // absolute index within the gpu buffer
 //    int                 _firstLeafIndex;
 
 
@@ -204,7 +209,7 @@ class Treelet
     std::vector<CpuSvoNode> _serializedNodes;
 
     // map of all leaf QueueElements created while building the Treelet
-    std::map<unsigned, QueueElement> _leafQueueElements;
+    std::vector<QueueElement> _leafQueueElements;
 
 
 };

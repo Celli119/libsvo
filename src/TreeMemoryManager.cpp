@@ -66,7 +66,7 @@ namespace svo
 TreeMemoryManager::TreeMemoryManager():
   _treeletSizeInByte(0),
   _treelets(),
-  _treeletGpuBuffer()
+  _incoreBuffer()
 {
 	// insert your code here
 }
@@ -166,21 +166,19 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
     std::cerr << std::endl;
 
     // Build Sub-Treelets
-    unsigned numSubTreelets = _treelets[parentTreelet->getTreeletGid()]->getLeafQueueElements().size();
+    std::vector<Treelet::QueueElement>& parentQueueElements = parentTreelet->getLeafQueueElements();
+    unsigned numSubTreelets = parentQueueElements.size();
     _treelets.resize(numSubTreelets+_treelets.size(), 0);
 
-    std::map<unsigned, Treelet::QueueElement>::iterator queueElementsIt    = parentTreelet->getLeafQueueElements().begin();
-    std::map<unsigned, Treelet::QueueElement>::iterator queueElementsEndIt = parentTreelet->getLeafQueueElements().end();
 
-
-    for (; queueElementsIt!=queueElementsEndIt; ++queueElementsIt)
+    for (unsigned i=0; i!=numSubTreelets; ++i)
     {
       std::cerr << std::endl;
       std::cerr << std::endl << "################################################";
       std::cerr << std::endl;
       std::cerr << std::endl << "Message from TreeMemoryManager::buildFromFaces():";
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples:";
-      std::cerr << std::endl << "             current depth: " << queueElementsIt->second._depth;
+      std::cerr << std::endl << "             current depth: " << parentQueueElements[i]._depth;
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
@@ -189,12 +187,12 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
       fromTrianglesBuilder.build(_treelets[treeletId],
                                  mesh,
-                                 queueElementsIt->second);
+                                 parentQueueElements[i]);
 
-     // write Treelet Gid to the coresponding leaf element of the parent Treelet
+     // write Treelet Gid of the coresponding Treelet Gid to the parent Treelets leaf
      if (treeletId)
      {
-       parentTreelet->getNodes()[queueElementsIt->first].setFirstChildIndex(treeletId);
+       parentTreelet->getNodes()[parentQueueElements[i]._localNodeIndex].setFirstChildIndex(treeletId);
      }
 
       // push sub treelet to global queue if it has leafes with depth < maxDepth
@@ -205,7 +203,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
       }
 
       // clear primitive ids since we need them anymore
-      queueElementsIt->second.clearPrimitiveIds();
+      parentQueueElements[i].clearPrimitiveIds();
 
   //    svo::Ag_colorAndNormalsTriangles generator2;
   //    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
@@ -298,19 +296,30 @@ TreeMemoryManager::loadFromFile(const std::string& filePath)
   gloost::BinaryFile inFile;
   inFile.openAndLoad(filePath);
 
-  unsigned numTreelets = inFile.readUInt32();
-  _treeletSizeInByte   = inFile.readUInt32();
+  unsigned numTreelets     = inFile.readUInt32();
+  _treeletSizeInByte       = inFile.readUInt32();
+  unsigned nodesPerTreelet = _treeletSizeInByte/sizeof(CpuSvoNode);
 
   std::cerr << std::endl << "             number of Treelets: " << numTreelets;
   std::cerr << std::endl << "             Treelet size:       " << _treeletSizeInByte << " (" << _treeletSizeInByte/1024 << " KB)";
 
   _treelets.resize(numTreelets);
+  _incoreBuffer.resize(numTreelets*nodesPerTreelet);
+  unsigned currentCpuBufferInsertPosition = 0;
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
     _treelets[i] = new Treelet();
     _treelets[i]->loadFromFile(inFile);
+
+    memcpy( (char*)&_incoreBuffer[currentCpuBufferInsertPosition],
+            (char*)&_treelets[i]->getNodes().front(),
+            _treeletSizeInByte);
+
+    currentCpuBufferInsertPosition += nodesPerTreelet;
   }
+
+  std::cerr << std::endl << "Incore buffer Size: " << _incoreBuffer.size()*sizeof(CpuSvoNode)/1024/1024;
 
   inFile.unload();
   return true;
@@ -330,6 +339,22 @@ Treelet*
 TreeMemoryManager::getTreelet(gloost::gloostId id)
 {
   return _treelets[id];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the incore buffer
+  \param   ...
+  \remarks ...
+*/
+
+std::vector<CpuSvoNode>&
+TreeMemoryManager::getIncoreBuffer()
+{
+  return _incoreBuffer;
 }
 
 

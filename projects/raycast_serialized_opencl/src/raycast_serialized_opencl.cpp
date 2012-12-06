@@ -139,7 +139,7 @@ void init()
   g_svo.loadFromFile(svo_dir_path + svoBaseName);
 
   // loading svo and attributes
-  g_treelet = g_svo.getTreelet(2000);
+  g_treelet = g_svo.getTreelet(0);
 
 //  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
@@ -218,8 +218,8 @@ void initCl()
 
   // assign svo data
   gloost::gloostId svoDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (unsigned char*)&g_treelet->getNodes().front(),
-                                                          g_treelet->getNodes().size()*sizeof(svo::CpuSvoNode));
+                                                          (unsigned char*)&g_svo.getIncoreBuffer().front(),
+                                                          g_svo.getIncoreBuffer().size()*sizeof(svo::CpuSvoNode));
 
   g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 
