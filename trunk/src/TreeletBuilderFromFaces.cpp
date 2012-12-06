@@ -332,7 +332,7 @@ TreeletBuilderFromFaces::buildFromQueue()
   unsigned minLeafDepth = 1000;
 
 
-  std::map<unsigned, Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
+  std::vector<Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
 
   while (_queue.size())
   {
@@ -347,7 +347,7 @@ TreeletBuilderFromFaces::buildFromQueue()
 #if 1
     if (leafQueuedElement._depth < _maxDepth)
     {
-      treeletLeafQueueElements[leafQueuedElement._localNodeIndex] = leafQueuedElement;
+      treeletLeafQueueElements.push_back(leafQueuedElement);
     }
 #endif
     _queue.pop();
