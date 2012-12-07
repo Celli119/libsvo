@@ -13,7 +13,6 @@
 				<Option external_deps="../../../libsvo/lib/libsvo.a;../../../../gloost/gnulinux/bin/libgloost.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />

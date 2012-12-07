@@ -71,6 +71,7 @@ namespace svo
 Treelet::Treelet():
   _treeletGid(0),
   _parentTreeletGid(0),
+  _parentTreeletLeafPosition(0),
   _memSize(0),
   _numNodes(0),
   _numLeaves(0),
@@ -84,19 +85,24 @@ Treelet::Treelet():
 
 /**
   \brief Class constructor
-
-  \remarks ...
+  \param treeletGid the Gid of this Treelet
+  \param treeletGid the Gid of the parent Treelet
+  \param treeletGid the index of the parents Treelets leaf,
+         which correspons with this treelets root node
+  \param memSizeInByte size in bytes for this treelet
+  \remarks
 */
 
 Treelet::Treelet( gloost::gloostId  treeletGid,
                   gloost::gloostId  parentTreeletGid,
+                  gloost::gloostId  parentTreeletLeafPosition,
                   unsigned          memSizeInByte):
   _treeletGid(treeletGid),
   _parentTreeletGid(parentTreeletGid),
+  _parentTreeletLeafPosition(parentTreeletLeafPosition),
   _memSize(memSizeInByte),
   _numNodes(0),
   _numLeaves(0),
-//  _firstLeafIndex(0),
   _serializedNodes()
 {
   unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
@@ -104,8 +110,9 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Creating Treelet";
-  std::cerr << std::endl << "    Gid        :          " << _treeletGid;
-  std::cerr << std::endl << "    parent Gid :          " << _parentTreeletGid;
+  std::cerr << std::endl << "    Gid        :           " << _treeletGid;
+  std::cerr << std::endl << "    parent Gid :           " << _parentTreeletGid;
+  std::cerr << std::endl << "    parent leaf position : " << parentTreeletLeafPosition;
 
   if (actualSize != _memSize)
   {
@@ -114,8 +121,8 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
     _memSize = actualSize;
   }
 
-  std::cerr << std::endl << "     size:                " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
-  std::cerr << std::endl << "     max number of nodes: " << maxNumNodes;
+  std::cerr << std::endl << "     size:                 " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
+  std::cerr << std::endl << "     max number of nodes:  " << maxNumNodes;
 
   _serializedNodes.resize(maxNumNodes);
 }
@@ -130,10 +137,12 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
 */
 
 Treelet::Treelet(const std::string treeletFilePath):
+  _treeletGid(0),
+  _parentTreeletGid(0),
+  _parentTreeletLeafPosition(0),
   _memSize(0),
   _numNodes(0),
   _numLeaves(0),
-//  _firstLeafIndex(0),
   _serializedNodes()
 {
   loadFromFile(treeletFilePath);
@@ -286,8 +295,8 @@ Treelet::getFirstLeafIndex() const
 
 
 /**
-  \brief returns the absolute position of the root node of this treelet within the gpu buffer
-  \param ...
+  \brief   returns the absolute position of the root node of this treelet within the gpu buffer
+  \param   ...
   \remarks ...
 */
 
@@ -302,8 +311,8 @@ Treelet::getIncorePosition() const
 
 
 /**
-  \brief sets the absolute position of the Treelet within the gpu buffer
-  \param ...
+  \brief   sets the absolute position of the Treelet within the gpu buffer
+  \param   ...
   \remarks ...
 */
 
@@ -358,8 +367,9 @@ Treelet::writeToFile(gloost::BinaryFile& outFileToAppend)
   outFileToAppend.writeUInt32(_numNodes);                                   // write number of nodes
   outFileToAppend.writeUInt32(_numLeaves);                                  // write number of leaves
   outFileToAppend.writeUInt32(_memSize);                                    // write mem size
-  outFileToAppend.writeUInt32(_treeletGid);                                 // treeletGid
+  outFileToAppend.writeUInt32(_treeletGid);                                 // write treeletGid
   outFileToAppend.writeUInt32(_parentTreeletGid);                           // write parents treeletGid
+  outFileToAppend.writeUInt32(_parentTreeletLeafPosition);                  // write position of the leaf within the parent Treelet
   outFileToAppend.writeBuffer((unsigned char*)&_serializedNodes.front(),    // write Nodes
                               _serializedNodes.size()*sizeof(CpuSvoNode));
 //  outfile.writeBuffer((unsigned char*)&_serializedAttributeIndices.front(),    // write attribute indices
@@ -407,11 +417,12 @@ Treelet::loadFromFile(const std::string& filePath)
 bool
 Treelet::loadFromFile(gloost::BinaryFile& inFile)
 {
-  _numNodes         = inFile.readUInt32();
-  _numLeaves        = inFile.readUInt32();
-  _memSize          = inFile.readUInt32();
-  _treeletGid       = inFile.readUInt32();
-  _parentTreeletGid = inFile.readUInt32();
+  _numNodes                  = inFile.readUInt32();
+  _numLeaves                 = inFile.readUInt32();
+  _memSize                   = inFile.readUInt32();
+  _treeletGid                = inFile.readUInt32();
+  _parentTreeletGid          = inFile.readUInt32();
+  _parentTreeletLeafPosition = inFile.readUInt32();
 
 //  std::cerr << std::endl << "Loaded Treelet with: ";
 //  std::cerr << std::endl << "    _treeletGid:       " << _treeletGid;
@@ -476,6 +487,22 @@ gloost::gloostId
 Treelet::getParentTreeletGid() const
 {
   return _parentTreeletGid;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returs the position of the leaf within the parent Treelet
+  \param   ...
+  \remarks
+*/
+
+gloost::gloostId
+Treelet::getParentTreeletLeafPosition() const
+{
+  return _parentTreeletLeafPosition;
 }
 
 

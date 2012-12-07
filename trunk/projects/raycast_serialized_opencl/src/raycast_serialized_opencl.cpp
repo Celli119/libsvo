@@ -70,7 +70,7 @@ float          g_cameraDistance = 1.0;
 
 // SVO
 #include <TreeMemoryManager.h>
-svo::TreeMemoryManager g_svo;
+svo::TreeMemoryManager g_svo(512*1024);
 
 #include <Treelet.h>
 svo::Treelet* g_treelet = 0;
@@ -195,7 +195,7 @@ void initCl()
   // opencl init
   gloost::bencl::ocl::init();
 
-  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
+//  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
 
   g_context = new gloost::bencl::ClContext(1);
 

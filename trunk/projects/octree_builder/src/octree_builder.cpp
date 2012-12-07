@@ -46,7 +46,7 @@ gloost::Mesh* g_mesh = 0;
 //svo::SvoBranch* g_svo = 0;
 
 #include <TreeMemoryManager.h>
-svo::TreeMemoryManager g_treeMemoryManager;
+svo::TreeMemoryManager g_treeMemoryManager(512*1024);
 
 
 //#include <chrono>

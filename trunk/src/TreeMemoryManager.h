@@ -63,7 +63,7 @@ class TreeMemoryManager
 	public:
 
     // class constructor
-    TreeMemoryManager();
+    TreeMemoryManager(unsigned gpuBufferSizeInByte);
 
     // class destructor
 	  virtual ~TreeMemoryManager();
@@ -97,7 +97,6 @@ class TreeMemoryManager
 
 	protected:
 
-   bool insertIntoGpuBuffer(gloost::gloostId treeletGid);
 
 
 	private:
@@ -105,7 +104,11 @@ class TreeMemoryManager
 	  unsigned _treeletSizeInByte;
 
     std::vector<Treelet*>   _treelets;
+
     std::vector<CpuSvoNode> _incoreBuffer;
+    unsigned                _incoreBufferSize;
+
+    bool insertIntoGpuBuffer(gloost::gloostId treeletGid);
 
 };
 
