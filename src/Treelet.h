@@ -28,7 +28,6 @@
 #define H_SVO_TREELET
 
 #define SVO_EMPTY_ATTRIB_POS 999999999
-#define SVO_TREELET_FILE_HEADER_SIZE 5u*sizeof(unsigned)
 
 /// gloost system includes
 #include <gloost/gloostConfig.h>
@@ -86,7 +85,7 @@ class Treelet
     struct QueueElement
     {
       QueueElement():
-        _localNodeIndex(0u),
+        _localLeafIndex(0u),
         _idx(0u),
         _parentLocalNodeIndex(0u),
         _depth(0u),
@@ -100,7 +99,7 @@ class Treelet
         _primitiveIds.clear();
       }
 
-      unsigned              _localNodeIndex;         /// absolute local index of the node within the serial structure
+      unsigned              _localLeafIndex;         /// absolute local index of the node within the serial structure
       char                  _idx;                    /// index 0...7 of the node within its parent
       unsigned              _parentLocalNodeIndex;   /// index of the nodes parent within the serial structure
       unsigned              _depth;                  /// depth of the node within this treelet
@@ -119,6 +118,7 @@ class Treelet
     // class constructor
     Treelet(gloost::gloostId  treeletGid,
             gloost::gloostId  parentTreeletGid,
+            gloost::gloostId  parentTreeletLeafPosition,
             unsigned          memSizeInByte);
 
     // class constructor
@@ -166,6 +166,9 @@ class Treelet
     // returs parents treeletId
     gloost::gloostId getParentTreeletGid() const;
 
+    // returs the position of the leaf within the parent Treelet
+    gloost::gloostId getParentTreeletLeafPosition() const;
+
 
 
     // returns the memory size in Bytes
@@ -197,12 +200,12 @@ class Treelet
 
     gloost::gloostId    _treeletGid;
     gloost::gloostId    _parentTreeletGid;
+    gloost::gloostId    _parentTreeletLeafPosition; // position of the leaf within the parent Treelet
 
     unsigned            _memSize;
     unsigned            _numNodes;
     unsigned            _numLeaves;
     unsigned            _incorePosition;  // absolute index within the gpu buffer
-//    int                 _firstLeafIndex;
 
 
     // serialized svo nodes

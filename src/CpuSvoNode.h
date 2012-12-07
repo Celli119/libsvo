@@ -45,6 +45,7 @@
 
 #define SVO_CPUSVONODE_OFFSET_LEAFMASK  0
 #define SVO_CPUSVONODE_OFFSET_VALIDMASK 8
+#define SVO_CPUSVONODE_NODE_SIZE        8  /// size of a node in byte
 
 
 namespace svo

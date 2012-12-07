@@ -63,12 +63,13 @@ namespace svo
   \remarks ...
 */
 
-TreeMemoryManager::TreeMemoryManager():
+TreeMemoryManager::TreeMemoryManager(unsigned incoreBufferSize):
   _treeletSizeInByte(0),
   _treelets(),
-  _incoreBuffer()
+  _incoreBuffer(incoreBufferSize/SVO_CPUSVONODE_NODE_SIZE)
 {
-	// insert your code here
+	std::cerr << std::endl << "Message from TreeMemoryManager::TreeMemoryManager(): ";
+	std::cerr << std::endl << "             Started with incore buffer size of " << incoreBufferSize/1024/1024 << " MB";
 }
 
 
@@ -117,6 +118,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
   _treelets.resize(1);
   {
     _treelets[0] = new Treelet(0u,
+                               0u,
                                0u,
                                _treeletSizeInByte);
 
@@ -182,6 +184,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
+                                          parentQueueElements[i]._localLeafIndex,
                                           _treeletSizeInByte);
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
@@ -192,7 +195,7 @@ TreeMemoryManager::buildFromFaces(unsigned treeletSizeInByte,
      // write Treelet Gid of the coresponding Treelet Gid to the parent Treelets leaf
      if (treeletId)
      {
-       parentTreelet->getNodes()[parentQueueElements[i]._localNodeIndex].setFirstChildIndex(treeletId);
+       parentTreelet->getNodes()[parentQueueElements[i]._localLeafIndex].setFirstChildIndex(treeletId);
      }
 
       // push sub treelet to global queue if it has leafes with depth < maxDepth
