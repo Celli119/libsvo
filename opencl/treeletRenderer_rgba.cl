@@ -110,9 +110,9 @@ inline bool getLeafMaskFlag(const unsigned masks, const unsigned flag)
 }
 
 
-inline unsigned getNthchildIdx(const unsigned masks,
-                                 const unsigned firstchildIdx,
-                                 const unsigned childIdx)
+inline unsigned getNthchildIdx( const unsigned masks,
+                                const unsigned firstchildIdx,
+                                const unsigned childIdx)
 {
   unsigned index = firstchildIdx;
 
@@ -350,12 +350,29 @@ sample( __global const SvoNode* svo,
         // TERMINATE if voxel is a leaf
         if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
         {
-          unsigned returnchildIdx = getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                                       svo[parent->parentNodeIndex]._firstchildIdx,
-                                                       childIdx);
+          unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
+                                                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                         childIdx);
+
+          if (svo[leafIndex]._firstchildIdx)
+          {
+            // update parent befor push
+            parent->parentTMin = tcMax;
+
+            // ### PUSH
+            --scale;
+            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
+            stack[scale].parentTMin      = tcMin;
+            stack[scale].parentTMax      = tcMax;
+            stack[scale].parentCenter    = childCenter;
+
+            parent = 0;
+            continue;
+          }
+
+          // else: return leaf
           result->hit           = true;
-          result->nodeIndex     = returnchildIdx;
-//          result->attribIndex   = svo[returnchildIdx]._attibutePos;
+          result->nodeIndex     = leafIndex;
           result->depth         = scaleMax-scale;
           result->t             = parent->parentTMin;
           result->numWhileLoops = whileCounter;
@@ -367,12 +384,11 @@ sample( __global const SvoNode* svo,
           // TERMINATE if voxel is small enough
           if (tScaleRatio*tcMax > scale_exp2)
           {
-            unsigned returnchildIdx = getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                                         svo[parent->parentNodeIndex]._firstchildIdx,
-                                                         childIdx);
+            unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
+                                                                               svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                               childIdx);
             result->hit           = true;
             result->nodeIndex     = returnchildIdx;
-//            result->attribIndex   = svo[returnchildIdx]._attibutePos;
             result->depth         = scaleMax-scale+1;
             result->t             = parent->parentTMin;
             result->numWhileLoops = whileCounter;
@@ -386,8 +402,8 @@ sample( __global const SvoNode* svo,
           // ### PUSH
           --scale;
           stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
-                                                          svo[parent->parentNodeIndex]._firstchildIdx,
-                                                          childIdx);
+                                                                                  svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                                  childIdx);
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
           stack[scale].parentCenter    = childCenter;

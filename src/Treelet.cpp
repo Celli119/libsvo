@@ -75,7 +75,8 @@ Treelet::Treelet():
   _memSize(0),
   _numNodes(0),
   _numLeaves(0),
-  _serializedNodes()
+  _serializedNodes(),
+  _incoreSlotGid(0)
 {
 
 }
@@ -103,7 +104,8 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
   _memSize(memSizeInByte),
   _numNodes(0),
   _numLeaves(0),
-  _serializedNodes()
+  _serializedNodes(),
+  _incoreSlotGid(0)
 {
   unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
   unsigned actualSize  = maxNumNodes*sizeof(CpuSvoNode);
@@ -143,7 +145,8 @@ Treelet::Treelet(const std::string treeletFilePath):
   _memSize(0),
   _numNodes(0),
   _numLeaves(0),
-  _serializedNodes()
+  _serializedNodes(),
+  _incoreSlotGid(0)
 {
   loadFromFile(treeletFilePath);
 }
@@ -301,9 +304,9 @@ Treelet::getFirstLeafIndex() const
 */
 
 unsigned
-Treelet::getIncorePosition() const
+Treelet::getIncoreSlotPosition() const
 {
-  return _incorePosition;
+  return _incoreSlotGid;
 }
 
 
@@ -317,9 +320,9 @@ Treelet::getIncorePosition() const
 */
 
 void
-Treelet::setIncorePosition(unsigned incorePosition)
+Treelet::setIncoreSlotPosition(unsigned incoreSlotGid)
 {
-  _incorePosition = incorePosition;
+  _incoreSlotGid = incoreSlotGid;
 }
 
 

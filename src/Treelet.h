@@ -190,10 +190,10 @@ class Treelet
     unsigned getFirstLeafIndex() const;
 
 
-    // returns the absolute position of the root node of this treelet within the gpu buffer
-    unsigned getIncorePosition() const;
-    // sets the absolute position of the Treelet within the gpu buffer
-    void setIncorePosition(unsigned incorePos);
+    // returns the slot Gid of this treelet within the incore buffer
+    gloost::gloostId  getIncoreSlotPosition() const;
+    // sets the slot Gid of this treelet within the incore buffer
+    void setIncoreSlotPosition(unsigned incoreSlotGid);
 
 
 	protected:
@@ -203,9 +203,8 @@ class Treelet
     gloost::gloostId    _parentTreeletLeafPosition; // position of the leaf within the parent Treelet
 
     unsigned            _memSize;
-    unsigned            _numNodes;
+    unsigned            _numNodes;        // num inner nodes + num leaves (! num all nodes)
     unsigned            _numLeaves;
-    unsigned            _incorePosition;  // absolute index within the gpu buffer
 
 
     // serialized svo nodes
@@ -214,7 +213,7 @@ class Treelet
     // map of all leaf QueueElements created while building the Treelet
     std::vector<QueueElement> _leafQueueElements;
 
-
+    gloost::gloostId   _incoreSlotGid;  // slot Gid of this treelet within the incore buffer
 };
 
 
