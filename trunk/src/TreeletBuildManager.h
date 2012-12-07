@@ -24,8 +24,8 @@
 
 
 
-#ifndef H_GLOOST_TREEMEMORYMANAGER
-#define H_GLOOST_TREEMEMORYMANAGER
+#ifndef H_GLOOST_TREELETBUILDMANAGER
+#define H_GLOOST_TREELETBUILDMANAGER
 
 
 
@@ -56,17 +56,17 @@ namespace svo
   class Treelet;
 
 
-  //  Page, a subtree of the whole svo
+  //  Builds Treelet-SVO structure from different source types
 
-class TreeMemoryManager
+class TreeletBuildManager
 {
 	public:
 
     // class constructor
-    TreeMemoryManager(unsigned gpuBufferSizeInByte);
+    TreeletBuildManager();
 
     // class destructor
-	  virtual ~TreeMemoryManager();
+	  virtual ~TreeletBuildManager();
 
     // builds trunk and all branches from triangle Mesh
 	  void buildFromFaces(unsigned treeletSizeInByte,
@@ -78,25 +78,15 @@ class TreeMemoryManager
     // writes svo/Treelet structure to file
     bool writeToFile(const std::string& filePath) const;
 
-    // loads svo/Treelet structure from file
-    bool loadFromFile(const std::string& filePath);
 
-
+    // inits the incore buffer
 
 
     // returns a Treelet for a given Gid
     Treelet* getTreelet(gloost::gloostId id);
 
 
-    // returns the incore buffer
-    std::vector<CpuSvoNode>& getIncoreBuffer();
-
-
-
-
-
 	protected:
-
 
 
 	private:
@@ -105,16 +95,11 @@ class TreeMemoryManager
 
     std::vector<Treelet*>   _treelets;
 
-    std::vector<CpuSvoNode> _incoreBuffer;
-    unsigned                _incoreBufferSize;
-
-    bool insertIntoGpuBuffer(gloost::gloostId treeletGid);
-
 };
 
 
 } // namespace svo
 
 
-#endif // H_GLOOST_TREEMEMORYMANAGER
+#endif // H_GLOOST_TREELETBUILDMANAGER
 

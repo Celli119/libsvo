@@ -77,9 +77,12 @@ class CpuSvoNode
     // sets the child on index i
     void setFirstChildIndex(unsigned index);
 
-
     // returns the nth child node index within the serialized data
     unsigned getNthChildIndex(unsigned childIndex);
+
+
+    // sets the slot index of the corresponding treelet for this leaf
+    void setLeafTreeletSlotGid(gloost::gloostId slotGid);
 
 
 
@@ -91,12 +94,6 @@ class CpuSvoNode
     bool getLeafMaskFlag(unsigned i);
     void setLeafMaskFlag(unsigned i, bool flag);
 
-//    // returns attribute position in attrib buffer
-//    unsigned int getAttribPosition() const;
-//
-//    // sets the attribute position within the attribute buffer
-//    void setAttribPosition(unsigned i);
-
 	private:
 
     // ...
@@ -104,7 +101,6 @@ class CpuSvoNode
 
     gloost::BitMask _masks; // 8 bit leaf mask (0..7) + 8 bit valid mask (8..15)
 
-//    unsigned _attribPosition;
 
 };
 

@@ -91,12 +91,14 @@
 		<Unit filename="../../src/ImageToPointcloud.h" />
 		<Unit filename="../../src/SvoLoader.cpp" />
 		<Unit filename="../../src/SvoLoader.h" />
-		<Unit filename="../../src/TreeMemoryManager.cpp" />
-		<Unit filename="../../src/TreeMemoryManager.h" />
 		<Unit filename="../../src/Treelet.cpp" />
 		<Unit filename="../../src/Treelet.h" />
+		<Unit filename="../../src/TreeletBuildManager.cpp" />
+		<Unit filename="../../src/TreeletBuildManager.h" />
 		<Unit filename="../../src/TreeletBuilderFromFaces.cpp" />
 		<Unit filename="../../src/TreeletBuilderFromFaces.h" />
+		<Unit filename="../../src/TreeletMemoryManager.cpp" />
+		<Unit filename="../../src/TreeletMemoryManager.h" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.cpp" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />

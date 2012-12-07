@@ -45,8 +45,8 @@ gloost::Mesh* g_mesh = 0;
 //#include <SvoBranch.h>
 //svo::SvoBranch* g_svo = 0;
 
-#include <TreeMemoryManager.h>
-svo::TreeMemoryManager g_treeMemoryManager(512*1024);
+#include <TreeletBuildManager.h>
+svo::TreeletBuildManager g_treeletBuildManager;
 
 
 //#include <chrono>
@@ -111,34 +111,12 @@ void init()
 
 
   // SVO builder
-  g_treeMemoryManager.buildFromFaces(g_treeletSizeInByte,
-                                     g_maxSvoDepth,
-                                     g_numBuildingThreads,
-                                     g_mesh);
+  g_treeletBuildManager.buildFromFaces(g_treeletSizeInByte,
+                                       g_maxSvoDepth,
+                                       g_numBuildingThreads,
+                                       g_mesh);
 
 
-
-
-//  g_svo = new svo::SvoBranch(g_trunkDepth);
-//  svo::SvoBuilderFaces fromFaceBuilder(g_numBuildingThreads);
-//  fromFaceBuilder.build(g_svo, g_mesh);
-
-  // attribute generator
-//  svo::Ag_colorAndNormalsTriangles generator;
-//  generator.generate(g_svo, g_mesh, new gloost::ObjMatFile());
-//
-//
-//  g_svo->serializeSvo();
-//
-//  g_svo->writeSerializedSvoToFile(g_outputPath
-//                                   + gloost::pathToBasename(g_inputPath)
-//                                   + "_" + gloost::toString(g_trunkDepth)
-//                                   + ".svo" );
-//
-//  generator.writeCompressedAttributeBufferToFile(g_outputPath
-//                                                 + gloost::pathToBasename(g_inputPath)
-//                                                 + "_" + gloost::toString(g_trunkDepth) + "c"
-//                                                 + ".ia" );
 
   std::cerr << std::endl;
   std::cerr << std::endl;
@@ -165,7 +143,7 @@ int main(int argc, char *argv[])
 
   if (!cmdp.isOptSet("i"))
   {
-    std::cerr << std::endl << "Hey sucker! No input file was specified.";
+    std::cerr << std::endl << "No input file was specified.";
     std::cerr << std::endl << "Use the -i parameter to do it.";
     std::cerr << std::endl;
     std::cerr << std::endl;

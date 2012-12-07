@@ -159,6 +159,22 @@ CpuSvoNode::getNthChildIndex(unsigned childIndex)
 
 
 /**
+  \brief   sets the slot index of the corresponding treelet for this leaf
+  \param   ...
+  \remarks ...
+*/
+
+void
+CpuSvoNode::setLeafTreeletSlotGid(gloost::gloostId slotGid)
+{
+  _masks = slotGid;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief returns valid mask flag at position i
   \param ...
   \remarks ...

@@ -69,11 +69,8 @@ float          g_cameraRotateX  = 0;
 float          g_cameraDistance = 1.0;
 
 // SVO
-#include <TreeMemoryManager.h>
-svo::TreeMemoryManager g_svo(512*1024);
-
-#include <Treelet.h>
-svo::Treelet* g_treelet = 0;
+#include <TreeletMemoryManager.h>
+svo::TreeletMemoryManager* g_memoryManager = 0;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -135,11 +132,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
   const std::string svoBaseName = "TreeMemoryManager_out.svo";
 
-
-  g_svo.loadFromFile(svo_dir_path + svoBaseName);
-
-  // loading svo and attributes
-  g_treelet = g_svo.getTreelet(0);
+  g_memoryManager = new svo::TreeletMemoryManager(svo_dir_path + svoBaseName,
+                                                  512 * 1024 * 1024);
 
 //  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
@@ -154,7 +148,12 @@ void init()
 
 
   // setup framebuffer
-  std::cerr << std::endl << "setting up framebuffer: ";
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Setting up framebuffer: ";
+  std::cerr << std::endl << "  width:  " << g_bufferWidth;
+  std::cerr << std::endl << "  height: " << g_bufferHeight;
+  std::cerr << std::endl;
+
   gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
                                                   g_bufferHeight,
                                                   1,
@@ -218,8 +217,8 @@ void initCl()
 
   // assign svo data
   gloost::gloostId svoDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (unsigned char*)&g_svo.getIncoreBuffer().front(),
-                                                          g_svo.getIncoreBuffer().size()*sizeof(svo::CpuSvoNode));
+                                                          (unsigned char*)&g_memoryManager->getIncoreBuffer().front(),
+                                                          g_memoryManager->getIncoreBuffer().size()*sizeof(svo::CpuSvoNode));
 
   g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 
@@ -431,7 +430,6 @@ void draw2d()
           g_texter->renderFreeLine();
           g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
-          g_texter->renderTextLine("g_maxRayCastDepth:  " + gloost::toString(g_treelet->getMemSize()));
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
         }
         g_texter->end();
