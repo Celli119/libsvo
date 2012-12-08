@@ -537,7 +537,7 @@ void key(int key, int state)
         break;
 
       case 'R':
-        g_context->reloadProgram("../opencl/fillFrameBuffer_rgba.cl");
+        g_context->reloadProgram("../opencl/treeletRenderer_rgba.cl");
         break;
 
       case 'V':
