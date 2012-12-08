@@ -6,31 +6,32 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 //
-__constant float scale = 1.0f;
+//__constant float scale = 1.0f;
+#define MAX_STACK_SIZE 21
 
 
-__kernel void fillBufferWithColor (__write_only image2d_t pixels,
-                                   const float4           color)
-{
-
-  float time = color.z*0.075f;
-
-
-  unsigned x = get_global_id(0);
-  unsigned y = get_global_id(1);
-
-
-  float dist = length((float2)(x,y));
-
-  float a = sin(dist*dist*0.1f*scale + time * 0.2f)*0.5f + 0.5f;
-  float b = sin(dist*dist*0.2f*scale + time * 1.0f)*0.5f + 0.5f;
-
-   float val = length((float2)(a,b));
-
-   write_imagef (pixels,
-                (int2)(x,y),
-                (float4)(a,b,1.0f-val,1.0f));
-}
+//__kernel void fillBufferWithColor (__write_only image2d_t pixels,
+//                                   const float4           color)
+//{
+//
+//  float time = color.z*0.075f;
+//
+//
+//  unsigned x = get_global_id(0);
+//  unsigned y = get_global_id(1);
+//
+//
+//  float dist = length((float2)(x,y));
+//
+//  float a = sin(dist*dist*0.1f*scale + time * 0.2f)*0.5f + 0.5f;
+//  float b = sin(dist*dist*0.2f*scale + time * 1.0f)*0.5f + 0.5f;
+//
+//   float val = length((float2)(a,b));
+//
+//   write_imagef (pixels,
+//                (int2)(x,y),
+//                (float4)(a,b,1.0f-val,1.0f));
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,13 +254,12 @@ sample( __global const SvoNode* svo,
     return false;
   }
 
-  const int   scaleMax   = 15;
+  const int   scaleMax   = MAX_STACK_SIZE;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
-//  const float epsilon    = 0.00004f;
-  const float epsilon    = pow(2.0f, (float)-scaleMax-1.0f);
+  const float epsilon    = 0.00004f;
 
-  StackElement stack[15];
+  StackElement stack[MAX_STACK_SIZE];
 
   // init stack with root node
   stack[scale].parentNodeIndex = 0;
@@ -305,6 +305,8 @@ sample( __global const SvoNode* svo,
       parent = &stack[scale];
       scale_exp2       = pow(2.0f, scale - scaleMax);
       childSizeHalf    = scale_exp2*0.5f;
+
+
 //    }
 
     // ### POP if parent is behind the camera
@@ -315,7 +317,7 @@ sample( __global const SvoNode* svo,
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon)
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
     {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
@@ -353,8 +355,8 @@ sample( __global const SvoNode* svo,
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
                                                                          svo[parent->parentNodeIndex]._firstchildIdx,
                                                                          childIdx);
-
-          if (svo[leafIndex]._firstchildIdx)
+          // check if leaf points to another treelet
+          if (svo[leafIndex]._masks)
           {
             // update parent befor push
             parent->parentTMin = tcMax;
@@ -497,7 +499,7 @@ shade_pixelDepth(const SampleResult* result)
 inline float4
 shade_svoDepth(const SampleResult* result)
 {
-  const float value = result->depth/12.0f;
+  const float value = result->depth/(float)(MAX_STACK_SIZE);
   return (float4)( value*result->hit,
                    value*result->hit,
                    value*result->hit, 1.0f);
