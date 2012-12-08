@@ -99,9 +99,9 @@ TreeletBuildManager::~TreeletBuildManager()
 
 void
 TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
-                                  unsigned maxSvoDepth,
-                                  unsigned numBuildingThreads,
-                                  gloost::Mesh* mesh)
+                                    unsigned maxSvoDepth,
+                                    unsigned numBuildingThreads,
+                                    gloost::Mesh* mesh)
 {
 
   _treeletSizeInByte = treeletSizeInByte;
@@ -180,8 +180,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       std::cerr << std::endl << "################################################";
       std::cerr << std::endl;
       std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
-      std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples:";
-      std::cerr << std::endl << "             current depth: " << parentQueueElements[i]._depth;
+      std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
+      std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
