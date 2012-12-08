@@ -28,6 +28,13 @@
 					<Add option="-s" />
 					<Add library="libsvo" />
 					<Add library="gloost" />
+					<Add library="GL" />
+					<Add library="GLEW" />
+					<Add library="glfw" />
+					<Add library="GLU" />
+					<Add library="libtinyxml" />
+					<Add library="freeimage" />
+					<Add library="boost_thread" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -51,6 +58,13 @@
 				<Linker>
 					<Add library="libsvo_db" />
 					<Add library="gloost_db" />
+					<Add library="GL" />
+					<Add library="GLEW" />
+					<Add library="glfw" />
+					<Add library="GLU" />
+					<Add library="libtinyxml" />
+					<Add library="freeimage" />
+					<Add library="boost_thread" />
 				</Linker>
 			</Target>
 		</Build>
@@ -63,13 +77,6 @@
 			<Add directory="../../../../gloost/src" />
 		</Compiler>
 		<Linker>
-			<Add library="GL" />
-			<Add library="GLEW" />
-			<Add library="glfw" />
-			<Add library="GLU" />
-			<Add library="libtinyxml" />
-			<Add library="freeimage" />
-			<Add library="boost_thread" />
 			<Add directory="../../../../gloost/gnulinux/bin" />
 			<Add directory="../../../libsvo/lib" />
 		</Linker>

@@ -118,9 +118,11 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   // Build root Treelet
   _treelets.resize(1);
   {
-    _treelets[0] = new Treelet(0u,
-                               0u,
-                               0u,
+    _treelets[0] = new Treelet(0u,  // this treelet Gid
+                               0u,  // parents treelet Gid
+                               0u,  // leaf position within parent treelet
+                               0u,  // idx (0...7) of the leaf in its parent
+                               0u,  // position of leaves parent within the parent treelet
                                _treeletSizeInByte);
 
     svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
@@ -186,6 +188,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
                                           parentQueueElements[i]._localLeafIndex,
+                                          parentQueueElements[i]._idx,
+                                          parentQueueElements[i]._parentLocalNodeIndex,
                                           _treeletSizeInByte);
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);

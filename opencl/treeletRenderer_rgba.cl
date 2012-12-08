@@ -165,7 +165,6 @@ intersectAABB( const float3 rayOrigin,
 	float tNear                = -10000000.0f;
 	float tFar                 =  10000000.0f;
 	const float boxRadius      = 0.5f;
-//	const float epsilon        = 0.00001f;
 	const float rayOriginArray[3]    = {rayOrigin.x, rayOrigin.y, rayOrigin.z};
 	const float rayDirectionArray[3] = {rayDirection.x, rayDirection.y, rayDirection.z};
 
@@ -355,22 +354,22 @@ sample( __global const SvoNode* svo,
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
                                                                          svo[parent->parentNodeIndex]._firstchildIdx,
                                                                          childIdx);
-          // check if leaf points to another treelet
-          if (svo[leafIndex]._masks)
-          {
-            // update parent befor push
-            parent->parentTMin = tcMax;
-
-            // ### PUSH
-            --scale;
-            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
-            stack[scale].parentTMin      = tcMin;
-            stack[scale].parentTMax      = tcMax;
-            stack[scale].parentCenter    = childCenter;
-
-            parent = 0;
-            continue;
-          }
+//          // check if leaf points to another treelet
+//          if (svo[leafIndex]._masks)
+//          {
+//            // update parent befor push
+//            parent->parentTMin = tcMax;
+//
+//            // ### PUSH
+//            --scale;
+//            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
+//            stack[scale].parentTMin      = tcMin;
+//            stack[scale].parentTMax      = tcMax;
+//            stack[scale].parentCenter    = childCenter;
+//
+//            parent = 0;
+//            continue;
+//          }
 
           // else: return leaf
           result->hit           = true;

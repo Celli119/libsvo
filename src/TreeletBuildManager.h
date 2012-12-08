@@ -93,7 +93,7 @@ class TreeletBuildManager
 
 	  unsigned _treeletSizeInByte;
 
-    std::vector<Treelet*>   _treelets;
+    std::vector<Treelet*>  _treelets;
 
 };
 

@@ -125,15 +125,15 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth / 2.0;
-  g_bufferHeight       = g_screenHeight/ 2.0;
+  g_bufferWidth        = g_screenWidth / 1.0;
+  g_bufferHeight       = g_screenHeight/ 1.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
-  const std::string svoBaseName = "TreeMemoryManager_out.svo";
+  const std::string svoBaseName = "TreeletBuildManager_out.svo";
 
   g_memoryManager = new svo::TreeletMemoryManager(svo_dir_path + svoBaseName,
-                                                  512 * 1024 * 1024);
+                                                  1024 * 1024 * 1024);
 
 //  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
@@ -196,7 +196,7 @@ void initCl()
 
 //  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
 
-  g_context = new gloost::bencl::ClContext(1);
+  g_context = new gloost::bencl::ClContext(0);
 
   // change Device here!
   g_deviceGid = 0;
