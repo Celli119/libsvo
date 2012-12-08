@@ -194,11 +194,14 @@ void
 TreeletBuilderFromFaces::buildFromQueue()
 {
 
-  static const float offset = 0.25;
+  static const float offset               = 0.25f;
+  static const gloost::Matrix scaleToHalf = gloost::Matrix::createScaleMatrix(0.5f);
+  float childOffsetX;
+  float childOffsetY;
+  float childOffsetZ;
 
-  unsigned currentNodeIndex = 1;
-
-  unsigned whileCounter = 0;
+  unsigned currentNodeIndex = 1u;
+  unsigned whileCounter     = 0u;
 
 
   // as long there is space within this treelet
@@ -227,34 +230,34 @@ TreeletBuilderFromFaces::buildFromQueue()
 
           if (x)
           {
-            childOffset[0] += offset;
+            childOffsetX = offset;
           }
           else
           {
-            childOffset[0] -= offset;
+            childOffsetX = -offset;
           }
 
           if (y)
           {
-            childOffset[1] += offset;
+            childOffsetY = offset;
           }
           else
           {
-            childOffset[1] -= offset;
+            childOffsetY = -offset;
           }
 
           if (z)
           {
-            childOffset[2] += offset;
+            childOffsetZ = offset;
           }
           else
           {
-            childOffset[2] -= offset;
+            childOffsetZ = -offset;
           }
 
           // child voxel transformation
           gloost::Matrix aabbTransform = parentQueuedElement._aabbTransform
-                                         * gloost::Matrix::createTransMatrix(childOffset[0], childOffset[1], childOffset[2]);
+                                         * gloost::Matrix::createTransMatrix(childOffsetX, childOffsetY, childOffsetZ);
           aabbTransform = aabbTransform * gloost::Matrix::createScaleMatrix(0.5);
 
           _childQueueElements[childIndex]._aabbTransform = aabbTransform;
@@ -298,12 +301,14 @@ TreeletBuilderFromFaces::buildFromQueue()
         _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIndex, true);
 
         // set the location within the serialized svo to the queueElement
-        _childQueueElements[childIndex]._localLeafIndex       = currentNodeIndex++;
+        _childQueueElements[childIndex]._localLeafIndex       = currentNodeIndex;
         _childQueueElements[childIndex]._idx                  = childIndex;
         _childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue element for this child
         _queue.push(_childQueueElements[childIndex]);
+
+        ++currentNodeIndex;
       }
       else
       {
