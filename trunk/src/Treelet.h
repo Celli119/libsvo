@@ -119,6 +119,8 @@ class Treelet
     Treelet(gloost::gloostId  treeletGid,
             gloost::gloostId  parentTreeletGid,
             gloost::gloostId  parentTreeletLeafPosition,
+            gloost::gloostId  parentTreeletLeafIdx,
+            gloost::gloostId  parentTreeletLeafsParentPosition,
             unsigned          memSizeInByte);
 
     // class constructor
@@ -169,6 +171,12 @@ class Treelet
     // returs the position of the leaf within the parent Treelet
     gloost::gloostId getParentTreeletLeafPosition() const;
 
+    // returs the idx (0...7) of the parent treelets leaf in its parent node
+    gloost::gloostId getParentTreeletLeafIdx() const;
+
+    // returs the position of the parent treelets leaf parent node
+    gloost::gloostId getParentTreeletLeafsParentPosition() const;
+
 
 
     // returns the memory size in Bytes
@@ -200,7 +208,9 @@ class Treelet
 
     gloost::gloostId    _treeletGid;
     gloost::gloostId    _parentTreeletGid;
-    gloost::gloostId    _parentTreeletLeafPosition; // position of the leaf within the parent Treelet
+    gloost::gloostId    _parentTreeletLeafPosition;        // position of the leaf within the parent Treelet
+    gloost::gloostId    _parentTreeletLeafIdx;             // index 0...7 of the leaf in its parent
+    gloost::gloostId    _parentTreeletLeafsParentPosition; // position of the leafs parent node within the parent Treelet
 
     unsigned            _memSize;
     unsigned            _numNodes;        // num inner nodes + num leaves (! num all nodes)

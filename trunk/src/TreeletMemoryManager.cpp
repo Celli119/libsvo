@@ -261,6 +261,9 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   unsigned freeSlotGid = _freeIncoreSlots.top();
   _freeIncoreSlots.pop();
 
+  // update lookup the treeletGid -> incoreBufferSlot
+  _treeletGidToSlotGidMap[treeletGid] = freeSlotGid;
+
   // set slot Gid to Treelet
   _treelets[treeletGid]->setIncoreSlotPosition(freeSlotGid);
 
@@ -279,13 +282,22 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
           _treeletSizeInByte);
 
   // updating corresponding parent treelets leaf
-  gloost::gloostId parentTreeletGid = _treelets[treeletGid]->getParentTreeletGid();
-  gloost::gloostId leafNodeIndex    = _treelets[treeletGid]->getParentTreeletLeafPosition();
+  gloost::gloostId parentTreeletGid                = _treelets[treeletGid]->getParentTreeletGid();
+  gloost::gloostId parentTreeletLeafPosition       = _treelets[treeletGid]->getParentTreeletLeafPosition();
+  gloost::gloostId parentTreeletLeafParentPosition = _treelets[treeletGid]->getParentTreeletLeafsParentPosition();
+  gloost::gloostId parentTreeletLeafIdx            = _treelets[treeletGid]->getParentTreeletLeafIdx();
 
-  unsigned leafPositionInIncoreBuffer = _treeletGidToSlotGidMap[parentTreeletGid]*_numNodesPerTreelet+leafNodeIndex;
+  unsigned leafPositionInIncoreBuffer       = _treeletGidToSlotGidMap[parentTreeletGid]*_numNodesPerTreelet+parentTreeletLeafPosition;
+  unsigned leafParentPositionInIncoreBuffer = _treeletGidToSlotGidMap[parentTreeletGid]*_numNodesPerTreelet+parentTreeletLeafParentPosition;
 
-  // change incore buffer at parent treelets leaf position
-  _incoreBuffer[leafPositionInIncoreBuffer].setLeafTreeletSlotGid(incoreNodePosition);
+  // copy root node of new Treelet to the leaf of parents Treelet
+  _incoreBuffer[leafPositionInIncoreBuffer] = _incoreBuffer[incoreNodePosition];
+
+  // update first child position within leaf/root (this is a relative value within the incore buffer)
+  _incoreBuffer[leafPositionInIncoreBuffer].setFirstChildIndex( (int)(incoreNodePosition+1) - (int)leafPositionInIncoreBuffer);
+
+  // update leaf mask of leafs parent so that the leaf is no leaf anymore
+  _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, false);
 
   return true;
 }
