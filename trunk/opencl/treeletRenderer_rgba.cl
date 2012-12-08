@@ -10,30 +10,6 @@
 #define MAX_STACK_SIZE 21
 
 
-//__kernel void fillBufferWithColor (__write_only image2d_t pixels,
-//                                   const float4           color)
-//{
-//
-//  float time = color.z*0.075f;
-//
-//
-//  unsigned x = get_global_id(0);
-//  unsigned y = get_global_id(1);
-//
-//
-//  float dist = length((float2)(x,y));
-//
-//  float a = sin(dist*dist*0.1f*scale + time * 0.2f)*0.5f + 0.5f;
-//  float b = sin(dist*dist*0.2f*scale + time * 1.0f)*0.5f + 0.5f;
-//
-//   float val = length((float2)(a,b));
-//
-//   write_imagef (pixels,
-//                (int2)(x,y),
-//                (float4)(a,b,1.0f-val,1.0f));
-//}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 
 
