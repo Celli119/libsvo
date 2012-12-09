@@ -172,7 +172,7 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 
   unsigned numTreelets = inFile.readUInt32();
 
-//  numTreelets = 4000;
+  numTreelets = 4000;
 
   _treeletSizeInByte   = inFile.readUInt32();
   _numNodesPerTreelet  = _treeletSizeInByte/sizeof(CpuSvoNode);

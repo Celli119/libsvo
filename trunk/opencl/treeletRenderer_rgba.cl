@@ -262,7 +262,7 @@ sample( __global const SvoNode* svo,
   StackElement* parent = 0;
 
   unsigned       whileCounter = 0;
-  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5.0f;
+  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1);
 
 /////////////////// LOOP ///////////////////////////////XS
 
@@ -295,7 +295,7 @@ sample( __global const SvoNode* svo,
     if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
     {
       // childEntryPoint in parent voxel coordinates
-      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
                                         + 2*(childEntryPoint.y > 0.0f)
                                         +   (childEntryPoint.z > 0.0f));
