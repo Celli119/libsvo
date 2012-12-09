@@ -125,15 +125,15 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth  / 1.0;
-  g_bufferHeight       = g_screenHeight / 1.0;
+  g_bufferWidth        = g_screenWidth  / 2.0;
+  g_bufferHeight       = g_screenHeight / 2.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
   const std::string svoBaseName = "TreeletBuildManager_out.svo";
 
   g_memoryManager = new svo::TreeletMemoryManager(svo_dir_path + svoBaseName,
-                                                  850 * 1024 * 1024);
+                                                  100 * 1024 * 1024);
 
 //  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
@@ -278,7 +278,7 @@ void frameStep()
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_2 ))
   {
     g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
-    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.05f, 20.0f);
+    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.005f, 20.0f);
 
     g_frameDirty = true;
   }
