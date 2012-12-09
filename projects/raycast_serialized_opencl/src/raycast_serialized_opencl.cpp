@@ -125,15 +125,15 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth / 1.0;
-  g_bufferHeight       = g_screenHeight/ 1.0;
+  g_bufferWidth        = g_screenWidth  / 1.0;
+  g_bufferHeight       = g_screenHeight / 1.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
   const std::string svoBaseName = "TreeletBuildManager_out.svo";
 
   g_memoryManager = new svo::TreeletMemoryManager(svo_dir_path + svoBaseName,
-                                                  1024 * 1024 * 1024);
+                                                  850 * 1024 * 1024);
 
 //  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
 
@@ -196,7 +196,7 @@ void initCl()
 
 //  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
 
-  g_context = new gloost::bencl::ClContext(0);
+  g_context = new gloost::bencl::ClContext(1);
 
   // change Device here!
   g_deviceGid = 0;
@@ -450,6 +450,11 @@ void draw2d()
 
 void resize(int width, int height)
 {
+
+  //
+  g_frameDirty = true;
+
+
   /// update the global screen size
   g_screenWidth  = width;
   g_screenHeight = height;
@@ -538,6 +543,7 @@ void key(int key, int state)
 
       case 'R':
         g_context->reloadProgram("../opencl/treeletRenderer_rgba.cl");
+        g_frameDirty = true;
         break;
 
       case 'V':
