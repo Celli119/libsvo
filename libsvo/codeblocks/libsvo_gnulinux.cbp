@@ -8,7 +8,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output="../lib/libsvo" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/svo" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/release" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -31,7 +31,7 @@
 				</Linker>
 			</Target>
 			<Target title="Debug">
-				<Option output="../lib/libsvo_db" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/svo_db" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/debug" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -61,6 +61,7 @@
 			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../../src" />
 			<Add directory="../../../gloost/src" />
+			<Add directory="/opt/AMDAPP/include" />
 		</Compiler>
 		<Linker>
 			<Add library="GL" />
@@ -99,6 +100,8 @@
 		<Unit filename="../../src/TreeletBuilderFromFaces.h" />
 		<Unit filename="../../src/TreeletMemoryManager.cpp" />
 		<Unit filename="../../src/TreeletMemoryManager.h" />
+		<Unit filename="../../src/TreeletMemoryManagerCl.cpp" />
+		<Unit filename="../../src/TreeletMemoryManagerCl.h" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.cpp" />
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />
@@ -111,6 +114,15 @@
 			<lib_finder>
 				<lib name="glew" />
 			</lib_finder>
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

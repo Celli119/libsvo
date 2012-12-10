@@ -69,12 +69,11 @@ float          g_cameraRotateX  = 0;
 float          g_cameraDistance = 1.0;
 
 // SVO
-#include <TreeletMemoryManager.h>
-svo::TreeletMemoryManager* g_memoryManager = 0;
+#include <TreeletMemoryManagerCl.h>
+svo::TreeletMemoryManagerCl* g_clMemoryManager = 0;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
-//gloost::InterleavedAttributes* g_shadowBuffer    = 0;
 
 
 // setup for rendering into frame buffer
@@ -91,10 +90,6 @@ unsigned    g_viewMode         = 4;
 std::string g_viewModeText     = "color";
 bool        g_frameDirty       = true;
 bool        g_raycastEveryFrame = false;
-
-
-std::vector<gloost::Vector2> g_screenCoords;
-std::vector<gloost::Ray>     g_cameraRays;
 
 
 //bencl stuff
@@ -125,23 +120,16 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth  / 2.0;
-  g_bufferHeight       = g_screenHeight / 2.0;
+  g_bufferWidth        = g_screenWidth  / 1.0;
+  g_bufferHeight       = g_screenHeight / 1.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
-  const std::string svoBaseName = "TreeletBuildManager_out.svo";
 
-  g_memoryManager = new svo::TreeletMemoryManager(svo_dir_path + svoBaseName,
-                                                  100 * 1024 * 1024);
 
-//  const std::string attributesFileName = svo_dir_path + svoBaseName + "c.ia";
+  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
 
-//  std::cerr << std::endl << "Loading Attributes: " << attributesFileName;
-//  g_voxelAttributes = new gloost::InterleavedAttributes(attributesFileName);
-//  std::cerr << std::endl << "num packages: " << g_voxelAttributes->getNumPackages();
-//  std::cerr << std::endl << "num elements: " << g_voxelAttributes->getNumElementsPerPackage();
-//  std::cerr << " ... done.";
+
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -182,7 +170,22 @@ void init()
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
 
 
+
+
+  // init cl stuff
   initCl();
+
+
+  g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
+                                                      1024/*MB*/ * 1024 * 1024,
+                                                      g_context);
+
+  // creates the incore ClBuffer
+  g_clMemoryManager->initClBuffer();
+
+  // assign incore buffer to kernel argument
+  g_context->setKernelArgBuffer("renderToBuffer", 1, g_clMemoryManager->getClIncoreBufferGid());
+
 }
 
 
@@ -196,7 +199,7 @@ void initCl()
 
 //  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
 
-  g_context = new gloost::bencl::ClContext(1);
+  g_context = new gloost::bencl::ClContext(0);
 
   // change Device here!
   g_deviceGid = 0;
@@ -208,19 +211,14 @@ void initCl()
 
 
   // assign render buffer
-  gloost::gloostId  renderbufferGid = g_context->createClImage(CL_MEM_WRITE_ONLY,
-                                                       gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getTarget(),
-                                                       gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->getTextureHandle());
+  gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
+  gloost::gloostId  renderbufferGid   = g_context->createClImage(CL_MEM_WRITE_ONLY,
+                                                                 frameBufferTexture->getTarget(),
+                                                                 frameBufferTexture->getTextureHandle());
 
   g_context->setKernelArgBuffer("renderToBuffer", 0, renderbufferGid);
 
 
-  // assign svo data
-  gloost::gloostId svoDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-                                                          (unsigned char*)&g_memoryManager->getIncoreBuffer().front(),
-                                                          g_memoryManager->getIncoreBuffer().size()*sizeof(svo::CpuSvoNode));
-
-  g_context->setKernelArgBuffer("renderToBuffer", 1, svoDataGid);
 
 
   // assign attribute indices
@@ -246,12 +244,13 @@ void initCl()
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-  /// free all resources we created
+  // free all resources
 
 void cleanup()
 {
 
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

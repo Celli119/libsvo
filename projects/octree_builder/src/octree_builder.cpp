@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 
   cmdp.addOpt("t", 1,  "threads  ", "number of threads (default: 12)");
   cmdp.addOpt("s", 1,  "<uint treelet size in KB>", "size of a treelet in Kilobyte(default: " + gloost::toString(g_treeletSizeInByte) + ")");
-  cmdp.addOpt("d", 1,  "<uint max svo depth>", "maximum number of svo levels (default: " + gloost::toString(g_maxSvoDepth) + ")");
+  cmdp.addOpt("d", 1,  "<uint min svo depth>", "minimal depth of all leaves (default: " + gloost::toString(g_maxSvoDepth) + ")");
   cmdp.addOpt("i", 1,  "input", "input file path, loads *.ply files with per vertex color and normals");
   cmdp.addOpt("o", 1,  "output", "output directory path (default: input file path)");
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
   }
   else
   {
-    std::cerr << std::endl << " USE THE -d argument to set the global maximal depth of the svo: ";
+    std::cerr << std::endl << " USE THE -d argument to set the global minimal depth of the svo: ";
     std::cerr << std::endl;
     exit(0);
   }

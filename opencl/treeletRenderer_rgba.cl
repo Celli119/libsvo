@@ -232,7 +232,7 @@ sample( __global const SvoNode* svo,
   const int   scaleMax   = MAX_STACK_SIZE;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
-  const float epsilon    = 0.00004f;
+  const float epsilon    = 0.0001f;
 
   StackElement stack[MAX_STACK_SIZE];
 
@@ -242,9 +242,9 @@ sample( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*1000.0f;
-  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*1000.0f;
-  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*1000.0f;
+  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -262,7 +262,7 @@ sample( __global const SvoNode* svo,
   StackElement* parent = 0;
 
   unsigned       whileCounter = 0;
-  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1);
+  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5;
 
 /////////////////// LOOP ///////////////////////////////XS
 
