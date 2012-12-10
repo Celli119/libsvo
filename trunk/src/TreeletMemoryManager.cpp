@@ -70,7 +70,8 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   _incoreBuffer(),
   _incoreBufferSizeInByte(incoreBufferSizeInByte),
   _treeletGidToSlotGidMap(),
-  _freeIncoreSlots()
+  _freeIncoreSlots(),
+  _incoreSlotsToUpload()
 {
 
   // load svo file
@@ -131,6 +132,22 @@ TreeletMemoryManager::getTreelet(gloost::gloostId id)
 
 
 /**
+  \brief   returns the Treelet size in bytes
+  \param   ...
+  \remarks ...
+*/
+
+unsigned
+TreeletMemoryManager::getTreeletSizeInByte() const
+{
+  return _treeletSizeInByte;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief   returns the incore buffer
   \param   ...
   \remarks ...
@@ -171,8 +188,6 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
   }
 
   unsigned numTreelets = inFile.readUInt32();
-
-  numTreelets = 4000;
 
   _treeletSizeInByte   = inFile.readUInt32();
   _numNodesPerTreelet  = _treeletSizeInByte/sizeof(CpuSvoNode);
@@ -249,7 +264,7 @@ TreeletMemoryManager::initIncoreBuffer()
 bool
 TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 {
-  if (!_freeIncoreSlots.size())
+  if (!_freeIncoreSlots.size() || treeletGid >= _treelets.size())
   {
 //    std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
 //    std::cerr << std::endl << "             Out of incore slots!";
@@ -299,7 +314,50 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   // update leaf mask of leafs parent so that the leaf is no leaf anymore
   _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, false);
 
+
+  // mark incore slot of parent to be uploaded to device memory
+  markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
+
+  // mark incore slot of new Treelet to be uploaded to device memory
+  markIncoreSlotForUpload(_treeletGidToSlotGidMap[treeletGid]);
+
+
   return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   marks a incore slot to be uploaded to device memory
+  \param   ...
+  \remarks ...
+*/
+
+void
+TreeletMemoryManager::markIncoreSlotForUpload(gloost::gloostId slotGid)
+{
+  _incoreSlotsToUpload.insert(slotGid);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   updates device memory by uploading incore buffer slots
+  \param   ...
+  \remarks ...
+*/
+
+void
+TreeletMemoryManager::updateDeviceMemory()
+{
+//  while(_incoreSlotsToUpload.size())
+//  {
+//    _incoreSlotsToUpload.
+//  }
 }
 
 

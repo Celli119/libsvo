@@ -311,7 +311,7 @@ Treelet::getFirstLeafIndex() const
   \remarks ...
 */
 
-unsigned
+gloost::gloostId
 Treelet::getIncoreSlotPosition() const
 {
   return _incoreSlotGid;

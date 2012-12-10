@@ -43,6 +43,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <set>
 
 
 namespace gloost
@@ -75,11 +76,36 @@ class TreeletMemoryManager
     Treelet* getTreelet(gloost::gloostId id);
 
 
+    // returns the Treelet size in bytes
+    unsigned getTreeletSizeInByte() const;
+
+
     // returns the incore buffer
     std::vector<CpuSvoNode>& getIncoreBuffer();
 
 
+    // updates device memory by uploading incore buffer slots
+    virtual void updateDeviceMemory();
+
+
+
+
 	protected:
+
+
+	  unsigned                _treeletSizeInByte;
+	  unsigned                _numNodesPerTreelet;
+
+    std::vector<Treelet*>   _treelets;
+
+    std::vector<CpuSvoNode>                      _incoreBuffer;
+    unsigned                                     _incoreBufferSizeInByte;
+    std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap;
+    std::stack<unsigned>                         _freeIncoreSlots;
+
+    std::set<gloost::gloostId>                   _incoreSlotsToUpload;
+
+
 
     // loads svo/Treelet structure from file
     bool loadFromFile(const std::string& filePath);
@@ -91,17 +117,13 @@ class TreeletMemoryManager
     bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
 
 
+    // marks a incore slot to be uploaded to device memory
+    void markIncoreSlotForUpload(gloost::gloostId slotGid);
+
+
 	private:
 
-	  unsigned                _treeletSizeInByte;
-	  unsigned                _numNodesPerTreelet;
 
-    std::vector<Treelet*>   _treelets;
-
-    std::vector<CpuSvoNode>                      _incoreBuffer;
-    unsigned                                     _incoreBufferSizeInByte;
-    std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap;
-    std::stack<unsigned>                         _freeIncoreSlots;
 
 
 };
