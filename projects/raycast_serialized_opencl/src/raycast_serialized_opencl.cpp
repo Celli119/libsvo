@@ -71,6 +71,8 @@ float          g_cameraDistance = 1.0;
 // SVO
 #include <TreeletMemoryManagerCl.h>
 svo::TreeletMemoryManagerCl* g_clMemoryManager = 0;
+#include <RenderPassAnalyse.h>
+svo::RenderPassAnalyse*      g_renderPassAnalyse = 0;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -84,11 +86,11 @@ unsigned g_framebufferTextureId = 0;
 #include <gloost/gloostHelper.h>
 
 // info
-bool        g_showTextInfo     = true;
-bool        g_showRayCastImage = true;
-unsigned    g_viewMode         = 4;
-std::string g_viewModeText     = "color";
-bool        g_frameDirty       = true;
+bool        g_showTextInfo      = true;
+bool        g_showRayCastImage  = true;
+unsigned    g_viewMode          = 4;
+std::string g_viewModeText      = "color";
+bool        g_frameDirty        = true;
 bool        g_raycastEveryFrame = false;
 
 
@@ -97,8 +99,9 @@ bool        g_raycastEveryFrame = false;
 #include <gloost/bencl/ocl.h>
 #include <gloost/bencl/ClContext.h>
 
-gloost::bencl::ClContext* g_context   = 0;
-gloost::gloostId          g_deviceGid = 0;
+gloost::bencl::ClContext* g_context    = 0;
+gloost::gloostId          g_contextGid = 0; // <- will be reset in initCl
+gloost::gloostId          g_deviceGid  = 0; // <- will be reset in initCl
 
 void init();
 void initCl();
@@ -120,14 +123,15 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth        = g_screenWidth  / 1.0;
-  g_bufferHeight       = g_screenHeight / 1.0;
+  g_bufferWidth  = g_screenWidth  / 1.0;
+  g_bufferHeight = g_screenHeight / 1.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
+//  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
+  const std::string svoBaseName  = "oil_rig.svo";
 
 
 
@@ -154,18 +158,18 @@ void init()
 
   g_framebufferTextureId = gloost::TextureManager::get()->addTexture(texture);
 
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_BASE_LEVEL, 0);
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
-  gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId)->initInContext();
+  texture->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  texture->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  texture->setTexParameter(GL_TEXTURE_BASE_LEVEL, 0);
+  texture->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
+  texture->initInContext();
 
   g_camera = new gloost::PerspectiveCamera(65.0,
                                            (float)g_screenWidth/(float)g_screenHeight,
                                            0.01,
                                            20.0);
 
-  float xmax = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0) * g_camera->getAspect();
+  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0) * g_camera->getAspect();
   g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
 
@@ -177,14 +181,29 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1024/*MB*/ * 1024 * 1024,
+                                                      1200/*MB*/ * 1024 * 1024,
                                                       g_context);
+
 
   // creates the incore ClBuffer
   g_clMemoryManager->initClBuffer();
 
   // assign incore buffer to kernel argument
   g_context->setKernelArgBuffer("renderToBuffer", 1, g_clMemoryManager->getClIncoreBufferGid());
+
+
+
+  // analyse pass init
+
+  static float analyseScale = 4.0f;
+
+  g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
+                                                   g_bufferWidth/analyseScale,
+                                                   g_bufferHeight/analyseScale,
+                                                   g_tScaleRatio*analyseScale);
+
+
+
 
 }
 
@@ -194,15 +213,20 @@ void init()
 
 void initCl()
 {
-  // opencl init
-  gloost::bencl::ocl::init();
-
-//  std::cerr << std::endl << "Platforms: " << gloost::bencl::ocl::getPlatformsAsString();
-
-  g_context = new gloost::bencl::ClContext(0);
 
   // change Device here!
   g_deviceGid = 0;
+
+  // change context here
+  g_contextGid = 0;
+
+  // opencl init
+  gloost::bencl::ocl::init();
+
+  std::cerr << std::endl << gloost::bencl::ocl::getPlatformsAsString();
+
+  g_context = new gloost::bencl::ClContext(g_contextGid);
+
 
   g_context->acquireDevice(g_deviceGid);
   g_context->createContextClFromGlContext();
@@ -308,11 +332,10 @@ void frameStep()
     // start raycasting
     const gloost::Frustum& frustum = g_camera->getFrustum();
 
-    gloost::Vector3 frustumH_vec         = frustum.far_lower_right - frustum.far_lower_left;
-    gloost::Vector3 frustumOnePixelWidth = frustumH_vec/g_bufferWidth;
+    gloost::Vector3 frustumH_vec          = frustum.far_lower_right - frustum.far_lower_left;
+    gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/g_bufferWidth;
     gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
     gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
-
 
     g_context->setKernelArgFloat4("renderToBuffer", 2, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
     g_context->setKernelArgFloat4("renderToBuffer", 3, frustumOnePixelWidth);
@@ -483,6 +506,8 @@ void resize(int width, int height)
 
 void key(int key, int state)
 {
+
+
   if (state)
   {
 
@@ -495,9 +520,19 @@ void key(int key, int state)
         cleanup();
         exit(0);
         break;
-      case 'Q':
-        cleanup();
-        exit(0);
+
+      case 'B':
+        {
+
+        static unsigned treeletid = 1;
+        unsigned plusplus = treeletid+50;
+        for (; treeletid!=plusplus; ++treeletid)
+        {
+          g_clMemoryManager->insertTreeletIntoIncoreBuffer(treeletid);
+        }
+        g_clMemoryManager->updateDeviceMemory();
+        g_frameDirty = true;
+        }
         break;
 
       case 'H':

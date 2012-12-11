@@ -446,7 +446,7 @@ getColor(unsigned attribPos,
 inline float4
 shade_iterationDepth(const SampleResult* result)
 {
-  const float value =  1.0f - result->numWhileLoops/300.0f;
+  const float value =  1.0f - result->numWhileLoops/200.0f;
 
   return (float4)( value,
                    value,
