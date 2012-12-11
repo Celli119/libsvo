@@ -87,7 +87,8 @@ class TreeletMemoryManager
     // updates device memory by uploading incore buffer slots
     virtual void updateDeviceMemory();
 
-
+    // inserts a Treelet into the gpu buffer
+    bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
 
 
 	protected:
@@ -112,9 +113,6 @@ class TreeletMemoryManager
 
     // inits the incoreBuffer
     void initIncoreBuffer();
-
-    // inserts a Treelet into the gpu buffer
-    bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
 
 
     // marks a incore slot to be uploaded to device memory

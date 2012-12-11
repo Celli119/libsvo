@@ -285,7 +285,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   // calculate where to put the Treelet
   unsigned incoreNodePosition = freeSlotGid*_numNodesPerTreelet;
 
-#if 0
+#if 1
   std::cerr << std::endl << "Adding: " << treeletGid
             << " into slot " << freeSlotGid
             << ", at node " << incoreNodePosition;

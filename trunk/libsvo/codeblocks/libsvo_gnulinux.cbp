@@ -90,6 +90,8 @@
 		<Unit filename="../../src/CpuSvoNode.h" />
 		<Unit filename="../../src/ImageToPointcloud.cpp" />
 		<Unit filename="../../src/ImageToPointcloud.h" />
+		<Unit filename="../../src/RenderPassAnalyse.cpp" />
+		<Unit filename="../../src/RenderPassAnalyse.h" />
 		<Unit filename="../../src/SvoLoader.cpp" />
 		<Unit filename="../../src/SvoLoader.h" />
 		<Unit filename="../../src/Treelet.cpp" />

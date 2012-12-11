@@ -134,6 +134,8 @@ void
 TreeletMemoryManagerCl::updateDeviceMemory()
 {
   // collect incore buffer ranges to upload
+  gloost::bencl::ClBuffer* incoreClBuffer = _clContext->getClBuffer(_svoClBufferGid);
+  gloost::bencl::ClDevice* device         = _clContext->getDevice(0);
 
   std::set<gloost::gloostId>::iterator slotGidIt    = _incoreSlotsToUpload.begin();
   std::set<gloost::gloostId>::iterator slotGidEndIt = _incoreSlotsToUpload.end();
@@ -143,19 +145,39 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     unsigned srcIndex   = (*slotGidIt)*_numNodesPerTreelet;
     unsigned destOffset = (*slotGidIt)*getTreeletSizeInByte();
 
-    gloost::bencl::ClBuffer* incoreClBuffer = _clContext->getClBuffer(_svoClBufferGid);
-    gloost::bencl::ClDevice* device         = _clContext->getDevice(0);
+    std::cerr << std::endl;
+    std::cerr << std::endl << "  -> Uploading:  " << (*slotGidIt);
+    std::cerr << std::endl << "     srcIndex:   " << srcIndex;
+    std::cerr << std::endl << "     destOffset: " << destOffset;
+    std::cerr << std::endl << "     size:       " << getTreeletSizeInByte();
 
-    incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
-                                  true,
-                                  destOffset,
-                                  getTreeletSizeInByte(),
-                                  _incoreBuffer[srcIndex])
 
+    int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
+                                                true,
+                                                destOffset,
+                                                getTreeletSizeInByte(),
+                                                (const char*)&(_incoreBuffer[srcIndex]));
+    std::cerr << std::endl << "     status: " << status;
+
+    clFinish( device->getClCommandQueue() );
   }
+  _incoreSlotsToUpload.clear();
+}
 
 
+////////////////////////////////////////////////////////////////////////////////
 
+
+/**
+  \brief   returns the ClContext
+  \remarks ...
+*/
+
+/*virtual*/
+gloost::bencl::ClContext*
+TreeletMemoryManagerCl::getContext()
+{
+  return _clContext;
 }
 
 

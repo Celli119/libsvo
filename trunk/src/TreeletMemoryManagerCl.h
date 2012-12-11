@@ -86,6 +86,10 @@ class TreeletMemoryManagerCl: public TreeletMemoryManager
     virtual void updateDeviceMemory();
 
 
+    // returns the ClContext
+    gloost::bencl::ClContext* getContext();
+
+
 
 	protected:
 
