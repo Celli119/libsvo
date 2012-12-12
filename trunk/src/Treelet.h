@@ -29,17 +29,17 @@
 
 #define SVO_EMPTY_ATTRIB_POS 999999999
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/Matrix.h>
 #include <gloost/Mesh.h>
 
 
-/// svo includes
+// svo includes
 #include <CpuSvoNode.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <map>
 #include <vector>
@@ -54,7 +54,7 @@ namespace gloost
 namespace svo
 {
 
-  /// struct contains the triangle id and u,v coordinates for an leaf voxel
+  // struct contains the triangle id and u,v coordinates for an leaf voxel
   struct DiscreteSample
   {
     DiscreteSample(unsigned primitiveId,
@@ -81,7 +81,7 @@ class Treelet
 {
 	public:
 
-    ///
+    //
     struct QueueElement
     {
       QueueElement():
@@ -99,12 +99,12 @@ class Treelet
         _primitiveIds.clear();
       }
 
-      unsigned              _localLeafIndex;         /// absolute local index of the node within the serial structure
-      char                  _idx;                    /// index 0...7 of the node within its parent
-      unsigned              _parentLocalNodeIndex;   /// index of the nodes parent within the serial structure
-      unsigned              _depth;                  /// depth of the node within this treelet
-      gloost::Matrix        _aabbTransform;          /// transformation of the AABB/voxel
-      std::vector<unsigned> _primitiveIds;           /// primitive ids of all primitives contributing to this node
+      unsigned              _localLeafIndex;         // absolute local index of the node within the serial structure
+      char                  _idx;                    // index 0...7 of the node within its parent
+      unsigned              _parentLocalNodeIndex;   // index of the nodes parent within the serial structure
+      unsigned              _depth;                  // depth of the node within this treelet
+      gloost::Matrix        _aabbTransform;          // transformation of the AABB/voxel
+      std::vector<unsigned> _primitiveIds;           // primitive ids of all primitives contributing to this node
     };
 
     typedef std::vector< std::vector<DiscreteSample> > SampleListVector;

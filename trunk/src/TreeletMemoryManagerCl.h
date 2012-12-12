@@ -34,12 +34,12 @@
 #include <TreeletMemoryManager.h>
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/bencl/ClContext.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <vector>
 #include <stack>

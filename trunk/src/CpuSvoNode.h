@@ -29,23 +29,23 @@
 
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 #include <gloost/UniformTypes.h>
 #include <gloost/BitMask.h>
 
 
-/// svo system includes
+// svo system includes
 #include <BitMask8.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 
 #define SVO_CPUSVONODE_OFFSET_LEAFMASK  0
 #define SVO_CPUSVONODE_OFFSET_VALIDMASK 8
-#define SVO_CPUSVONODE_NODE_SIZE        8  /// size of a node in byte
+#define SVO_CPUSVONODE_NODE_SIZE        8  // size of a node in byte
 
 
 namespace svo

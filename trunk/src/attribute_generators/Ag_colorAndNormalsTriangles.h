@@ -29,16 +29,16 @@
 
 
 
-/// svo system includes
+// svo system includes
 #include <attribute_generators/AttributeGenerator.h>
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 
 

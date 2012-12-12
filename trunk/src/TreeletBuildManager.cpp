@@ -24,7 +24,7 @@
 
 
 
-/// libsvo system includes
+// libsvo system includes
 #include <TreeletBuildManager.h>
 #include <Treelet.h>
 #include <TreeletBuilderFromFaces.h>
@@ -36,7 +36,7 @@
 #include <gloost/BinaryFile.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <iostream>
 
@@ -55,7 +55,7 @@ namespace svo
   \remarks ...
 */
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -71,7 +71,7 @@ TreeletBuildManager::TreeletBuildManager():
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -88,7 +88,7 @@ TreeletBuildManager::~TreeletBuildManager()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -166,9 +166,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
     Treelet* parentTreelet = treeletsWithSubTreeletsQueue.front();
     treeletsWithSubTreeletsQueue.pop();
 
-    std::cerr << std::endl;
-    std::cerr << std::endl << "Treelet global queue size: " << treeletsWithSubTreeletsQueue.size();
-    std::cerr << std::endl;
 
     // Build Sub-Treelets
     std::vector<Treelet::QueueElement>& parentQueueElements = parentTreelet->getLeafQueueElements();
@@ -178,12 +175,24 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
     for (unsigned i=0; i!=numSubTreelets; ++i)
     {
+
+#ifdef SVO_BUILDING_VERBOSE
       std::cerr << std::endl;
       std::cerr << std::endl << "################################################";
       std::cerr << std::endl;
       std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
       std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
+#else
+      if (i%1000 == 0)
+      {
+        std::cerr << std::endl;
+        std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
+        std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
+        std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
+      }
+
+#endif
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
@@ -241,7 +250,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -284,7 +293,7 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -300,7 +309,7 @@ TreeletBuildManager::getTreelet(gloost::gloostId id)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 

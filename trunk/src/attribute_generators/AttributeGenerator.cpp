@@ -1,5 +1,5 @@
 //
-///*
+//*
 //                       ___                            __
 //                      /\_ \                          /\ \__
 //                   __ \//\ \     ___     ___     ____\ \  _\
@@ -24,17 +24,17 @@
 //
 //
 //
-///// svo system includes
+//// svo system includes
 //#include <attribute_generators/AttributeGenerator.h>
 //
-//// gloost includes
+/// gloost includes
 //#include <gloost/Mesh.h>
 //#include <gloost/ObjMatFile.h>
 //#include <gloost/TextureManager.h>
 //#include <gloost/InterleavedAttributes.h>
 //
 //
-///// cpp includes
+//// cpp includes
 //#include <string>
 //#include <iostream>
 //
@@ -43,7 +43,7 @@
 //namespace svo
 //{
 //
-///**
+//**
 //  \class   AttributeGenerator
 //
 //  \brief   A class template because I'm to lazy to write a class from scretch
@@ -53,10 +53,10 @@
 //  \remarks Lazy mans way to create a new class ;-)
 //*/
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   Class constructor
 //  \remarks ...
 //*/
@@ -69,10 +69,10 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   Class destructor
 //  \remarks ...
 //*/
@@ -90,10 +90,10 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   returns a vector of texture ids, textures containing serialized attribute data
 //  \remarks ...
 //*/
@@ -105,10 +105,10 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief generates attributes for inner nodes by averaging child attribs
 //  \param node root node of the (sub)tree
 //  \remarks ...
@@ -137,7 +137,7 @@
 //
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
 //

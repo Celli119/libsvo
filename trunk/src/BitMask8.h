@@ -34,11 +34,11 @@
 
 
 
-/// gloost system includes
+// gloost system includes
 
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 
 
@@ -47,55 +47,55 @@ namespace svo
 {
 
 
-  ///  BitMask to hold 8 flags (0..7)
+  //  BitMask to hold 8 flags (0..7)
 
 class BitMask8
 {
 	public:
 
-    /// class constructor
+    // class constructor
     BitMask8();
 
-    /// class constructor
+    // class constructor
     BitMask8(unsigned char value);
 
-    /// class constructor
+    // class constructor
     BitMask8(const BitMask8& bitMask);
 
-    /// class destructor
+    // class destructor
 	  ~BitMask8();
 
 
-	  /// returns true if position of the Bitask is enabled
+	  // returns true if position of the Bitask is enabled
 	  bool getFlag(unsigned int flagPosition) const;
 
-	  /// set flags 0..7 of this BitMask
+	  // set flags 0..7 of this BitMask
 	  void setFlag(unsigned int flagPosition, bool value = true);
 
 
-	  ///  set flags 0..7 of this BitMask on more than one flag positions
+	  //  set flags 0..7 of this BitMask on more than one flag positions
 	  void setFlags(const BitMask8& positions, bool value = true);
 
-	  ///  set all flags 0..7 of this BitMask on all positions to value
+	  //  set all flags 0..7 of this BitMask on all positions to value
 	  void setFlags(bool value = 1);
 
 
-	  /// invert the BitMask
+	  // invert the BitMask
 	  void invert();
 
-	  /// returns a inverted version of this BitMask
+	  // returns a inverted version of this BitMask
 	  BitMask8 inverted() const;
 
 
-	  /// returns the value of the mask as unsigned int
+	  // returns the value of the mask as unsigned int
 	  unsigned char getValue() const;
 
 
-	  /// returns true if at least one flag in mask is identical to this one
+	  // returns true if at least one flag in mask is identical to this one
 	  bool operator&(const BitMask8& mask) const;
 
 
-	  /// assigns a unsigned int value
+	  // assigns a unsigned int value
 	  unsigned int operator=(unsigned int value);
 
 
@@ -108,7 +108,7 @@ class BitMask8
 
 
 
-/// ostream operator
+// ostream operator
 extern std::ostream& operator<< (std::ostream&, const BitMask8& bitMask);
 
 

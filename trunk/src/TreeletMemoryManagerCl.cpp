@@ -24,7 +24,7 @@
 
 
 
-/// libsvo system includes
+// libsvo system includes
 #include <TreeletMemoryManagerCl.h>
 #include <Treelet.h>
 #include <TreeletBuilderFromFaces.h>
@@ -36,7 +36,7 @@
 #include <gloost/BinaryFile.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <iostream>
 
@@ -55,7 +55,7 @@ namespace svo
   \remarks ...
 */
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -75,7 +75,7 @@ TreeletMemoryManagerCl::TreeletMemoryManagerCl(const std::string& svoFilePath,
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -89,7 +89,7 @@ TreeletMemoryManagerCl::~TreeletMemoryManagerCl()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -106,7 +106,7 @@ TreeletMemoryManagerCl::initClBuffer()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -121,7 +121,7 @@ TreeletMemoryManagerCl::getClIncoreBufferGid() const
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -145,19 +145,22 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     unsigned srcIndex   = (*slotGidIt)*_numNodesPerTreelet;
     unsigned destOffset = (*slotGidIt)*getTreeletSizeInByte();
 
+    int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
+                                                false,
+                                                destOffset,
+                                                getTreeletSizeInByte(),
+                                                (const char*)&(_incoreBuffer[srcIndex]));
+
+#if 0
     std::cerr << std::endl;
     std::cerr << std::endl << "  -> Uploading:  " << (*slotGidIt);
     std::cerr << std::endl << "     srcIndex:   " << srcIndex;
     std::cerr << std::endl << "     destOffset: " << destOffset;
     std::cerr << std::endl << "     size:       " << getTreeletSizeInByte();
 
-
-    int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
-                                                true,
-                                                destOffset,
-                                                getTreeletSizeInByte(),
-                                                (const char*)&(_incoreBuffer[srcIndex]));
     std::cerr << std::endl << "     status: " << status;
+#endif
+
 
     clFinish( device->getClCommandQueue() );
   }
@@ -165,7 +168,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -181,7 +184,7 @@ TreeletMemoryManagerCl::getContext()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 

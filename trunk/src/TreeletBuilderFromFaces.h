@@ -29,12 +29,12 @@
 
 
 
-/// svo system includes
+// svo system includes
 #include <Treelet.h>
 #include <BuilderTriangleFace.h>
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 #include <gloost/Mesh.h>
@@ -43,7 +43,7 @@
 #include <gloost/MatrixStack.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <queue>
 
