@@ -6,19 +6,19 @@
 
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
-//#include <gloost/gloostMath.h>
+#include <gloost/Matrix.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <vector>
 
 
 namespace gloost
 {
-
+  class PerspectiveCamera;
 
 }
 
@@ -49,18 +49,21 @@ class RenderPassAnalyse
 	  };
 
 
-
     // class constructor
-    RenderPassAnalyse(TreeletMemoryManagerCl* memoryManager,
-                      unsigned bufferWidth,
-                      unsigned bufferHeight,
-                      float    tScaleRatio);
+    RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
+                       unsigned bufferWidth,
+                       unsigned bufferHeight);
 
     // class destructor
 	  virtual ~RenderPassAnalyse();
 
 	  // get
 
+
+	  // performs the analyse pass
+	  void performAnalysePass(gloost::PerspectiveCamera* camera,
+                            const gloost::Matrix&      modelMatrix,
+                            float                      tScaleRatio);
 
 
 
@@ -71,10 +74,8 @@ class RenderPassAnalyse
    unsigned                _bufferWidth;
    unsigned                _bufferHeight;
 
-   float                   _tScaleRatio;
-
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
-   gloost::gloostId                 _feedbackBufferTextureGid;
+   gloost::gloostId                 _feedbackBufferGid;
 
 	private:
 

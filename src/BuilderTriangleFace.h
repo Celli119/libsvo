@@ -29,12 +29,12 @@
 
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/gloostConfig.h>
 #include <gloost/gloostMath.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 
 

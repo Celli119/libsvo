@@ -199,8 +199,7 @@ void init()
 
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
                                                    g_bufferWidth/analyseScale,
-                                                   g_bufferHeight/analyseScale,
-                                                   g_tScaleRatio*analyseScale);
+                                                   g_bufferHeight/analyseScale);
 
 
 
@@ -319,6 +318,8 @@ void frameStep()
     g_frameDirty = true;
   }
 
+  gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
+
 
   if (g_raycastEveryFrame || g_frameDirty)
   {
@@ -341,7 +342,7 @@ void frameStep()
     g_context->setKernelArgFloat4("renderToBuffer", 3, frustumOnePixelWidth);
     g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelHeight);
     g_context->setKernelArgFloat4("renderToBuffer", 5, frustum.far_lower_left);
-    g_context->setKernelArgFloat4("renderToBuffer", 6, g_modelOffset + g_camera->getPosition());
+    g_context->setKernelArgFloat4("renderToBuffer", 6, modelMatrix * g_camera->getPosition());
     g_context->setKernelArgFloat4("renderToBuffer", 7, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
     g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
@@ -525,7 +526,7 @@ void key(int key, int state)
         {
 
         static unsigned treeletid = 1;
-        unsigned plusplus = treeletid+50;
+        unsigned plusplus = treeletid+20000;
         for (; treeletid!=plusplus; ++treeletid)
         {
           g_clMemoryManager->insertTreeletIntoIncoreBuffer(treeletid);

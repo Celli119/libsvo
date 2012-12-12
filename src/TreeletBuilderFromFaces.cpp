@@ -24,18 +24,18 @@
 
 
 
-/// svo system includes
+// svo system includes
 #include <TreeletBuilderFromFaces.h>
 #include <Treelet.h>
 //#include <BuilderTriangleFace.h>
 
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/TextureManager.h>
 #include <gloost/MatrixStack.h>
 
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <iostream>
 #include <boost/thread.hpp>
@@ -56,7 +56,7 @@ namespace svo
   \remarks
 */
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -75,7 +75,7 @@ TreeletBuilderFromFaces::TreeletBuilderFromFaces(unsigned maxDepth,
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -89,7 +89,7 @@ TreeletBuilderFromFaces::~TreeletBuilderFromFaces()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -135,7 +135,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -155,12 +155,16 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treel
   std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
   std::vector<gloost::vec4>&         colors    = mesh->getColors();
 
+
+#ifdef SVO_BUILDING_VERBOSE
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
   std::cerr << std::endl << "             Building Octree from triangle faces:";
   std::cerr << std::endl << "               max size       " << _treelet->getMemSize() << " byte";
   std::cerr << std::endl << "               num triangles: " << initialQueueElement._primitiveIds.size();
   std::cerr << std::endl;
+#endif
+
 
   // choose all primitives as relevant
 
@@ -181,7 +185,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treel
   buildFromQueue();
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -207,12 +211,15 @@ TreeletBuilderFromFaces::buildFromQueue()
   // as long there is space within this treelet
   while (_queue.size() && (currentNodeIndex < _treelet->getNodes().size()-7) )
   {
+
+#ifdef SVO_BUILDING_VERBOSE
     whileCounter++;
     if (whileCounter % 100000 == 0)
     {
       std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getNodes().size())*100) << " %"
                              << " ( leaf count: " << _queue.size() << " )";
     }
+#endif
 
     const Treelet::QueueElement& parentQueuedElement = _queue.front();
     std::vector<Treelet::QueueElement> _childQueueElements(8);
@@ -327,8 +334,11 @@ TreeletBuilderFromFaces::buildFromQueue()
      Copy all QueueElements to the Treelets _leafQueueElements so that sub-Treelets
      can be build from them :-)
   */
+
+#ifdef SVO_BUILDING_VERBOSE
   std::cerr << std::endl;
   std::cerr << std::endl << "  -> Finishing Treelet with leaf count: " << _queue.size();
+#endif
 
   _treelet->setNumNodes((int)currentNodeIndex-1);
   _treelet->setNumLeaves(_queue.size());
@@ -358,15 +368,16 @@ TreeletBuilderFromFaces::buildFromQueue()
     _queue.pop();
   }
 
+#ifdef SVO_BUILDING_VERBOSE
   std::cerr << std::endl << "       leafes with depth < maxDepth: " << treeletLeafQueueElements.size();
   std::cerr << std::endl << "       min leaf depth                " << minLeafDepth;
   std::cerr << std::endl << "       max leaf depth                " << maxLeafDepth;
-
+#endif
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
 
 
 

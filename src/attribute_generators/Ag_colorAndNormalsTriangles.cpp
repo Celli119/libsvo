@@ -1,5 +1,5 @@
 //
-///*
+//*
 //                       ___                            __
 //                      /\_ \                          /\ \__
 //                   __ \//\ \     ___     ___     ____\ \  _\
@@ -24,19 +24,19 @@
 //
 //
 //
-///// svo system includes
+//// svo system includes
 //#include <attribute_generators/Ag_colorAndNormalsTriangles.h>
 //#include <SvoBranch.h>
 //#include <BuilderTriangleFace.h>
 //
-//// gloost includes
+/// gloost includes
 //#include <gloost/Mesh.h>
 //#include <gloost/ObjMatFile.h>
 //#include <gloost/InterleavedAttributes.h>
 //#include <gloost/BinaryBundle.h>
 //
 //
-///// cpp includes
+//// cpp includes
 //#include <string>
 //#include <iostream>
 //
@@ -45,7 +45,7 @@
 //namespace svo
 //{
 //
-///**
+//**
 //  \class   Ag_colorAndNormalsTriangles
 //
 //  \brief   Retrieves colors and normals from Triangles of a Mesh
@@ -55,10 +55,10 @@
 //  \remarks ....
 //*/
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   Class constructor
 //  \remarks ...
 //*/
@@ -76,10 +76,10 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   Class destructor
 //  \remarks ...
 //*/
@@ -89,9 +89,9 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
-///**
+//**
 //  \brief   ...
 //  \remarks ...
 //*/
@@ -108,7 +108,7 @@
 //  std::cerr << std::endl << "  Num of leaves:        " << svo->getNumLeaves();
 //
 //
-////  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
+///  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
 //
 //  _attributes[0]->dropReference();
 //	_attributes[0] = new gloost::InterleavedAttributes();
@@ -152,10 +152,10 @@
 //    _attributes[0]->getVector()[packageIndex+5] = color[2];
 //	}
 //
-////	if (freeDiscreteSamplesAfterwards)
-////	{
-////	  svo->clearDiscreteSamples();
-////	}
+///	if (freeDiscreteSamplesAfterwards)
+///	{
+///	  svo->clearDiscreteSamples();
+///	}
 //
 //
 //  std::cerr << std::endl;
@@ -167,15 +167,15 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   generates the attributes for one partucular node
 //  \remarks ...
 //*/
 //
-///*virtual*/
+//*virtual*/
 //void
 //Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned depth)
 //{
@@ -250,15 +250,15 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   compresses the attribute buffer and creates a coresponding attribute buffer with the values
 //  \remarks ...
 //*/
 //
-///*virtual*/
+//*virtual*/
 //void
 //Ag_colorAndNormalsTriangles::generateCompressAttributes()
 //{
@@ -324,15 +324,15 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   writes one attribute buffer to a *.ia file
 //  \remarks ...
 //*/
 //
-///*virtual*/
+//*virtual*/
 //bool
 //Ag_colorAndNormalsTriangles::writeAttributeBufferToFile(const std::string& filePath,
 //                                                        unsigned id)
@@ -352,15 +352,15 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
-///**
+//**
 //  \brief   writes one compressed attribute buffer to a *.ia file
 //  \remarks ...
 //*/
 //
-///*virtual*/
+//*virtual*/
 //bool
 //Ag_colorAndNormalsTriangles::writeCompressedAttributeBufferToFile(const std::string& filePath,
 //                                                        unsigned id)
@@ -380,7 +380,7 @@
 //}
 //
 //
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //
 //
 //

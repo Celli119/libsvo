@@ -24,15 +24,17 @@
 
 
 
-/// svo system includes
+// svo system includes
 #include <RenderPassAnalyse.h>
 #include <TreeletMemoryManagerCl.h>
 
-/// gloost system includes
+// gloost system includes
 #include <gloost/TextureManager.h>
 #include <gloost/Texture.h>
+#include <gloost/PerspectiveCamera.h>
+#include <gloost/Frustum.h>
 
-/// cpp includes
+// cpp includes
 #include <string>
 #include <iostream>
 
@@ -51,7 +53,7 @@ namespace svo
   \remarks
 */
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -61,14 +63,12 @@ namespace svo
 
 RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
                                       unsigned bufferWidth,
-                                      unsigned bufferHeight,
-                                      float    tScaleRatio):
+                                      unsigned bufferHeight):
     _memoryManager(memoryManager),
     _bufferWidth(bufferWidth),
     _bufferHeight(bufferHeight),
-    _tScaleRatio(tScaleRatio),
     _hostSideFeedbackBuffer(),
-    _feedbackBufferTextureGid(0)
+    _feedbackBufferGid(0)
 {
 
 
@@ -82,33 +82,15 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
   std::cerr << std::endl << "  height: " << _bufferHeight;
   std::cerr << std::endl;
 
-  gloost::Texture* texture = new gloost::Texture( _bufferWidth,
-                                                  _bufferHeight,
-                                                  1,
-                                                  (unsigned char*)&_hostSideFeedbackBuffer.front(),
-                                                  8,
-                                                  GL_TEXTURE_2D,
-                                                  GL_LUMINANCE_ALPHA32F_ARB,
-                                                  GL_LUMINANCE_ALPHA,
-                                                  GL_FLOAT);
-
-  _feedbackBufferTextureGid = gloost::TextureManager::get()->addTexture(texture);
-
-  texture->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  texture->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  texture->setTexParameter(GL_TEXTURE_BASE_LEVEL, 0);
-  texture->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
-  texture->initInContext();
-
-  gloost::gloostId renderBufferGid = memoryManager->getContext()->createClImage(CL_MEM_WRITE_ONLY,
-                                                                                texture->getTarget(),
-                                                                                texture->getTextureHandle());
+	_feedbackBufferGid = _memoryManager->getContext()->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_WRITE_ONLY,
+                                                                   (unsigned char*)&_hostSideFeedbackBuffer.front(),
+                                                                    _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
 
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 /**
@@ -118,29 +100,51 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
 
 RenderPassAnalyse::~RenderPassAnalyse()
 {
-	// insert your code here
+	_memoryManager->getContext()->removeBuffer(_feedbackBufferGid);
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
-///**
-//  \brief   Inits the RenderPassAnalyse
-//  \param   ...
-//  \remarks ...
-//*/
-//
-//void
-//RenderPassAnalyse::init()
-//{
-//	// insert your code here
-//}
+/**
+  \brief   performs the analyse pass
+  \param   ...
+  \remarks ...
+*/
+
+void
+RenderPassAnalyse::performAnalysePass(gloost::PerspectiveCamera* camera,
+                                      const gloost::Matrix&      modelMatrix,
+                                      float                      tScaleRatio)
+{
+  // start raycasting for analysis
+  const gloost::Frustum& frustum = camera->getFrustum();
+
+  gloost::Vector3 frustumH_vec          = frustum.far_lower_right - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/_bufferWidth;
+  gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelHeight = frustumV_vec/_bufferHeight;
+
+  gloost::bencl::ClContext* clContext = _memoryManager->getContext();
+
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustum.far_lower_left);
+//  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix + camera->getPosition());
+//  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 7, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+
+  clContext->enqueueKernel(0,
+                           "renderToFeedbackBuffer",
+                           2u,
+                           gloost::Vector3(_bufferWidth, _bufferHeight, 1),
+                           true,
+                           gloost::Vector3(8, 8, 0));
+}
 
 
-
-
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 
