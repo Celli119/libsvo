@@ -182,7 +182,7 @@ BuilderTriangleFace::intersectAABB(const gloost::BoundingBox& aabb) const
                             {(float)_pos1[0], (float)_pos1[1], (float)_pos1[2]},
                             {(float)_pos2[0], (float)_pos2[1], (float)_pos2[2]}};
 
-  return (bool) triBoxOverlap(boxcenter, boxhalfsize, triverts);
+  return triBoxOverlap(boxcenter, boxhalfsize, triverts);
 }
 
 

@@ -48,7 +48,7 @@ unsigned int g_frameCounter = 0;
 
 #include <gloost/TextureText.h>
 gloost::TextureText* g_texter = 0;
-double g_timePerFrame         = 0;
+double g_timePerFrame         = 0.0;
 
 std::string g_gloostFolder = "../../gloost/";
 std::string g_dataPath     = "../data/";
@@ -58,21 +58,22 @@ std::string g_dataPath     = "../data/";
 gloost::Mouse g_mouse;
 
 #include <gloost/PerspectiveCamera.h>
-gloost::PerspectiveCamera*   g_camera                = 0;;
-float                        g_tScaleRatio           = 1.0;
-int                          g_tScaleRatioMultiplyer = 1.0;
+gloost::PerspectiveCamera*   g_camera                = 0;
+float                        g_tScaleRatio           = 1.0f;
+int                          g_tScaleRatioMultiplyer = 1;
 
 
 gloost::Point3 g_modelOffset;
-float          g_cameraRotateY  = 0;
-float          g_cameraRotateX  = 0;
-float          g_cameraDistance = 1.0;
+float          g_cameraRotateY  = 0.0f;
+float          g_cameraRotateX  = 0.0f;
+float          g_cameraDistance = 1.0f;
 
 // SVO
 #include <TreeletMemoryManagerCl.h>
-svo::TreeletMemoryManagerCl* g_clMemoryManager = 0;
+svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
-svo::RenderPassAnalyse*      g_renderPassAnalyse = 0;
+svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
+const float                  g_fbToAnalyseBufferDevide = 2.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -130,8 +131,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
-  const std::string svoBaseName  = "oil_rig.svo";
+  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
+//  const std::string svoBaseName  = "oil_rig.svo";
 
 
 
@@ -181,7 +182,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1200/*MB*/ * 1024 * 1024,
+                                                      1024/*MB*/ * 1024 * 1024,
                                                       g_context);
 
 
@@ -195,11 +196,9 @@ void init()
 
   // analyse pass init
 
-  static float analyseScale = 4.0f;
-
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
-                                                   g_bufferWidth/analyseScale,
-                                                   g_bufferHeight/analyseScale);
+                                                   g_bufferWidth/g_fbToAnalyseBufferDevide,
+                                                   g_bufferHeight/g_fbToAnalyseBufferDevide);
 
 
 
@@ -328,6 +327,18 @@ void frameStep()
                                    cos(g_cameraRotateY)).normalized() * g_cameraDistance,
                                    gloost::Point3(0.0f, 0.0f, 0.0f),
                                    gloost::Vector3(0.0f, 1.0f, 0.0f));
+
+    // run analyse render pass
+    g_renderPassAnalyse->performAnalysePass(g_deviceGid,
+                                            g_camera,
+                                            modelMatrix,
+                                            g_tScaleRatio*g_fbToAnalyseBufferDevide);
+
+
+
+
+
+
 
 
     // start raycasting
@@ -526,7 +537,7 @@ void key(int key, int state)
         {
 
         static unsigned treeletid = 1;
-        unsigned plusplus = treeletid+20000;
+        unsigned plusplus = treeletid+2000;
         for (; treeletid!=plusplus; ++treeletid)
         {
           g_clMemoryManager->insertTreeletIntoIncoreBuffer(treeletid);

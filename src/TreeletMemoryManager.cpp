@@ -264,6 +264,16 @@ TreeletMemoryManager::initIncoreBuffer()
 bool
 TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 {
+
+  // test if Treelet is allready in incore buffer
+
+  std::map<gloost::gloostId, gloost::gloostId>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
+  if (pos != _treeletGidToSlotGidMap.end() &&  (*pos).second != 0)
+  {
+    return false;
+  }
+
+
   if (!_freeIncoreSlots.size() || treeletGid >= _treelets.size())
   {
 //    std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";

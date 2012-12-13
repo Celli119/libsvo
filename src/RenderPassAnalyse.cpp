@@ -68,7 +68,8 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _bufferWidth(bufferWidth),
     _bufferHeight(bufferHeight),
     _hostSideFeedbackBuffer(),
-    _feedbackBufferGid(0)
+    _feedbackBufferGid(0),
+    _visibleTreelets()
 {
 
 
@@ -114,7 +115,8 @@ RenderPassAnalyse::~RenderPassAnalyse()
 */
 
 void
-RenderPassAnalyse::performAnalysePass(gloost::PerspectiveCamera* camera,
+RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
+                                      gloost::PerspectiveCamera* camera,
                                       const gloost::Matrix&      modelMatrix,
                                       float                      tScaleRatio)
 {
@@ -127,20 +129,44 @@ RenderPassAnalyse::performAnalysePass(gloost::PerspectiveCamera* camera,
   gloost::Vector3 frustumOnePixelHeight = frustumV_vec/_bufferHeight;
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
-
+  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 0,  _feedbackBufferGid);
+  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 1,  _memoryManager->getClIncoreBufferGid());
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustum.far_lower_left);
-//  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix + camera->getPosition());
-//  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 7, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix * camera->getPosition());
 
-  clContext->enqueueKernel(0,
+  clContext->enqueueKernel(deviceGid,
                            "renderToFeedbackBuffer",
                            2u,
                            gloost::Vector3(_bufferWidth, _bufferHeight, 1),
                            true,
                            gloost::Vector3(8, 8, 0));
+
+
+  _memoryManager->getContext()->readFromClBufferToCharPointerComplete(deviceGid,
+                                                                      _feedbackBufferGid,
+                                                                      (unsigned char*)&_hostSideFeedbackBuffer.front(),
+                                                                      true);
+
+  for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
+  {
+
+    if (_hostSideFeedbackBuffer[i]._first)
+    {
+//      std::cerr << std::endl << "######: " << i;
+//      std::cerr << std::endl << "_first:  " << _hostSideFeedbackBuffer[i]._first;
+//      std::cerr << std::endl << "_second: " << _hostSideFeedbackBuffer[i]._second;
+      _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._first);
+    }
+  }
+
+  std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+
+  _visibleTreelets.clear();
+
+
 }
 
 

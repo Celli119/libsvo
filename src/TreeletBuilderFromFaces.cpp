@@ -273,7 +273,7 @@ TreeletBuilderFromFaces::buildFromQueue()
           gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
           bbox.transform(aabbTransform);
 
-          // test this possible leafe with all trinagles
+          // test this possible leafe with all triagles
           for (unsigned tId=0; tId!=parentQueuedElement._primitiveIds.size(); ++tId)
           {
             const BuilderTriangleFace triangle(_mesh, parentQueuedElement._primitiveIds[tId]);
@@ -343,9 +343,12 @@ TreeletBuilderFromFaces::buildFromQueue()
   _treelet->setNumNodes((int)currentNodeIndex-1);
   _treelet->setNumLeaves(_queue.size());
 
+
+
+#ifdef SVO_BUILDING_VERBOSE
   unsigned maxLeafDepth = 0;
   unsigned minLeafDepth = 1000;
-
+#endif
 
   std::vector<Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
 
@@ -356,8 +359,11 @@ TreeletBuilderFromFaces::buildFromQueue()
     // set the leaf flag within leafes parent node
     _treelet->getNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
 
+#ifdef SVO_BUILDING_VERBOSE
     maxLeafDepth = gloost::max(maxLeafDepth, leafQueuedElement._depth);
     minLeafDepth = gloost::min(minLeafDepth, leafQueuedElement._depth);
+#endif
+
 
 #if 1
     if (leafQueuedElement._depth < _maxDepth)
