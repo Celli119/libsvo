@@ -14,6 +14,7 @@
 // cpp includes
 #include <string>
 #include <vector>
+#include <set>
 
 
 namespace gloost
@@ -40,33 +41,32 @@ class RenderPassAnalyse
 	  {
 	    FeedBackDataElement()
 	    {
-	      first  = 0u;
-	      second = 0u;
+	      _first  = 0u;
+	      _second = 0.0f;
 	    }
 
-      unsigned first;
-      unsigned second;
+      unsigned _first;
+      float    _second;
 	  };
 
 
     // class constructor
     RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
-                       unsigned bufferWidth,
-                       unsigned bufferHeight);
+                       unsigned                bufferWidth,
+                       unsigned                bufferHeight);
 
     // class destructor
 	  virtual ~RenderPassAnalyse();
 
-	  // get
 
-
-	  // performs the analyse pass
-	  void performAnalysePass(gloost::PerspectiveCamera* camera,
+	  // performs the analyse pass and read back the feedback buffer
+	  void performAnalysePass(gloost::gloostId           deviceGid,
+                            gloost::PerspectiveCamera* camera,
                             const gloost::Matrix&      modelMatrix,
                             float                      tScaleRatio);
 
 
-
+    std::set<gloost::gloostId>& getVisibleTreelets();
 
 	protected:
 
@@ -76,6 +76,9 @@ class RenderPassAnalyse
 
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
    gloost::gloostId                 _feedbackBufferGid;
+
+   std::set<gloost::gloostId>       _visibleTreelets;
+
 
 	private:
 

@@ -694,6 +694,306 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+//
+typedef struct
+{
+  unsigned _first;
+  float    _second;
+} __attribute__ ( ( aligned ( 8 ) ) ) FeedBackDataElement;
+
+
+//
+typedef struct
+{
+  bool     hit;
+  unsigned nodeIndex;
+  unsigned depth;
+  float    t;
+  unsigned numWhileLoops;
+}/*__attribute__ ( ( aligned ( 20 ) ) )*/ FeedBackDataSample;
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+bool
+sampleAnalyse( __global const SvoNode* svo,
+              float3 rayOrigin,
+              float3 rayDirection,
+              const float tScaleRatio,
+              FeedBackDataSample* sampleResult)
+{
+  sampleResult->numWhileLoops = 0;
+  sampleResult->hit           = false;
+
+  float tMin,tMax;
+  if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax))
+  {
+    return false;
+  }
+
+  const int   scaleMax   = MAX_STACK_SIZE;
+  int         scale      = scaleMax-1;
+  float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
+  const float epsilon    = 0.0001f;
+
+  StackElement stack[MAX_STACK_SIZE];
+
+  // init stack with root node
+  stack[scale].parentNodeIndex = 0;
+  stack[scale].parentTMin      = tMin;
+  stack[scale].parentTMax      = tMax;
+  stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
+
+  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+//  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
+
+  // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
+  float dxReziprok = 1.0f/rayDirection.x;
+  float minusPx_dx = -rayOrigin.x*dxReziprok;
+
+  float dyReziprok = 1.0f/rayDirection.y;
+  float minusPy_dy = -rayOrigin.y*dyReziprok;
+
+  float dzReziprok = 1.0f/rayDirection.z;
+  float minusPz_dz = -rayOrigin.z*dzReziprok;
+
+  float  childSizeHalf;
+
+  StackElement* parent = 0;
+
+  unsigned       whileCounter = 0;
+  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5;
+
+/////////////////// LOOP ///////////////////////////////XS
+
+  while (scale < scaleMax)
+  {
+    ++whileCounter;
+
+    if (whileCounter == maxLoops)
+    {
+      break;
+    }
+
+//    if (!parent)
+//    {
+      parent = &stack[scale];
+      scale_exp2       = pow(2.0f, scale - scaleMax);
+      childSizeHalf    = scale_exp2*0.5f;
+
+
+//    }
+
+    // ### POP if parent is behind the camera
+    if ( parent->parentTMax < 0.0f)
+    {
+      ++scale;
+      parent = 0;
+      continue;
+    }
+
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
+    {
+      // childEntryPoint in parent voxel coordinates
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
+      int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
+                                        + 2*(childEntryPoint.y > 0.0f)
+                                        +   (childEntryPoint.z > 0.0f));
+
+      // childCenter in world coordinates
+      float3 childCenter = (float3)(-0.5f + (bool)(childIdx & 4),
+                                    -0.5f + (bool)(childIdx & 2),
+                                    -0.5f + (bool)(childIdx & 1))*scale_exp2 + parent->parentCenter;
+
+      // tx(x) = (1/dx)x + (-px/dx)
+      // dx...Direction of the Ray in x
+      // px...Origin of the Ray in x
+      float tx0 = dxReziprok*(childCenter.x - childSizeHalf) + minusPx_dx;
+      float tx1 = dxReziprok*(childCenter.x + childSizeHalf) + minusPx_dx;
+      swapToIncreasing(&tx0, &tx1);
+      float ty0 = dyReziprok*(childCenter.y - childSizeHalf) + minusPy_dy;
+      float ty1 = dyReziprok*(childCenter.y + childSizeHalf) + minusPy_dy;
+      swapToIncreasing(&ty0, &ty1);
+      float tz0 = dzReziprok*(childCenter.z - childSizeHalf) + minusPz_dz;
+      float tz1 = dzReziprok*(childCenter.z + childSizeHalf) + minusPz_dz;
+      swapToIncreasing(&tz0, &tz1);
+
+      float tcMin = max(tx0, max(ty0, tz0)); // <- you can only enter once
+      float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
+
+      // if child is valid
+      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
+      {
+        // TERMINATE if voxel is a leaf
+        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
+        {
+          unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
+                                                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                         childIdx);
+          // check if leaf points to another treelet
+//          if (svo[leafIndex]._masks)
+          {
+            // update parent befor push
+//            parent->parentTMin = tcMax;
+
+            // ### WRITE required Treelet Gid
+
+            sampleResult->hit           = true;
+            sampleResult->nodeIndex     = svo[leafIndex]._firstchildIdx; // <- which is the Treelet Gid of the child Treelet
+            sampleResult->depth         = scaleMax-scale;
+            sampleResult->t             = parent->parentTMin;
+            sampleResult->numWhileLoops = whileCounter;
+            return true;
+          }
+
+          // else: return leaf
+
+        }
+        else
+        {
+          // TERMINATE if voxel is small enough
+          if (tScaleRatio*tcMax > scale_exp2)
+          {
+            unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
+                                                                               svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                               childIdx);
+            sampleResult->hit           = false; //true;
+            sampleResult->nodeIndex     = returnchildIdx;
+            sampleResult->depth         = scaleMax-scale+1;
+            sampleResult->t             = parent->parentTMin;
+            sampleResult->numWhileLoops = whileCounter;
+            return false;
+          }
+
+          // update parent befor push
+          parent->parentTMin = tcMax;
+
+          // ### PUSH
+          --scale;
+          stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
+                                                                                  svo[parent->parentNodeIndex]._firstchildIdx,
+                                                                                  childIdx);
+          stack[scale].parentTMin      = tcMin;
+          stack[scale].parentTMax      = tcMax;
+          stack[scale].parentCenter    = childCenter;
+
+          parent = 0;
+          continue;
+        }
+      }
+      else
+      {
+        // ### ADVANCE
+        parent->parentTMin = tcMax;
+      }
+    }
+    else
+    {
+      // POP
+      ++scale;
+      parent = 0;
+      continue;
+    }
+
+  } // while
+
+
+  sampleResult->hit           = false;
+  sampleResult->nodeIndex     = 0;
+  sampleResult->depth         = 0;
+  sampleResult->t             = tMax;
+  sampleResult->numWhileLoops = whileCounter;
+
+
+  return false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+__kernel void
+renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
+                         __global SvoNode*     svo,
+                         const float4          frameBufferSize,
+                         const float4          pixelFarVectorH,
+                         const float4          pixelFarVectorV,
+                         const float4          far_lower_left,
+                         const float4          cameraPosition)
+{
+  const unsigned x = get_global_id(0);
+  const unsigned y = get_global_id(1);
+
+
+  // create ray for this pixel
+  float4 pickPointOnFarPlane = far_lower_left
+                             + (pixelFarVectorH * x)
+                             + (pixelFarVectorV * ((int)frameBufferSize.y - y));
+
+  float4 rayDirection = pickPointOnFarPlane - cameraPosition;
+  rayDirection.w      = 0.0f;
+  rayDirection        = normalize(rayDirection);
+
+  FeedBackDataSample result;
+
+  // primary ray
+  sampleAnalyse(  svo,
+                  cameraPosition.xyz, rayDirection.xyz,
+                  frameBufferSize.z,
+                  &result);
+
+
+  FeedBackDataElement feedBackElemet;
+
+
+  if (result.hit == true)
+  {
+    feedBackElemet._first  = result.nodeIndex;
+    feedBackElemet._second = 0.0;
+  }
+  else
+  {
+    feedBackElemet._first  = 0u;
+    feedBackElemet._second = 0.0f;
+  }
+
+
+  unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
+  feedbackBuffer[frameBufferPosition] = feedBackElemet;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
