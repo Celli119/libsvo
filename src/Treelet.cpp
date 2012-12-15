@@ -458,9 +458,9 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
 */
 
 std::vector<Treelet::QueueElement>&
-Treelet::getLeafQueueElements()
+Treelet::getIncompleteLeafQueueElements()
 {
-  return _leafQueueElements;
+  return _incompleteLeafQueueElements;
 }
 
 

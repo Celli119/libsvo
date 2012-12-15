@@ -66,6 +66,7 @@ class RenderPassAnalyse
                             float                      tScaleRatio);
 
 
+    // returns a std::set of TreeletIds belonging to visible leaves
     std::set<gloost::gloostId>& getVisibleTreelets();
 
 	protected:

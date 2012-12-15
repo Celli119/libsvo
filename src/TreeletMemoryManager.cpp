@@ -85,7 +85,7 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
     _treeletSizeInByte = _treelets[0]->getMemSize();
   }
 
-  initIncoreBuffer();
+  resetIncoreBuffer();
 
 
   // fill up incoreBuffer
@@ -219,8 +219,12 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 */
 
 void
-TreeletMemoryManager::initIncoreBuffer()
+TreeletMemoryManager::resetIncoreBuffer()
 {
+
+  _freeIncoreSlots = std::stack<unsigned>();
+  _treeletGidToSlotGidMap.clear();
+  _incoreSlotsToUpload.clear();
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
@@ -247,8 +251,7 @@ TreeletMemoryManager::initIncoreBuffer()
   {
     _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
   }
-  std::cerr << std::endl;
-
+  markIncoreSlotForUpload(0);
 }
 
 
@@ -273,11 +276,18 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
     return false;
   }
 
+  static bool messageOut = false;
 
   if (!_freeIncoreSlots.size() || treeletGid >= _treelets.size())
   {
-//    std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
-//    std::cerr << std::endl << "             Out of incore slots!";
+
+    if (!messageOut)
+    {
+      std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
+      std::cerr << std::endl << "             Out of incore slots!";
+      messageOut = true;
+    }
+
 
     return false;
     // make place ...
