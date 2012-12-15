@@ -111,7 +111,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
   std::cerr << std::endl << "             Building ROOT Treelet from triangles:";
-  std::cerr << std::endl << "             Max SVO depth: " << maxSvoDepth;
+  std::cerr << std::endl << "             Min SVO depth: " << maxSvoDepth;
   std::cerr << std::endl;
 
 
@@ -151,13 +151,13 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   */
   std::queue<Treelet*> treeletsWithSubTreeletsQueue;
 
-  if (_treelets[0]->getLeafQueueElements().size())
+  if (_treelets[0]->getIncompleteLeafQueueElements().size())
   {
     treeletsWithSubTreeletsQueue.push(_treelets[0]);
   }
 
   unsigned treeletId      = 1u;
-  unsigned queueItemCount = _treelets[0]->getLeafQueueElements().size();
+  unsigned queueItemCount = _treelets[0]->getIncompleteLeafQueueElements().size();
 
 
   while(treeletsWithSubTreeletsQueue.size())
@@ -168,7 +168,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
 
     // Build Sub-Treelets
-    std::vector<Treelet::QueueElement>& parentQueueElements = parentTreelet->getLeafQueueElements();
+    std::vector<Treelet::QueueElement>& parentQueueElements = parentTreelet->getIncompleteLeafQueueElements();
     unsigned numSubTreelets = parentQueueElements.size();
     _treelets.resize(numSubTreelets+_treelets.size(), 0);
 
@@ -184,12 +184,16 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
       std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
 #else
-      if (i%1000 == 0)
+      if (treeletId%1000 == 0)
       {
+        float completeRatio = (float)treeletId/queueItemCount * 100.0;
+
         std::cerr << std::endl;
         std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
-        std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
-        std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
+        std::cerr << std::endl << "            Building Treelet:   " << treeletId << " of " << queueItemCount;
+        std::cerr << std::endl << "            progress:           " << completeRatio << " %";
+        std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB";
+        std::cerr << std::endl << "            Current depth:      " << parentQueueElements[i]._depth;
       }
 
 #endif
@@ -213,10 +217,10 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
      }
 
       // push sub treelet to global queue if it has leafes with depth < maxDepth
-      if (_treelets[treeletId]->getLeafQueueElements().size())
+      if (_treelets[treeletId]->getIncompleteLeafQueueElements().size())
       {
         treeletsWithSubTreeletsQueue.push(_treelets[treeletId]);
-        queueItemCount += _treelets[treeletId]->getLeafQueueElements().size();
+        queueItemCount += _treelets[treeletId]->getIncompleteLeafQueueElements().size();
       }
 
       // clear primitive ids since we need them anymore
@@ -239,6 +243,11 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
       ++treeletId;
     }
+
+    parentTreelet->getIncompleteLeafQueueElements().clear();
+
+
+
   }
 #endif
 

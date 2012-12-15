@@ -140,8 +140,23 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   std::set<gloost::gloostId>::iterator slotGidIt    = _incoreSlotsToUpload.begin();
   std::set<gloost::gloostId>::iterator slotGidEndIt = _incoreSlotsToUpload.end();
 
-  for (; slotGidIt!=slotGidEndIt; ++slotGidIt)
+  if (!_incoreSlotsToUpload.size())
   {
+    return;
+  }
+
+//  std::cerr << std::endl << "_incoreSlotsToUpload: " << _incoreSlotsToUpload.size();
+
+  static const unsigned maxUploadAmount = 0.5*1024u*1204u;
+  unsigned numBytesUploaded      = 0u;
+
+
+  while (numBytesUploaded < maxUploadAmount && slotGidIt!=slotGidEndIt)
+  {
+//    --slotGidEndIt;
+
+//    numBytesUploaded += getTreeletSizeInByte();
+
     unsigned srcIndex   = (*slotGidIt)*_numNodesPerTreelet;
     unsigned destOffset = (*slotGidIt)*getTreeletSizeInByte();
 
@@ -161,10 +176,18 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     std::cerr << std::endl << "     status: " << status;
 #endif
 
+    ++slotGidIt;
 
     clFinish( device->getClCommandQueue() );
   }
-  _incoreSlotsToUpload.clear();
+
+//  if (numBytesUploaded)
+    _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), slotGidIt);
+//    _incoreSlotsToUpload.erase(slotGidEndIt, _incoreSlotsToUpload.end());
+
+
+
+//  _incoreSlotsToUpload.clear();
 }
 
 

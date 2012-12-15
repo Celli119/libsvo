@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 2.0f;
+const float                  g_fbToAnalyseBufferDevide = 4.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -87,12 +87,13 @@ unsigned g_framebufferTextureId = 0;
 #include <gloost/gloostHelper.h>
 
 // info
-bool        g_showTextInfo      = true;
-bool        g_showRayCastImage  = true;
-unsigned    g_viewMode          = 4;
-std::string g_viewModeText      = "color";
-bool        g_frameDirty        = true;
-bool        g_raycastEveryFrame = false;
+bool        g_showTextInfo         = true;
+bool        g_showRayCastImage     = true;
+unsigned    g_viewMode             = 4;
+std::string g_viewModeText         = "color";
+bool        g_frameDirty           = true;
+bool        g_raycastEveryFrame    = true;
+bool        g_enableDynamicLoading = false;
 
 
 //bencl stuff
@@ -132,7 +133,10 @@ void init()
 
 
   const std::string svoBaseName  = "TreeletBuildManager_out.svo";
+//  const std::string svoBaseName  = "san-miguel.svo";
 //  const std::string svoBaseName  = "oil_rig.svo";
+//  const std::string svoBaseName  = "crytek_sponza.svo";
+//  const std::string svoBaseName  = "sibenik.svo";
 
 
 
@@ -182,7 +186,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1024/*MB*/ * 1024 * 1024,
+                                                      1200/*MB*/ * 1024 * 1024,
                                                       g_context);
 
 
@@ -296,13 +300,60 @@ void frameStep()
 
     g_frameDirty = true;
   }
-  if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_2 ))
-  {
-    g_cameraDistance += g_mouse.getSpeed()[1]*-0.005;
-    g_cameraDistance = gloost::clamp(g_cameraDistance, 0.005f, 20.0f);
 
-    g_frameDirty = true;
+
+  static const gloost::Vector3 upVector    (0.0f, 1.0f, 0.0f);
+  static const gloost::Vector3 frontVector (0.0f, 0.0f, -1.0f);
+  static const gloost::Vector3 strafeVector(1.0f, 0.0f, 0.0f);
+
+
+  static gloost::Vector3 camSpeed(0.0f, 0.0f, 0.0f);
+  static gloost::Point3 camPos = gloost::Vector3(0.0f,0.0f,0.0f);
+  camPos +=camSpeed;
+
+  gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),
+                                   -g_cameraRotateX,
+                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance;
+
+
+  g_camera->lookAt(camPos, camDir, gloost::Vector3(0.0f, 1.0f, 0.0f));
+
+
+  gloost::Vector3 camSpaceSpeed(0.0f, 0.0f, 0.0f);
+  static const float speedAdd = 0.0008;
+
+  if (glfwGetKey('W' ))
+  {
+    camSpaceSpeed +=  frontVector * speedAdd;
   }
+  else if (glfwGetKey('S' ))
+  {
+    camSpaceSpeed +=  frontVector * -speedAdd;
+  }
+
+  if (glfwGetKey('A' ))
+  {
+    camSpaceSpeed +=  strafeVector * -speedAdd;
+  }
+  else if (glfwGetKey('D' ))
+  {
+    camSpaceSpeed +=  strafeVector * speedAdd;
+  }
+
+  if (glfwGetKey(' ' ))
+  {
+    camSpaceSpeed +=  upVector * speedAdd;
+  }
+  else if (glfwGetKey(GLFW_KEY_LSHIFT ))
+  {
+    camSpaceSpeed +=  upVector * -speedAdd;
+  }
+
+  camSpeed *= 0.8;
+  camSpeed += g_camera->getViewMatrix().inverted() * camSpaceSpeed;
+
+
+
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
   {
     gloost::Matrix viewMatrixInv = g_camera->getViewMatrix().inverted();
@@ -317,28 +368,43 @@ void frameStep()
     g_frameDirty = true;
   }
 
+
   gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
 
 
-  if (g_raycastEveryFrame || g_frameDirty)
-  {
-    g_camera->lookAt(gloost::Vector3(-sin(g_cameraRotateY),
-                                   g_cameraRotateX,
-                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance,
-                                   gloost::Point3(0.0f, 0.0f, 0.0f),
-                                   gloost::Vector3(0.0f, 1.0f, 0.0f));
 
+
+
+
+
+
+  if (g_enableDynamicLoading)
+  {
     // run analyse render pass
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
                                             modelMatrix,
-                                            g_tScaleRatio*g_fbToAnalyseBufferDevide);
+                                            g_tScaleRatio/g_fbToAnalyseBufferDevide);
+
+    std::set<gloost::gloostId>& visibleTreelets = g_renderPassAnalyse->getVisibleTreelets();
+
+    std::set<gloost::gloostId>::iterator treeletGidIt    = visibleTreelets.begin();
+    std::set<gloost::gloostId>::iterator treeletGidEndIt = visibleTreelets.end();
+
+    for (; treeletGidIt!=treeletGidEndIt; ++treeletGidIt)
+    {
+      g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt));
+    }
+
+//    std::cerr << std::endl << "visibleTreelets: " << visibleTreelets.size();
+
+  }
+
+  g_clMemoryManager->updateDeviceMemory();
 
 
-
-
-
-
+  if (g_raycastEveryFrame || g_frameDirty)
+  {
 
 
     // start raycasting
@@ -535,20 +601,17 @@ void key(int key, int state)
 
       case 'B':
         {
-
-        static unsigned treeletid = 1;
-        unsigned plusplus = treeletid+2000;
-        for (; treeletid!=plusplus; ++treeletid)
-        {
-          g_clMemoryManager->insertTreeletIntoIncoreBuffer(treeletid);
-        }
-        g_clMemoryManager->updateDeviceMemory();
-        g_frameDirty = true;
+          g_enableDynamicLoading = !g_enableDynamicLoading;
+          std::cerr << std::endl << "g_enableDynamicLoading: " << g_enableDynamicLoading;
         }
         break;
 
       case 'H':
         g_showTextInfo = !g_showTextInfo;
+        break;
+
+      case 'L':
+        g_clMemoryManager->resetIncoreBuffer();;
         break;
 
 

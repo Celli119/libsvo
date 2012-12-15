@@ -120,6 +120,10 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       const gloost::Matrix&      modelMatrix,
                                       float                      tScaleRatio)
 {
+  _visibleTreelets.clear();
+
+
+
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
 
@@ -129,8 +133,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   gloost::Vector3 frustumOnePixelHeight = frustumV_vec/_bufferHeight;
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
-  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 0,  _feedbackBufferGid);
-  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 1,  _memoryManager->getClIncoreBufferGid());
+  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 0, _feedbackBufferGid);
+  clContext->setKernelArgBuffer("renderToFeedbackBuffer", 1, _memoryManager->getClIncoreBufferGid());
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
@@ -162,11 +166,52 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
     }
   }
 
-  std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
 
-  _visibleTreelets.clear();
+  static const unsigned maxTreeletsToPropergate = 1000;
+
+  if (_visibleTreelets.size() > maxTreeletsToPropergate)
+  {
+    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
+    unsigned count = 0u;
+
+    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
+    {
+      ++count;
+      ++vtIt;
+    }
+
+    if (vtIt != _visibleTreelets.end() )
+    {
+//      std::cerr << std::endl << "erase: " << _visibleTreelets.size()-count;
+       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
+    }
+
+//    std::cerr << std::endl << "count:            " << count;
+//    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+
+  }
 
 
+
+
+//  std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+//
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a std::set of TreeletIds belonging to visible leaves
+  \param   ...
+  \remarks ...
+*/
+
+std::set<gloost::gloostId>&
+RenderPassAnalyse::getVisibleTreelets()
+{
+  return _visibleTreelets;
 }
 
 

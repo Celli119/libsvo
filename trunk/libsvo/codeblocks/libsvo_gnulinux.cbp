@@ -82,6 +82,8 @@
 		<Unit filename="../../data/shaders/showSvoTexture.vs" />
 		<Unit filename="../../data/shaders/simpleFragmentShader.fs" />
 		<Unit filename="../../data/shaders/simpleVertexShader.vs" />
+		<Unit filename="../../src/BitMask8.cpp" />
+		<Unit filename="../../src/BitMask8.h" />
 		<Unit filename="../../src/BuilderTriangleFace.cpp" />
 		<Unit filename="../../src/BuilderTriangleFace.h" />
 		<Unit filename="../../src/CpuSvoNode.cpp" />

@@ -165,19 +165,6 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treel
   std::cerr << std::endl;
 #endif
 
-
-  // choose all primitives as relevant
-
-//  Treelet::QueueElement queueElement;
-//  queueElement._aabbTransform = gloost::Matrix::createIdentity();
-//  queueElement._primitiveIds.resize(triangles.size());
-//  queueElement._nodeIndex = 0;
-//
-//  for (unsigned i=0; i!=queueElement._primitiveIds.size(); ++i)
-//  {
-//    queueElement._primitiveIds[i] = i;
-//  }
-
   // push root
   _queue.push(initialQueueElement);
   _queue.front()._localLeafIndex = 0;
@@ -212,17 +199,17 @@ TreeletBuilderFromFaces::buildFromQueue()
   while (_queue.size() && (currentNodeIndex < _treelet->getNodes().size()-7) )
   {
 
-#ifdef SVO_BUILDING_VERBOSE
+//#ifdef SVO_BUILDING_VERBOSE
     whileCounter++;
     if (whileCounter % 100000 == 0)
     {
       std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getNodes().size())*100) << " %"
-                             << " ( leaf count: " << _queue.size() << " )";
+                             << " ( leaf count: " << _queue.size()  << " )";
     }
-#endif
+//#endif
 
     const Treelet::QueueElement& parentQueuedElement = _queue.front();
-    std::vector<Treelet::QueueElement> _childQueueElements(8);
+    std::vector<Treelet::QueueElement> childQueueElements(8);
 
     // 8 possible children
     for (unsigned z=0; z!=2u; ++z)
@@ -267,8 +254,8 @@ TreeletBuilderFromFaces::buildFromQueue()
                                          * gloost::Matrix::createTransMatrix(childOffsetX, childOffsetY, childOffsetZ);
           aabbTransform = aabbTransform * gloost::Matrix::createScaleMatrix(0.5);
 
-          _childQueueElements[childIndex]._aabbTransform = aabbTransform;
-          _childQueueElements[childIndex]._depth         = parentQueuedElement._depth +1;
+          childQueueElements[childIndex]._aabbTransform = aabbTransform;
+          childQueueElements[childIndex]._depth         = parentQueuedElement._depth +1;
 
           gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
           bbox.transform(aabbTransform);
@@ -280,10 +267,9 @@ TreeletBuilderFromFaces::buildFromQueue()
 
             if (triangle.intersectAABB(bbox))
             {
-              _childQueueElements[childIndex]._primitiveIds.push_back(parentQueuedElement._primitiveIds[tId]);
+              childQueueElements[childIndex]._primitiveIds.push_back(parentQueuedElement._primitiveIds[tId]);
             }
           }
-
         }
       }
     }
@@ -294,7 +280,7 @@ TreeletBuilderFromFaces::buildFromQueue()
     for (unsigned childIndex=0; childIndex!=8; ++childIndex)
     {
       // use only children with triangles
-      if (_childQueueElements[childIndex]._primitiveIds.size())
+      if (childQueueElements[childIndex]._primitiveIds.size())
       {
         // update existing parent node so that the firstChildIndex is pointing to this node
         if (isFirstValidChild)
@@ -308,12 +294,21 @@ TreeletBuilderFromFaces::buildFromQueue()
         _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIndex, true);
 
         // set the location within the serialized svo to the queueElement
-        _childQueueElements[childIndex]._localLeafIndex       = currentNodeIndex;
-        _childQueueElements[childIndex]._idx                  = childIndex;
-        _childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
+        childQueueElements[childIndex]._localLeafIndex       = currentNodeIndex;
+        childQueueElements[childIndex]._idx                  = childIndex;
+        childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
-        // queue element for this child
-        _queue.push(_childQueueElements[childIndex]);
+        // queue element for this child if depth < maxdepth
+//        if (childQueueElements[childIndex]._depth < _maxDepth)
+        {
+          _queue.push(childQueueElements[childIndex]);
+        }
+////        // ELSE put leaf element to treelets leafes
+//        else
+//        {
+//          _treelet->getNodes()[childQueueElements[childIndex]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIndex]._idx, true);
+////          _treelet->getIncompleteLeafQueueElements().push_back(childQueueElements[childIndex]);
+//        }
 
         ++currentNodeIndex;
       }
@@ -350,7 +345,6 @@ TreeletBuilderFromFaces::buildFromQueue()
   unsigned minLeafDepth = 1000;
 #endif
 
-  std::vector<Treelet::QueueElement>& treeletLeafQueueElements = _treelet->getLeafQueueElements();
 
   while (_queue.size())
   {
@@ -368,14 +362,14 @@ TreeletBuilderFromFaces::buildFromQueue()
 #if 1
     if (leafQueuedElement._depth < _maxDepth)
     {
-      treeletLeafQueueElements.push_back(leafQueuedElement);
+      _treelet->getIncompleteLeafQueueElements().push_back(leafQueuedElement);
     }
 #endif
     _queue.pop();
   }
 
 #ifdef SVO_BUILDING_VERBOSE
-  std::cerr << std::endl << "       leafes with depth < maxDepth: " << treeletLeafQueueElements.size();
+  std::cerr << std::endl << "       leafes with depth < maxDepth: " << _treelet->getLeafQueueElements().size();
   std::cerr << std::endl << "       min leaf depth                " << minLeafDepth;
   std::cerr << std::endl << "       max leaf depth                " << maxLeafDepth;
 #endif

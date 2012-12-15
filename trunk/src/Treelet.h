@@ -159,7 +159,8 @@ class Treelet
 
 
     // returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
-    std::vector<QueueElement>& getLeafQueueElements();
+    std::vector<QueueElement>& getFinalLeafQueueElements();
+    std::vector<QueueElement>& getIncompleteLeafQueueElements();
 
 
     // returs treeletId
@@ -221,7 +222,7 @@ class Treelet
     std::vector<CpuSvoNode> _serializedNodes;
 
     // map of all leaf QueueElements created while building the Treelet
-    std::vector<QueueElement> _leafQueueElements;
+    std::vector<QueueElement> _incompleteLeafQueueElements;
 
     gloost::gloostId   _incoreSlotGid;  // slot Gid of this treelet within the incore buffer
 };

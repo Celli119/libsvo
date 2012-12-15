@@ -91,6 +91,10 @@ class TreeletMemoryManager
     bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
 
 
+    // inits the incoreBuffer
+    virtual void resetIncoreBuffer();
+
+
 	protected:
 
 
@@ -111,8 +115,6 @@ class TreeletMemoryManager
     // loads svo/Treelet structure from file
     bool loadFromFile(const std::string& filePath);
 
-    // inits the incoreBuffer
-    void initIncoreBuffer();
 
 
     // marks a incore slot to be uploaded to device memory
