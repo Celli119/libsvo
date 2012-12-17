@@ -50,8 +50,8 @@ namespace gloost
 namespace svo
 {
 
-  class SvoBranch;
-  class SvoNode;
+  class Treelet;
+  class CpuSvoNode;
 
 
   //  generates attributes per voxel
@@ -68,39 +68,39 @@ class AttributeGenerator
 
 
     // init the AttributeGenerator
-	  virtual void generate(SvoBranch* svo,
+	  virtual void generate(std::vector<Treelet*>& treeletVector,
                           gloost::Mesh* mesh,
                           gloost::ObjMatFile* materials,
                           bool freeDiscreteSamplesAfterwards = true) = 0;
 
 
-    // compresses the attribute buffer and creates a coresponding attribute buffer
-    virtual void generateCompressAttributes() = 0;
-
-
+//    // compresses the attribute buffer and creates a coresponding attribute buffer
+//    virtual void generateCompressAttributes() = 0;
+//
+//
 	  // returns a vector of texture ids, textures containing serialized attribute data
 	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
 
 
 	  // returns a vector of texture ids, textures containing serialized attribute data
 	  gloost::InterleavedAttributes* getCompressedAttributeBuffer(unsigned id = 0);
-
-
-	  // writes one attribute buffer to a *.ia file
-	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
-                                            unsigned id = 0) = 0;
-
-	  // writes one compressed attribute buffer to a *.ia file
-	  virtual bool writeCompressedAttributeBufferToFile(const std::string& filePath,
-                                                      unsigned id = 0) = 0;
+//
+//
+//	  // writes one attribute buffer to a *.ia file
+//	  virtual bool writeAttributeBufferToFile(const std::string& filePath,
+//                                            unsigned id = 0) = 0;
+//
+//	  // writes one compressed attribute buffer to a *.ia file
+//	  virtual bool writeCompressedAttributeBufferToFile(const std::string& filePath,
+//                                                      unsigned id = 0) = 0;
 
 
 	protected:
 
-	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth);
+//	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth);
 
     // generates the attributes for one partucular node
-	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
+//	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
 
 
     // vector of texture ids of serialized attribute data

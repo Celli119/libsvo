@@ -37,6 +37,7 @@
 #include <gloost/BinaryFile.h>
 #include <gloost/BinaryBundle.h>
 #include <gloost/serializers.h>
+#include <gloost/InterleavedAttributes.h>
 
 // cpp includes
 #include <string>
@@ -78,6 +79,9 @@ Treelet::Treelet():
   _numNodes(0),
   _numLeaves(0),
   _serializedNodes(),
+  _incompleteLeafQueueElements(),
+  _finalLeafQueueElements(),
+  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
 
@@ -111,6 +115,9 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
   _numNodes(0),
   _numLeaves(0),
   _serializedNodes(),
+  _incompleteLeafQueueElements(),
+  _finalLeafQueueElements(),
+  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
   unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
@@ -157,6 +164,9 @@ Treelet::Treelet(const std::string treeletFilePath):
   _numNodes(0),
   _numLeaves(0),
   _serializedNodes(),
+  _incompleteLeafQueueElements(),
+  _finalLeafQueueElements(),
+  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
   loadFromFile(treeletFilePath);
@@ -206,6 +216,22 @@ CpuSvoNode
 Treelet::getNodeForIndex(unsigned index)
 {
   return _serializedNodes[index];
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief returns the Attribute buffer of this Treelet or 0
+  \param ...
+  \remarks ...
+*/
+
+gloost::InterleavedAttributes*
+Treelet::getAttributeBuffer()
+{
+  return _attributeBuffer;
 }
 
 
@@ -452,7 +478,7 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
 
 
 /**
-  \brief   returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
+  \brief   returns a container of QueueElement for each leafe with smaller depth as required
   \param   ...
   \remarks This map is only filled after building
 */
@@ -461,6 +487,22 @@ std::vector<Treelet::QueueElement>&
 Treelet::getIncompleteLeafQueueElements()
 {
   return _incompleteLeafQueueElements;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a container of QueueElement for each leafe with required or bigger depth
+  \param   ...
+  \remarks This map is only filled after building
+*/
+
+std::vector<Treelet::QueueElement>&
+Treelet::getFinalLeafQueueElements()
+{
+  return _finalLeafQueueElements;
 }
 
 

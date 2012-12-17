@@ -359,7 +359,7 @@ sample( __global const SvoNode* svo,
         else
         {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2)
+          if (tScaleRatio*tcMax > scale_exp2 /*|| scaleMax-scale == 9*/)
           {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                                                                svo[parent->parentNodeIndex]._firstchildIdx,

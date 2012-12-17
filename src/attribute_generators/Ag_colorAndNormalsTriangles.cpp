@@ -1,114 +1,129 @@
-//
-//*
-//                       ___                            __
-//                      /\_ \                          /\ \__
-//                   __ \//\ \     ___     ___     ____\ \  _\
-//                 /'_ `\ \ \ \   / __`\  / __`\  /  __\\ \ \/
-//                /\ \ \ \ \_\ \_/\ \ \ \/\ \ \ \/\__   \\ \ \_
-//                \ \____ \/\____\ \____/\ \____/\/\____/ \ \__\
-//                 \/___/\ \/____/\/___/  \/___/  \/___/   \/__/
-//                   /\____/
-//                   \_/__/
-//
-//                   OpenGL framework for fast demo programming
-//
-//                             http://www.gloost.org
-//
-//    This file is part of the gloost framework. You can use it in parts or as
-//       whole under the terms of the GPL (http://www.gnu.org/licenses/#GPL).
-//
-//            gloost is being created by Felix Weißig and Stephan Beck
-//
-//     Felix Weißig (thesleeper@gmx.net), Stephan Beck (stephan@pixelstars.de)
-//*/
-//
-//
-//
-//// svo system includes
-//#include <attribute_generators/Ag_colorAndNormalsTriangles.h>
-//#include <SvoBranch.h>
-//#include <BuilderTriangleFace.h>
-//
-/// gloost includes
-//#include <gloost/Mesh.h>
-//#include <gloost/ObjMatFile.h>
-//#include <gloost/InterleavedAttributes.h>
-//#include <gloost/BinaryBundle.h>
-//
-//
-//// cpp includes
-//#include <string>
-//#include <iostream>
-//
-//
-//
-//namespace svo
-//{
-//
-//**
-//  \class   Ag_colorAndNormalsTriangles
-//
-//  \brief   Retrieves colors and normals from Triangles of a Mesh
-//
-//  \author  Felix Weiszig
-//  \date    March 2012
-//  \remarks ....
-//*/
-//
-///////////////////////////////////////////////////////
-//
-//
-//**
-//  \brief   Class constructor
-//  \remarks ...
-//*/
-//
-//Ag_colorAndNormalsTriangles::Ag_colorAndNormalsTriangles():
-//    AttributeGenerator()
-//{
-//	std::cerr << std::endl << "Attribut Generator: Ag_colorAndNormalsTriangles";
-//	std::cerr << std::endl << "  Retrieves colors and normals from Triangles of a Mesh. ";
-//
-//  _attributes.push_back(new gloost::InterleavedAttributes());
-//  _attributes[0]->takeReference();
-//  _compressedAttributes.push_back(new gloost::InterleavedAttributes());
-//  _compressedAttributes[0]->takeReference();
-//}
-//
-//
-///////////////////////////////////////////////////////
-//
-//
-//**
-//  \brief   Class destructor
-//  \remarks ...
-//*/
-//
-//Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
-//{
-//}
-//
-//
-///////////////////////////////////////////////////////
-//
-//**
-//  \brief   ...
-//  \remarks ...
-//*/
-//
-//void
-//Ag_colorAndNormalsTriangles::generate(SvoBranch* svo,
-//                                      gloost::Mesh* mesh,
-//                                      gloost::ObjMatFile* materials,
-//                                      bool freeDiscreteSamplesAfterwards)
-//{
-//  std::cerr << std::endl;
-//  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::generate(): ";
-//  std::cerr << std::endl << "  Num Lists of samples: " << svo->getDiscreteSampleLists().size();
-//  std::cerr << std::endl << "  Num of leaves:        " << svo->getNumLeaves();
-//
-//
-///  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
+
+/*
+                       ___                            __
+                      /\_ \                          /\ \__
+                   __ \//\ \     ___     ___     ____\ \  _\
+                 /'_ `\ \ \ \   / __`\  / __`\  /  __\\ \ \/
+                /\ \ \ \ \_\ \_/\ \ \ \/\ \ \ \/\__   \\ \ \_
+                \ \____ \/\____\ \____/\ \____/\/\____/ \ \__\
+                 \/___/\ \/____/\/___/  \/___/  \/___/   \/__/
+                   /\____/
+                   \_/__/
+
+                   OpenGL framework for fast demo programming
+
+                             http://www.gloost.org
+
+    This file is part of the gloost framework. You can use it in parts or as
+       whole under the terms of the GPL (http://www.gnu.org/licenses/#GPL).
+
+            gloost is being created by Felix Weißig and Stephan Beck
+
+     Felix Weißig (thesleeper@gmx.net), Stephan Beck (stephan@pixelstars.de)
+*/
+
+
+
+// svo system includes
+#include <attribute_generators/Ag_colorAndNormalsTriangles.h>
+#include <Treelet.h>
+
+// gloost includes
+#include <gloost/Mesh.h>
+#include <gloost/ObjMatFile.h>
+#include <gloost/InterleavedAttributes.h>
+#include <gloost/BinaryBundle.h>
+
+
+// cpp includes
+#include <string>
+#include <iostream>
+
+
+
+namespace svo
+{
+
+/**
+  \class   Ag_colorAndNormalsTriangles
+
+  \brief   Retrieves colors and normals from Triangles of a Mesh
+
+  \author  Felix Weiszig
+  \date    March 2012
+  \remarks ....
+*/
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   Class constructor
+  \remarks ...
+*/
+
+Ag_colorAndNormalsTriangles::Ag_colorAndNormalsTriangles():
+    AttributeGenerator()
+{
+	std::cerr << std::endl << "Attribut Generator: Ag_colorAndNormalsTriangles";
+	std::cerr << std::endl << "  Retrieves colors and normals from Triangles of a Mesh. ";
+
+  _attributes.push_back(new gloost::InterleavedAttributes());
+  _attributes[0]->takeReference();
+  _compressedAttributes.push_back(new gloost::InterleavedAttributes());
+  _compressedAttributes[0]->takeReference();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   Class destructor
+  \remarks ...
+*/
+
+Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
+{
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+  \brief   ...
+  \remarks ...
+*/
+
+void
+Ag_colorAndNormalsTriangles::generate(std::vector<Treelet*>& treeletVector,
+                                      gloost::Mesh* mesh,
+                                      gloost::ObjMatFile* materials,
+                                      bool freeDiscreteSamplesAfterwards)
+{
+  if (!treeletVector.size())
+  {
+    std::cerr << std::endl << "ERROR in Ag_colorAndNormalsTriangles::generate: ";
+    std::cerr << std::endl << "         There are NO Treelets!: ";
+    return;
+  }
+
+  // num samples
+  unsigned numSamples = 0;
+  for (unsigned i=0; i!=treeletVector.size(); ++i)
+  {
+//    numSamples += treeletVector->getFinalLeafQueueElements().size();
+  }
+
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from Ag_colorAndNormalsTriangles::generate(): ";
+  std::cerr << std::endl << "  Uncompressed Attribute Buffer Size:  " << treeletVector.size()*treeletVector[0]->getMemSize();
+  std::cerr << std::endl << "  Samples to process for all Treelets: " << numSamples;
+//  std::cerr << std::endl << "  Num of leaves:                      " << svo->getNumLeaves();
+
+
+//  gloost::BinaryBundle attribBundle(svo->getDiscreteSampleLists().size()*6*sizeof(float));
 //
 //  _attributes[0]->dropReference();
 //	_attributes[0] = new gloost::InterleavedAttributes();
@@ -152,10 +167,10 @@
 //    _attributes[0]->getVector()[packageIndex+5] = color[2];
 //	}
 //
-///	if (freeDiscreteSamplesAfterwards)
-///	{
-///	  svo->clearDiscreteSamples();
-///	}
+/////	if (freeDiscreteSamplesAfterwards)
+/////	{
+/////	  svo->clearDiscreteSamples();
+/////	}
 //
 //
 //  std::cerr << std::endl;
@@ -164,18 +179,18 @@
 //  // generate non leaf nodes attributes
 //	generateInnerNodesAttributesRecursive(svo->getRootNode(), 1);
 //	generateCompressAttributes();
-//}
-//
-//
-///////////////////////////////////////////////////////
-//
-//
-//**
-//  \brief   generates the attributes for one partucular node
-//  \remarks ...
-//*/
-//
-//*virtual*/
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   generates the attributes for one partucular node
+  \remarks ...
+*/
+
+/*virtual*/
 //void
 //Ag_colorAndNormalsTriangles::generateCurrentNodesAttribs(SvoNode* node, unsigned depth)
 //{
@@ -248,12 +263,12 @@
 //  attribs->getVector().push_back(averageColor[1]);
 //  attribs->getVector().push_back(averageColor[2]);
 //}
-//
-//
-///////////////////////////////////////////////////////
-//
-//
-//**
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+///**
 //  \brief   compresses the attribute buffer and creates a coresponding attribute buffer with the values
 //  \remarks ...
 //*/
@@ -327,7 +342,7 @@
 ///////////////////////////////////////////////////////
 //
 //
-//**
+///**
 //  \brief   writes one attribute buffer to a *.ia file
 //  \remarks ...
 //*/
@@ -355,7 +370,7 @@
 ///////////////////////////////////////////////////////
 //
 //
-//**
+///**
 //  \brief   writes one compressed attribute buffer to a *.ia file
 //  \remarks ...
 //*/
@@ -378,14 +393,14 @@
 //
 //  return _compressedAttributes[id]->writeToFile(filePath);
 //}
-//
-//
-///////////////////////////////////////////////////////
-//
-//
-//
-//
-//} // namespace svo
-//
-//
-//
+
+
+/////////////////////////////////////////////////////
+
+
+
+
+} // namespace svo
+
+
+

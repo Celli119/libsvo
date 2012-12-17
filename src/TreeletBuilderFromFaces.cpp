@@ -298,17 +298,11 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIndex]._idx                  = childIndex;
         childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
-        // queue element for this child if depth < maxdepth
-//        if (childQueueElements[childIndex]._depth < _maxDepth)
+        // queue children
+        // queue children
         {
           _queue.push(childQueueElements[childIndex]);
         }
-////        // ELSE put leaf element to treelets leafes
-//        else
-//        {
-//          _treelet->getNodes()[childQueueElements[childIndex]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIndex]._idx, true);
-////          _treelet->getIncompleteLeafQueueElements().push_back(childQueueElements[childIndex]);
-//        }
 
         ++currentNodeIndex;
       }
@@ -364,6 +358,12 @@ TreeletBuilderFromFaces::buildFromQueue()
     {
       _treelet->getIncompleteLeafQueueElements().push_back(leafQueuedElement);
     }
+    else
+    {
+      _treelet->getFinalLeafQueueElements().push_back(leafQueuedElement);
+    }
+
+
 #endif
     _queue.pop();
   }
