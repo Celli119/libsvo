@@ -147,7 +147,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
 
 //  std::cerr << std::endl << "_incoreSlotsToUpload: " << _incoreSlotsToUpload.size();
 
-  static const unsigned maxUploadAmount = 0.5*1024u*1204u;
+  static const unsigned maxUploadAmount = 1.0*1024u*1204u;
   unsigned numBytesUploaded      = 0u;
 
 

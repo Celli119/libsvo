@@ -156,6 +156,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
     treeletsWithSubTreeletsQueue.push(_treelets[0]);
   }
 
+
+  static unsigned finalLeafeMemSize = 0; // <-
   unsigned treeletId      = 1u;
   unsigned queueItemCount = _treelets[0]->getIncompleteLeafQueueElements().size();
 
@@ -184,7 +186,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
       std::cerr << std::endl << "             Current depth:   " << parentIncompleteQueueElements[i]._depth;
 #else
-      if (treeletId%1000 == 0)
+      if (treeletId%500 == 0)
       {
         float completeRatio = (float)treeletId/queueItemCount * 100.0;
 
@@ -194,6 +196,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         std::cerr << std::endl << "            progress:           " << completeRatio << " %";
         std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB";
         std::cerr << std::endl << "            Current depth:      " << parentIncompleteQueueElements[i]._depth;
+        std::cerr << std::endl << "finalLeafeMemSize: " << finalLeafeMemSize / 1024.0 / 1024.0;
       }
 #endif
 
@@ -221,10 +224,15 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         treeletsWithSubTreeletsQueue.push(_treelets[treeletId]);
         queueItemCount += _treelets[treeletId]->getIncompleteLeafQueueElements().size();
       }
-      else
+
+      if (_treelets[treeletId]->getFinalLeafQueueElements().size())
       {
-//        std::cerr << std::endl << "Final samples: " << treeletId;
-//        std::cerr << std::endl << "word: " << sizeof(Treelet::QueueElement) * _treelets[treeletId]->getFinalLeafQueueElements().size() / 1024.0 / 1024.0;
+        finalLeafeMemSize += sizeof(Treelet::QueueElement) * _treelets[treeletId]->getFinalLeafQueueElements().size();
+
+        // create attributes for all final leaf samples here
+
+        // clear all final leafes
+        std::vector<Treelet::QueueElement>().swap(_treelets[treeletId]->getFinalLeafQueueElements());
       }
 
       // clear primitive ids since we need them anymore
@@ -234,7 +242,9 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
     } // while(treeletsWithSubTreeletsQueue.size())
 
-    parentTreelet->getIncompleteLeafQueueElements().clear();
+
+    // clear incomplete QueueElements since they are queued in the treeletsWithSubTreeletsQueue now
+    std::vector<Treelet::QueueElement>().swap(parentTreelet->getIncompleteLeafQueueElements());
 
   }
 #endif
@@ -246,7 +256,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 }
 
 
-//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 /**
@@ -289,7 +299,7 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
 }
 
 
-//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 /**
