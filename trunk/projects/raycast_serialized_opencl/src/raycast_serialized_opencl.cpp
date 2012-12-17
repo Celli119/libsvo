@@ -186,7 +186,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1200/*MB*/ * 1024 * 1024,
+                                                      1024/*MB*/ * 1024 * 1024,
                                                       g_context);
 
 
@@ -203,9 +203,6 @@ void init()
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
                                                    g_bufferWidth/g_fbToAnalyseBufferDevide,
                                                    g_bufferHeight/g_fbToAnalyseBufferDevide);
-
-
-
 
 }
 

@@ -48,6 +48,7 @@ namespace gloost
 {
 //  class BinaryBundle;
   class BinaryFile;
+  class InterleavedAttributes;
 }
 
 
@@ -157,10 +158,19 @@ class Treelet
     // returns a serialized SvoNode for an index
     CpuSvoNode getNodeForIndex(unsigned index);
 
+    // returns the Attribute buffer of this Treelet or 0
+    gloost::InterleavedAttributes* getAttributeBuffer();
 
-    // returns a map of QueueElement for each leafe assoziated with the leafes index within this Treelet
-    std::vector<QueueElement>& getFinalLeafQueueElements();
+
+
+
+
+
+    // returns a container of QueueElement for each leafe with smaller depth as required
     std::vector<QueueElement>& getIncompleteLeafQueueElements();
+
+    // returns a container of QueueElement for each leafe with required or bigger depth
+    std::vector<QueueElement>& getFinalLeafQueueElements();
 
 
     // returs treeletId
@@ -221,8 +231,14 @@ class Treelet
     // serialized svo nodes
     std::vector<CpuSvoNode> _serializedNodes;
 
-    // map of all leaf QueueElements created while building the Treelet
+    // container of all leaf QueueElements with smaller depth as required created while building the Treelet
     std::vector<QueueElement> _incompleteLeafQueueElements;
+
+    // container of all leaf QueueElements with required or more depth
+    std::vector<QueueElement> _finalLeafQueueElements;
+
+    // gloost::InterleavedAttributes
+    gloost::InterleavedAttributes* _attributeBuffer;
 
     gloost::gloostId   _incoreSlotGid;  // slot Gid of this treelet within the incore buffer
 };

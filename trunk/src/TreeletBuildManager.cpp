@@ -168,8 +168,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
 
     // Build Sub-Treelets
-    std::vector<Treelet::QueueElement>& parentQueueElements = parentTreelet->getIncompleteLeafQueueElements();
-    unsigned numSubTreelets = parentQueueElements.size();
+    std::vector<Treelet::QueueElement>& parentIncompleteQueueElements = parentTreelet->getIncompleteLeafQueueElements();
+    unsigned numSubTreelets = parentIncompleteQueueElements.size();
     _treelets.resize(numSubTreelets+_treelets.size(), 0);
 
 
@@ -182,7 +182,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       std::cerr << std::endl;
       std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
-      std::cerr << std::endl << "             Current depth:   " << parentQueueElements[i]._depth;
+      std::cerr << std::endl << "             Current depth:   " << parentIncompleteQueueElements[i]._depth;
 #else
       if (treeletId%1000 == 0)
       {
@@ -193,27 +193,26 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         std::cerr << std::endl << "            Building Treelet:   " << treeletId << " of " << queueItemCount;
         std::cerr << std::endl << "            progress:           " << completeRatio << " %";
         std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB";
-        std::cerr << std::endl << "            Current depth:      " << parentQueueElements[i]._depth;
+        std::cerr << std::endl << "            Current depth:      " << parentIncompleteQueueElements[i]._depth;
       }
-
 #endif
 
       _treelets[treeletId] = new Treelet( treeletId,
                                           parentTreelet->getTreeletGid(),
-                                          parentQueueElements[i]._localLeafIndex,
-                                          parentQueueElements[i]._idx,
-                                          parentQueueElements[i]._parentLocalNodeIndex,
+                                          parentIncompleteQueueElements[i]._localLeafIndex,
+                                          parentIncompleteQueueElements[i]._idx,
+                                          parentIncompleteQueueElements[i]._parentLocalNodeIndex,
                                           _treeletSizeInByte);
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
       fromTrianglesBuilder.build(_treelets[treeletId],
                                  mesh,
-                                 parentQueueElements[i]);
+                                 parentIncompleteQueueElements[i]);
 
      // write Treelet Gid of the coresponding Treelet Gid to the parent Treelets leaf
      if (treeletId)
      {
-       parentTreelet->getNodes()[parentQueueElements[i]._localLeafIndex].setFirstChildIndex(treeletId);
+       parentTreelet->getNodes()[parentIncompleteQueueElements[i]._localLeafIndex].setFirstChildIndex(treeletId);
      }
 
       // push sub treelet to global queue if it has leafes with depth < maxDepth
@@ -222,40 +221,28 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         treeletsWithSubTreeletsQueue.push(_treelets[treeletId]);
         queueItemCount += _treelets[treeletId]->getIncompleteLeafQueueElements().size();
       }
+      else
+      {
+//        std::cerr << std::endl << "Final samples: " << treeletId;
+//        std::cerr << std::endl << "word: " << sizeof(Treelet::QueueElement) * _treelets[treeletId]->getFinalLeafQueueElements().size() / 1024.0 / 1024.0;
+      }
 
       // clear primitive ids since we need them anymore
-      parentQueueElements[i].clearPrimitiveIds();
-
-  //    svo::Ag_colorAndNormalsTriangles generator2;
-  //    generator2.generate(_branches[i], mesh, new gloost::ObjMatFile());
-
-
-//      _treelets[treeletId]->writeToFile("/home/otaco/Desktop/SVO_DATA/"
-//                                         + std::string("TreeletBuildManager_out")
-//                                         + std::string("_") + treeletId
-//                                         + ".treelet" );
-
-  //    generator2.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-  //                                                   + std::string("TreeletBuildManager_out_")
-  //                                                   + i
-  //                                                   + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
-  //                                                   + ".ia" );
+//      parentIncompleteQueueElements[i].clearPrimitiveIds();
 
       ++treeletId;
-    }
+
+    } // while(treeletsWithSubTreeletsQueue.size())
 
     parentTreelet->getIncompleteLeafQueueElements().clear();
-
-
 
   }
 #endif
 
+
   writeToFile( "/home/otaco/Desktop/SVO_DATA/"
                + std::string("TreeletBuildManager_out")
                + ".svo" );
-
-
 }
 
 
