@@ -125,8 +125,8 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth  = g_screenWidth  / 1.0;
-  g_bufferHeight = g_screenHeight / 1.0;
+  g_bufferWidth  = g_screenWidth  / 2.0;
+  g_bufferHeight = g_screenHeight / 2.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
@@ -186,7 +186,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1024/*MB*/ * 1024 * 1024,
+                                                      512/*MB*/ * 1024 * 1024,
                                                       g_context);
 
 
@@ -317,7 +317,7 @@ void frameStep()
 
 
   gloost::Vector3 camSpaceSpeed(0.0f, 0.0f, 0.0f);
-  static const float speedAdd = 0.0008;
+  const float speedAdd = 0.04 * g_timePerFrame;
 
   if (glfwGetKey('W' ))
   {

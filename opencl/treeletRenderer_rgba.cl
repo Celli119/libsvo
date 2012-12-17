@@ -7,7 +7,7 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE 21
+#define MAX_STACK_SIZE 16
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -977,19 +977,19 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataElement feedBackElemet;
 
 
-  if (result.hit == true)
-  {
-    feedBackElemet._first  = result.nodeIndex;
-    feedBackElemet._second = 0.0;
-  }
-  else
-  {
-    feedBackElemet._first  = 0u;
+//  if (result.hit == true)
+//  {
+//    feedBackElemet._first  = result.nodeIndex;
+//    feedBackElemet._second = 0.0;
+//  }
+//  else
+//  {
+    feedBackElemet._first  = 1;
     feedBackElemet._second = 0.0f;
-  }
+//  }
 
 
-  unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
+  const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
   feedbackBuffer[frameBufferPosition] = feedBackElemet;
 }
 

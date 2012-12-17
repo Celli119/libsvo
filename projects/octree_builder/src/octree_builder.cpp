@@ -8,12 +8,6 @@
 
 **/
 
-/**
-  Step 00: glut template
-
-  This is a simple glfw template we will use in the tutorials.
-
-**/
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +95,7 @@ void init()
 
   gloost::Matrix scaleMat;
   scaleMat.setIdentity();
-  scaleMat.setScale(g_mesh->getScaleFactorToSize(1.0));
+  scaleMat.setScale(g_mesh->getScaleFactorToSize(2.0));
 
   g_sizeAndCenterMatrix.setIdentity();
   g_sizeAndCenterMatrix =  scaleMat * (rotateMat * translateMat);

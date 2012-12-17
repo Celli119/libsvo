@@ -43,6 +43,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <list>
 
 namespace gloost
 {
@@ -97,7 +98,7 @@ class Treelet
 
       void clearPrimitiveIds()
       {
-        _primitiveIds.clear();
+        std::vector<unsigned>().swap(_primitiveIds);
       }
 
       unsigned              _localLeafIndex;         // absolute local index of the node within the serial structure

@@ -362,8 +362,6 @@ TreeletBuilderFromFaces::buildFromQueue()
     {
       _treelet->getFinalLeafQueueElements().push_back(leafQueuedElement);
     }
-
-
 #endif
     _queue.pop();
   }
