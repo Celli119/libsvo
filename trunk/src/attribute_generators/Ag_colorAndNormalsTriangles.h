@@ -77,13 +77,18 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
                                             unsigned treeletGid,
                                             gloost::Mesh* mesh);
 
+    static void createInnerNodesAttributes(TreeletBuildManager* buildManager,
+                                           gloost::gloostId     treeletGid,
+                                           gloost::gloostId     nodeIndex,
+                                           unsigned             currentDepth);
 
-
-    //
-	  void generate(std::vector<Treelet*>& treeletVector,
-                  gloost::Mesh* mesh,
-                  gloost::ObjMatFile* materials,
-                  bool freeDiscreteSamplesAfterwards = true);
+//
+//
+//    //
+//	  void generate(std::vector<Treelet*>& treeletVector,
+//                  gloost::Mesh* mesh,
+//                  gloost::ObjMatFile* materials,
+//                  bool freeDiscreteSamplesAfterwards = true);
 //
 //
 //    // compresses the attribute buffer and creates a coresponding attribute buffer with the values
@@ -99,7 +104,19 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
 //                                                      unsigned id = 0);
 
 
-	protected:
+	private:
+
+
+      static void recursive_createInnerNodesAttributes(TreeletBuildManager* buildManager,
+                                                       gloost::gloostId     treeletGid,
+                                                       gloost::gloostId     nodeIndex,
+                                                       unsigned             currentDepth);
+
+      // generates the attributes for one partucular node
+      static void averageFromeChildAttributes(TreeletBuildManager* buildManager,
+                                              gloost::gloostId treeletGid,
+                                              gloost::gloostId nodeIndex,
+                                              unsigned depth);
 
     // generates the attributes for one partucular node
 //	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth);

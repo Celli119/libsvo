@@ -95,7 +95,7 @@ void init()
 
   gloost::Matrix scaleMat;
   scaleMat.setIdentity();
-  scaleMat.setScale(g_mesh->getScaleFactorToSize(2.0));
+  scaleMat.setScale(g_mesh->getScaleFactorToSize(1.0));
 
   g_sizeAndCenterMatrix.setIdentity();
   g_sizeAndCenterMatrix =  scaleMat * (rotateMat * translateMat);
@@ -109,8 +109,6 @@ void init()
                                        g_maxSvoDepth,
                                        g_numBuildingThreads,
                                        g_mesh);
-
-
 
   std::cerr << std::endl;
   std::cerr << std::endl;

@@ -535,9 +535,9 @@ raycastIntoFrameBuffer(unsigned threadId)
               unsigned compressedNormal = gloost::float_as_unsigned(g_voxelAttributes->getVector()[attribIndex]);
               unsigned char nx,ny,nz,empty;
               gloost::unpackRgbaFromUnsigned(compressedNormal,nx,ny,nz,empty);
-              g_renderBuffer[pixelIndex++] = ((nx*0.003921569)-0.5) * 2.0; // <-- red
-              g_renderBuffer[pixelIndex++] = ((ny*0.003921569)-0.5) * 2.0; // <-- green
-              g_renderBuffer[pixelIndex++] = ((nz*0.003921569)-0.5) * 2.0; // <-- blue
+              g_renderBuffer[pixelIndex++] = ((nx*0.003921569)-0.5) * 2.0; // <-- x
+              g_renderBuffer[pixelIndex++] = ((ny*0.003921569)-0.5) * 2.0; // <-- y
+              g_renderBuffer[pixelIndex++] = ((nz*0.003921569)-0.5) * 2.0; // <-- z
 
               break;
             }

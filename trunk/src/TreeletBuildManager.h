@@ -46,6 +46,7 @@
 namespace gloost
 {
   class Mesh;
+  class InterleavedAttributes;
 }
 
 
@@ -83,7 +84,10 @@ class TreeletBuildManager
 
 
     // returns a Treelet for a given Gid
-    Treelet* getTreelet(gloost::gloostId id);
+    Treelet* getTreelet(gloost::gloostId Gid);
+
+    // returns a attribute buffer for a given Gid
+    gloost::InterleavedAttributes* getAttributeBuffer(gloost::gloostId Gid);
 
 
 	protected:
@@ -93,7 +97,8 @@ class TreeletBuildManager
 
 	  unsigned _treeletSizeInByte;
 
-    std::vector<Treelet*>  _treelets;
+    std::vector<Treelet*>                       _treelets;
+    std::vector<gloost::InterleavedAttributes*> _attributeBuffers;
 
 };
 

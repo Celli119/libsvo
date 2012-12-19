@@ -49,6 +49,7 @@
 namespace gloost
 {
   class Mesh;
+  class InterleavedAttributes;
 }
 
 
@@ -101,9 +102,12 @@ class TreeletMemoryManager
 	  unsigned                _treeletSizeInByte;
 	  unsigned                _numNodesPerTreelet;
 
-    std::vector<Treelet*>   _treelets;
+
+    std::vector<Treelet*>                        _treelets;
+    std::vector<gloost::InterleavedAttributes*>  _attributeBuffers;
 
     std::vector<CpuSvoNode>                      _incoreBuffer;
+    gloost::InterleavedAttributes*               _incoreAttributeBuffer;
     unsigned                                     _incoreBufferSizeInByte;
     std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap;
     std::stack<unsigned>                         _freeIncoreSlots;
