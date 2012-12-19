@@ -81,7 +81,6 @@ Treelet::Treelet():
   _serializedNodes(),
   _incompleteLeafQueueElements(),
   _finalLeafQueueElements(),
-  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
 
@@ -117,7 +116,6 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
   _serializedNodes(),
   _incompleteLeafQueueElements(),
   _finalLeafQueueElements(),
-  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
   unsigned maxNumNodes = _memSize/sizeof(CpuSvoNode);
@@ -139,6 +137,7 @@ Treelet::Treelet( gloost::gloostId  treeletGid,
 
   std::cerr << std::endl << "     size:                 " << _memSize << " (" << (float)_memSize/1024/1024 << " MB)";
   std::cerr << std::endl << "     max number of nodes:  " << maxNumNodes;
+
 #endif
 
 
@@ -166,7 +165,6 @@ Treelet::Treelet(const std::string treeletFilePath):
   _serializedNodes(),
   _incompleteLeafQueueElements(),
   _finalLeafQueueElements(),
-  _attributeBuffer(0),
   _incoreSlotGid(0)
 {
   loadFromFile(treeletFilePath);
@@ -183,7 +181,6 @@ Treelet::Treelet(const std::string treeletFilePath):
 
 Treelet::~Treelet()
 {
-	// insert your code here
 }
 
 
@@ -212,26 +209,10 @@ Treelet::getNodes()
   \remarks ...
 */
 
-CpuSvoNode
-Treelet::getNodeForIndex(unsigned index)
+CpuSvoNode&
+Treelet::getNodeForIndex(gloost::gloostId  index)
 {
   return _serializedNodes[index];
-}
-
-
-//////////////////////////////////////////////////////
-
-
-/**
-  \brief returns the Attribute buffer of this Treelet or 0
-  \param ...
-  \remarks ...
-*/
-
-gloost::InterleavedAttributes*
-Treelet::getAttributeBuffer()
-{
-  return _attributeBuffer;
 }
 
 

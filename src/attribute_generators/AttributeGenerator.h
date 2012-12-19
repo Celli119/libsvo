@@ -67,11 +67,14 @@ class AttributeGenerator
 	  virtual ~AttributeGenerator();
 
 
+
+
+
     // init the AttributeGenerator
-	  virtual void generate(std::vector<Treelet*>& treeletVector,
-                          gloost::Mesh* mesh,
-                          gloost::ObjMatFile* materials,
-                          bool freeDiscreteSamplesAfterwards = true) = 0;
+//	  virtual void generate(std::vector<Treelet*>& treeletVector,
+//                          gloost::Mesh* mesh,
+//                          gloost::ObjMatFile* materials,
+//                          bool freeDiscreteSamplesAfterwards = true) = 0;
 
 
 //    // compresses the attribute buffer and creates a coresponding attribute buffer
@@ -79,11 +82,11 @@ class AttributeGenerator
 //
 //
 	  // returns a vector of texture ids, textures containing serialized attribute data
-	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
+//	  gloost::InterleavedAttributes* getAttributeBuffer(unsigned id = 0);
 
 
 	  // returns a vector of texture ids, textures containing serialized attribute data
-	  gloost::InterleavedAttributes* getCompressedAttributeBuffer(unsigned id = 0);
+//	  gloost::InterleavedAttributes* getCompressedAttributeBuffer(unsigned id = 0);
 //
 //
 //	  // writes one attribute buffer to a *.ia file
@@ -97,15 +100,10 @@ class AttributeGenerator
 
 	protected:
 
-//	  virtual void generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth);
 
-    // generates the attributes for one partucular node
-//	  virtual void generateCurrentNodesAttribs(SvoNode* node, unsigned depth) = 0;
-
-
-    // vector of texture ids of serialized attribute data
-    std::vector<gloost::InterleavedAttributes*> _attributes;
-    std::vector<gloost::InterleavedAttributes*> _compressedAttributes;
+//    // vector of texture ids of serialized attribute data
+//    std::vector<gloost::InterleavedAttributes*> _attributes;
+//    std::vector<gloost::InterleavedAttributes*> _compressedAttributes;
 };
 
 

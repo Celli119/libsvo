@@ -29,14 +29,16 @@
 
 #define SVO_EMPTY_ATTRIB_POS 999999999
 
-// gloost system includes
-#include <gloost/gloostConfig.h>
-#include <gloost/Matrix.h>
-#include <gloost/Mesh.h>
-
 
 // svo includes
 #include <CpuSvoNode.h>
+
+
+// gloost system includes
+#include <gloost/gloostConfig.h>
+#include <gloost/Matrix.h>
+#include <gloost/InterleavedAttributes.h>
+
 
 
 // cpp includes
@@ -49,7 +51,6 @@ namespace gloost
 {
 //  class BinaryBundle;
   class BinaryFile;
-  class InterleavedAttributes;
 }
 
 
@@ -157,10 +158,7 @@ class Treelet
     std::vector<CpuSvoNode>& getNodes();
 
     // returns a serialized SvoNode for an index
-    CpuSvoNode getNodeForIndex(unsigned index);
-
-    // returns the Attribute buffer of this Treelet or 0
-    gloost::InterleavedAttributes* getAttributeBuffer();
+    CpuSvoNode& getNodeForIndex(gloost::gloostId  index);
 
 
 
@@ -238,8 +236,8 @@ class Treelet
     // container of all leaf QueueElements with required or more depth
     std::vector<QueueElement> _finalLeafQueueElements;
 
-    // gloost::InterleavedAttributes
-    gloost::InterleavedAttributes* _attributeBuffer;
+//    // gloost::InterleavedAttributes
+//    gloost::InterleavedAttributes* _attributeBuffer;
 
     gloost::gloostId   _incoreSlotGid;  // slot Gid of this treelet within the incore buffer
 };

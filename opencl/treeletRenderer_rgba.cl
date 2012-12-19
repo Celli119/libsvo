@@ -7,7 +7,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE 16
+#define MAX_STACK_SIZE        16
+#define MAX_SVO_RAYCAST_DEPTH 12
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -359,7 +360,7 @@ sample( __global const SvoNode* svo,
         else
         {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 /*|| scaleMax-scale == 9*/)
+          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
           {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                                                                svo[parent->parentNodeIndex]._firstchildIdx,
@@ -882,7 +883,7 @@ sampleAnalyse( __global const SvoNode* svo,
         else
         {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2)
+          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
           {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                                                                svo[parent->parentNodeIndex]._firstchildIdx,
@@ -977,16 +978,16 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataElement feedBackElemet;
 
 
-//  if (result.hit == true)
-//  {
-//    feedBackElemet._first  = result.nodeIndex;
-//    feedBackElemet._second = 0.0;
-//  }
-//  else
-//  {
+  if (result.hit == true)
+  {
+    feedBackElemet._first  = result.nodeIndex;
+    feedBackElemet._second = 0.0;
+  }
+  else
+  {
     feedBackElemet._first  = 1;
     feedBackElemet._second = 0.0f;
-//  }
+  }
 
 
   const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));

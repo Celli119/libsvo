@@ -67,7 +67,9 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   _treeletSizeInByte(0),
   _numNodesPerTreelet(0),
   _treelets(),
+  _attributeBuffers(),
   _incoreBuffer(),
+  _incoreAttributeBuffer(0),
   _incoreBufferSizeInByte(incoreBufferSizeInByte),
   _treeletGidToSlotGidMap(),
   _freeIncoreSlots(),
@@ -89,11 +91,11 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
 
 
   // fill up incoreBuffer
-  unsigned treeletGid = 1;
-  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(treeletGid))
-  {
-    ++treeletGid;
-  }
+//  unsigned treeletGid = 1;
+//  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(treeletGid))
+//  {
+//    ++treeletGid;
+//  }
 
 }
 
@@ -178,11 +180,11 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
   std::cerr << std::endl << "             " << filePath;
 
   gloost::BinaryFile inFile;
-  if (!inFile.openAndLoad(filePath))
+  if (!inFile.openAndLoad(filePath + ".svo"))
   {
     std::cerr << std::endl;
     std::cerr << std::endl << "ERROR in : TreeletMemoryManager::loadFromFile()";
-    std::cerr << std::endl << "           Could NOT open file" << filePath;
+    std::cerr << std::endl << "           Could NOT open file" << filePath << ".svo";
     std::cerr << std::endl;
     return false;
   }
@@ -205,6 +207,29 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
   }
 
   inFile.unload();
+
+
+  // attributes
+  if (!inFile.openAndLoad(filePath+ ".ia"))
+  {
+    std::cerr << std::endl;
+    std::cerr << std::endl << "ERROR in : TreeletMemoryManager::loadFromFile()";
+    std::cerr << std::endl << "           Could NOT open file" << filePath << ".ia";
+    std::cerr << std::endl;
+    return false;
+  }
+
+  _attributeBuffers.resize(numTreelets);
+
+  for (unsigned i=0; i!=numTreelets; ++i)
+  {
+    _attributeBuffers[i] = new gloost::InterleavedAttributes();
+    _attributeBuffers[i]->loadFromFile(inFile);
+  }
+
+  inFile.unload();
+
+
   return true;
 }
 
@@ -251,7 +276,18 @@ TreeletMemoryManager::resetIncoreBuffer()
   {
     _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
   }
+
   markIncoreSlotForUpload(0);
+ !!!!!!!!
+
+  if (_attributeBuffers.size())
+  {
+    _incoreAttributeBuffer = new gloost::InterleavedAttributes(_attributeBuffers[0]->getLayout(),
+                                                               _incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE);
+  }
+
+
+
 }
 
 

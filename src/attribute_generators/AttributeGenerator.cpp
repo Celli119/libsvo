@@ -62,9 +62,7 @@ namespace svo
   \remarks ...
 */
 
-AttributeGenerator::AttributeGenerator():
-    _attributes(),
-    _compressedAttributes()
+AttributeGenerator::AttributeGenerator()
 {
 	// insert your code here
 }
@@ -80,62 +78,11 @@ AttributeGenerator::AttributeGenerator():
 
 AttributeGenerator::~AttributeGenerator()
 {
-	for (unsigned i=0; i!=_attributes.size(); ++i)
-	{
-    _attributes[i]->dropReference();
-	}
-	for (unsigned i=0; i!=_compressedAttributes.size(); ++i)
-	{
-    _compressedAttributes[i]->dropReference();
-	}
+
+
 }
 
 
-/////////////////////////////////////////////////////
-
-
-/**
-  \brief   returns a vector of texture ids, textures containing serialized attribute data
-  \remarks ...
-*/
-
-gloost::InterleavedAttributes*
-AttributeGenerator::getAttributeBuffer(unsigned id)
-{
-	return _attributes[id];
-}
-
-
-/////////////////////////////////////////////////////
-
-//
-///**
-//  \brief generates attributes for inner nodes by averaging child attribs
-//  \param node root node of the (sub)tree
-//  \remarks ...
-//*/
-//
-//void
-//AttributeGenerator::generateInnerNodesAttributesRecursive(SvoNode* node, unsigned currentDepth)
-//{
-//  if (node->isLeaf())
-//  {
-//    return;
-//  }
-//
-//  // call generateInnerNodesAttributes recursive
-//  for (unsigned i=0; i!=8; ++i)
-//  {
-//    if (node->getValidMask().getFlag(i))
-//    {
-//      generateInnerNodesAttributesRecursive(node->getChild(i), currentDepth+1);
-//    }
-//  }
-//
-//  generateCurrentNodesAttribs(node, currentDepth);
-//}
-//
-//
 
 
 /////////////////////////////////////////////////////

@@ -115,8 +115,15 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   std::cerr << std::endl;
 
 
+  // creating the Interleaved Attribute Layout
+  gloost::InterleavedAttributes attributeProto;
+  attributeProto.addAttribute(1, 8, "compressedNormal");
+  attributeProto.addAttribute(1, 8, "compressedColor");
+
+
   // Build root Treelet
   _treelets.resize(1);
+  _attributeBuffers.resize(1, new gloost::InterleavedAttributes());
   {
     _treelets[0] = new Treelet(0u,  // this treelet Gid
                                0u,  // parents treelet Gid
@@ -125,23 +132,13 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                0u,  // position of leaves parent within the parent treelet
                                _treeletSizeInByte);
 
+
+    _attributeBuffers[0] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
+                                                             _treelets[0]->getNodes().size());
+
     svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
     fromTrianglesBuilder.build(_treelets[0],
                                mesh);
-
-    // attribute generator
-    //  svo::Ag_colorAndNormalsTriangles generator;
-    //  generator.generate(_trunk, mesh, new gloost::ObjMatFile());
-
-//    _treelets[0]->writeToFile("/home/otaco/Desktop/SVO_DATA/"
-//                               + std::string("TreeletBuildManager_out")
-//                               + std::string("_") + "0"
-//                               + ".treelet" );
-
-    //  generator.writeCompressedAttributeBufferToFile("/home/otaco/Desktop/SVO_DATA/"
-    //                                                 + std::string("TreeletBuildManager_out_trunk")
-    //                                                 + "_" + gloost::toString(trunkDepth) + "_" + gloost::toString(branchDepth) + "c"
-    //                                                 + ".ia" );
   }
 
 
@@ -157,9 +154,9 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 
-  static unsigned finalLeafeMemSize = 0; // <-
-  unsigned treeletId      = 1u;
-  unsigned queueItemCount = _treelets[0]->getIncompleteLeafQueueElements().size();
+  static unsigned finalLeafeMemSize = 0; // <- debug
+  unsigned treeletId                = 1u;
+  unsigned queueItemCount           = _treelets[0]->getIncompleteLeafQueueElements().size();
 
 
   while(treeletsWithSubTreeletsQueue.size())
@@ -173,6 +170,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
     std::vector<Treelet::QueueElement>& parentIncompleteQueueElements = parentTreelet->getIncompleteLeafQueueElements();
     unsigned numSubTreelets = parentIncompleteQueueElements.size();
     _treelets.resize(numSubTreelets+_treelets.size(), 0);
+    _attributeBuffers.resize(numSubTreelets+_treelets.size(), 0);
 
 
     for (unsigned i=0; i!=numSubTreelets; ++i)
@@ -194,9 +192,9 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
         std::cerr << std::endl << "            Building Treelet:   " << treeletId << " of " << queueItemCount;
         std::cerr << std::endl << "            progress:           " << completeRatio << " %";
-        std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB";
+        std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " (x2) GB";
         std::cerr << std::endl << "            Current depth:      " << parentIncompleteQueueElements[i]._depth;
-        std::cerr << std::endl << "finalLeafeMemSize: " << finalLeafeMemSize / 1024.0 / 1024.0;
+        std::cerr << std::endl << "            finalLeafeMemSize:  " << finalLeafeMemSize / 1024.0 / 1024.0 << " MB";
       }
 #endif
 
@@ -206,6 +204,10 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                           parentIncompleteQueueElements[i]._idx,
                                           parentIncompleteQueueElements[i]._parentLocalNodeIndex,
                                           _treeletSizeInByte);
+
+      _attributeBuffers[treeletId] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
+                                                                       _treelets[treeletId]->getNodes().size());
+
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
       fromTrianglesBuilder.build(_treelets[treeletId],
@@ -229,10 +231,12 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       {
         finalLeafeMemSize += sizeof(Treelet::QueueElement) * _treelets[treeletId]->getFinalLeafQueueElements().size();
 
-        // create attributes for all final leaf samples here
+        // create attributes for all final leaf samples and delete the final leafes samples
+        Ag_colorAndNormalsTriangles::createFinalLeafesAttributes(this,
+                                                                 treeletId,
+                                                                 mesh);
 
-        // clear all final leafes
-        std::vector<Treelet::QueueElement>().swap(_treelets[treeletId]->getFinalLeafQueueElements());
+
       }
 
       // clear primitive ids since we need them anymore
@@ -293,8 +297,34 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
     _treelets[i]->writeToFile(outFile);
   }
 
+  outFile.close();
+
+
+  // write attributes
+  if (!_attributeBuffers.size())
+  {
+    return false;
+  }
+
+  std::cerr << std::endl << "  Writing ATTRIBUTES to:";
+  std::cerr << std::endl << "    " << filePath + ".ia";
+
+  if (!outFile.openToWrite(filePath + ".ia"))
+  {
+    return false;
+  }
+
+  // write svo header
+  outFile.writeUInt32(_treelets.size());
+
+  for (unsigned i=0; i!=_treelets.size(); ++i)
+  {
+    _attributeBuffers[i]->writeToFile(outFile);
+  }
 
   outFile.close();
+
+
   return true;
 }
 
@@ -309,9 +339,25 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
 */
 
 Treelet*
-TreeletBuildManager::getTreelet(gloost::gloostId id)
+TreeletBuildManager::getTreelet(gloost::gloostId Gid)
 {
-  return _treelets[id];
+  return _treelets[Gid];
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a Treelet for a given Gid
+  \param   ...
+  \remarks ...
+*/
+
+gloost::InterleavedAttributes*
+TreeletBuildManager::getAttributeBuffer(gloost::gloostId Gid)
+{
+  return _attributeBuffers[Gid];
 }
 
 
