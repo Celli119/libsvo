@@ -26,6 +26,7 @@
 
 // svo system includes
 #include <attribute_generators/Ag_colorAndNormalsTriangles.h>
+#include <TreeletBuildManager.h>
 #include <Treelet.h>
 
 // gloost includes
@@ -85,6 +86,41 @@ Ag_colorAndNormalsTriangles::Ag_colorAndNormalsTriangles():
 
 Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
 {
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   creates attributes for all final leafes of a treelet
+  \remarks ...
+*/
+
+/*static*/
+void
+Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* buildManager,
+                                                          unsigned treeletGid,
+                                                          gloost::Mesh* mesh)
+{
+
+  Treelet* treelet = buildManager->getTreelet(treeletGid);
+
+//  std::cerr << std::endl << "Message from createFinalLeafesAttributes(): ";
+//  std::cerr << std::endl << "             creating Attributes for " << treelet->getFinalLeafQueueElements().size() << " final leafes";
+
+  // for all samples
+  for (unsigned i=0; i!=treelet->getFinalLeafQueueElements().size(); ++i)
+  {
+    /// write stuff here
+  }
+
+//  !!! Vector of buffer within the TreeletBuilder and the memory manager !!!
+
+
+  // clear all final leafes
+  std::vector<Treelet::QueueElement>().swap(treelet->getFinalLeafQueueElements());
+
 }
 
 
