@@ -132,11 +132,12 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out.svo";
-//  const std::string svoBaseName  = "san-miguel.svo";
-//  const std::string svoBaseName  = "oil_rig.svo";
-//  const std::string svoBaseName  = "crytek_sponza.svo";
-//  const std::string svoBaseName  = "sibenik.svo";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "san-miguel";
+//  const std::string svoBaseName  = "oil_rig";
+//  const std::string svoBaseName  = "crytek_sponza";
+//  const std::string svoBaseName  = "crytek_sponza";
+//  const std::string svoBaseName  = "sibenik";
 
 
 
@@ -376,16 +377,13 @@ void frameStep()
 
 
 
-
-
-
   if (g_enableDynamicLoading)
   {
     // run analyse render pass
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
                                             modelMatrix,
-                                            g_tScaleRatio/g_fbToAnalyseBufferDevide);
+                                            g_tScaleRatio);
 
     std::set<gloost::gloostId>& visibleTreelets = g_renderPassAnalyse->getVisibleTreelets();
 
@@ -402,6 +400,10 @@ void frameStep()
   }
 
   g_clMemoryManager->updateDeviceMemory();
+
+
+
+
 
 
   if (g_raycastEveryFrame || g_frameDirty)

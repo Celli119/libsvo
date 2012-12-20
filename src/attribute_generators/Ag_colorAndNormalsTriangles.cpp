@@ -35,6 +35,7 @@
 #include <gloost/ObjMatFile.h>
 #include <gloost/InterleavedAttributes.h>
 #include <gloost/BinaryBundle.h>
+#include <gloost/Vector3.h>
 
 
 // cpp includes
@@ -127,18 +128,31 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
       color  += triangle.interpolateColor(u, v);
     }
 
-    normal/= queueElement._primitiveIds.size();
-    color/= queueElement._primitiveIds.size();
+    normal /= queueElement._primitiveIds.size();
+    color  /= queueElement._primitiveIds.size();
+
+    normal.normalize();
 
     // compress attributes
     unsigned compressedNormal = gloost::Vector3::compressAsNormal(normal);
-    unsigned compressedColor  = gloost::Vector3::compressAsColor(color);
+    unsigned compressedColor = gloost::Vector3::compressAsColor(color);
 
 
     // write attributes to attribute buffer
     unsigned nodeAttributePosition = buildManager->getAttributeBuffer(treeletGid)->getPackageIndex(queueElement._localLeafIndex);
-    buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition]   = gloost::unsigned_as_float(compressedNormal);
-    buildManager->getAttributeBuffer(treeletGid)->getVector()[++nodeAttributePosition] = gloost::unsigned_as_float(compressedColor);
+    buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition++] = gloost::unsigned_as_float(compressedNormal);
+    buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition]   = gloost::unsigned_as_float(compressedColor);
+
+//
+//    std::cerr << std::endl << "";
+//    std::cerr << std::endl << "createFinalLeafesAttributes ---------------------------------------------------------------------";
+//    std::cerr << std::endl << "normal          : " << gloost::Vector3::uncompressAsNormal(compressedNormal);
+//    std::cerr << std::endl << "compressedNormal: " << normal;
+//    std::cerr << std::endl;
+//    std::cerr << std::endl << "           Color: " << color;
+//    std::cerr << std::endl << "compressedColor: " << gloost::Vector3::uncompressAsColor(gloost::Vector3::compressAsColor(color));
+
+
   }
 
   // clear all final leafes
@@ -159,28 +173,50 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
 /*static*/
 void
 Ag_colorAndNormalsTriangles::createInnerNodesAttributes( TreeletBuildManager* buildManager,
-                                                         gloost::gloostId     treeletGid,
-                                                         gloost::gloostId     nodeIndex,
-                                                         unsigned             currentDepth)
+                                                         gloost::gloostId     treeletGid)
 {
-  CpuSvoNode& node = buildManager->getTreelet(treeletGid)->getNodeForIndex(nodeIndex);
+  // start bottom up attribute averaging
+  recursive_createInnerNodesAttributes( buildManager,
+                                        treeletGid,
+                                        0,
+                                        0);
 
-  // call generateInnerNodesAttributes recursive
-  for (unsigned i=0; i!=8; ++i)
+  // propergate root attributes to parent treelets corresponding leaf
+  if (treeletGid)
   {
-    if (node.getValidMaskFlag(i) && !node.getLeafMaskFlag(i))
-    {
-      createInnerNodesAttributes(buildManager,
-                                 treeletGid,
-                                 nodeIndex + node.getNthChildIndex(i),
-                                 currentDepth+1);
-    }
+    Treelet* treelet = buildManager->getTreelet(treeletGid);
+
+    gloost::InterleavedAttributes* treeletAttributebuffer =  buildManager->getAttributeBuffer(treeletGid);
+    unsigned sourceIndex = treeletAttributebuffer->getPackageIndex(0);
+
+    gloost::InterleavedAttributes* parentTreeletAttributebuffer =  buildManager->getAttributeBuffer(treelet->getParentTreeletGid());
+    unsigned destIndex = parentTreeletAttributebuffer->getPackageIndex(treelet->getParentTreeletLeafPosition());
+
+    parentTreeletAttributebuffer->getVector()[destIndex++] = treeletAttributebuffer->getVector()[sourceIndex++];
+    parentTreeletAttributebuffer->getVector()[destIndex]   = treeletAttributebuffer->getVector()[sourceIndex];
+
+    std::cerr << std::endl << "propergate from: " << treeletGid << " to " << treelet->getParentTreeletGid() << " at " << treelet->getParentTreeletLeafPosition();
+  }
+  else
+  {
+
+//    gloost::InterleavedAttributes* rootTreeletAttributebuffer =  buildManager->getAttributeBuffer(0);
+//
+//    for (unsigned i=0; i!=rootTreeletAttributebuffer->getNumPackages(); ++i)
+//    {
+//      unsigned index = rootTreeletAttributebuffer->getPackageIndex(i);
+//
+//      unsigned compressedNormal = gloost::float_as_unsigned(rootTreeletAttributebuffer->getVector()[index++]);
+//      unsigned compressedColor  = gloost::float_as_unsigned(rootTreeletAttributebuffer->getVector()[index]);
+//
+//      std::cerr << std::endl << "rootTreeletAttributebuffer -------------------------------------------";
+//      std::cerr << std::endl << "normal: " << gloost::Vector3::uncompressAsNormal(compressedNormal);
+//      std::cerr << std::endl << "color:  " << gloost::Vector3::uncompressAsColor(compressedColor);
+//    }
+
   }
 
-  averageFromeChildAttributes(buildManager,
-                              treeletGid,
-                              nodeIndex,
-                              currentDepth);
+
 }
 
 
@@ -196,9 +232,9 @@ Ag_colorAndNormalsTriangles::createInnerNodesAttributes( TreeletBuildManager* bu
 /*static*/
 void
 Ag_colorAndNormalsTriangles::recursive_createInnerNodesAttributes( TreeletBuildManager* buildManager,
-                                                         gloost::gloostId     treeletGid,
-                                                         gloost::gloostId     nodeIndex,
-                                                         unsigned             currentDepth)
+                                                                   gloost::gloostId     treeletGid,
+                                                                   gloost::gloostId     nodeIndex,
+                                                                   unsigned             currentDepth)
 {
   CpuSvoNode& node = buildManager->getTreelet(treeletGid)->getNodeForIndex(nodeIndex);
 
@@ -207,10 +243,10 @@ Ag_colorAndNormalsTriangles::recursive_createInnerNodesAttributes( TreeletBuildM
   {
     if (node.getValidMaskFlag(i) && !node.getLeafMaskFlag(i))
     {
-      createInnerNodesAttributes(buildManager,
-                                 treeletGid,
-                                 nodeIndex + node.getNthChildIndex(i),
-                                 currentDepth+1);
+      recursive_createInnerNodesAttributes(buildManager,
+                                           treeletGid,
+                                           nodeIndex + node.getNthChildIndex(i),
+                                           currentDepth+1);
     }
   }
 
@@ -257,6 +293,7 @@ Ag_colorAndNormalsTriangles::averageFromeChildAttributes( TreeletBuildManager* b
       float packedColor  = buildManager->getAttributeBuffer(treeletGid)->getVector()[attribPosition+1];
 
       avarageNormal += gloost::Vector3::uncompressAsNormal(gloost::float_as_unsigned(packedNormal));
+      avarageColor  += gloost::Vector3::uncompressAsColor(gloost::float_as_unsigned(packedColor));
     }
 
   }
@@ -264,10 +301,23 @@ Ag_colorAndNormalsTriangles::averageFromeChildAttributes( TreeletBuildManager* b
   avarageNormal /= (float)numChildren;
   avarageColor  /= (float)numChildren;
 
+  avarageNormal.normalize();
+
+  unsigned compressedNormal = gloost::Vector3::compressAsNormal(avarageNormal);
+  unsigned compressedColor = gloost::Vector3::compressAsColor(avarageColor);
+
   // write attributes to attribute buffer
   unsigned attribPosition = buildManager->getAttributeBuffer(treeletGid)->getPackageIndex(nodeIndex);
-  buildManager->getAttributeBuffer(treeletGid)->getVector()[attribPosition++] = gloost::unsigned_as_float(gloost::Vector3::compressAsNormal(avarageNormal));
-  buildManager->getAttributeBuffer(treeletGid)->getVector()[attribPosition]   = gloost::unsigned_as_float(gloost::Vector3::compressAsColor(avarageNormal));
+  buildManager->getAttributeBuffer(treeletGid)->getVector()[attribPosition++] = gloost::unsigned_as_float(compressedNormal);
+  buildManager->getAttributeBuffer(treeletGid)->getVector()[attribPosition]   = gloost::unsigned_as_float(compressedColor);
+
+
+//
+//  std::cerr << std::endl << "averageFromeChildAttributes ---------------------------------------------------------------------";
+//  std::cerr << std::endl << "compressedNormal: " << gloost::Vector3::uncompressAsNormal(compressedNormal);
+//  std::cerr << std::endl << "compressedColor: " << gloost::Vector3::uncompressAsColor(compressedColor);
+
+
 
 }
 

@@ -77,10 +77,8 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
                                             unsigned treeletGid,
                                             gloost::Mesh* mesh);
 
-    static void createInnerNodesAttributes(TreeletBuildManager* buildManager,
-                                           gloost::gloostId     treeletGid,
-                                           gloost::gloostId     nodeIndex,
-                                           unsigned             currentDepth);
+    static void createInnerNodesAttributes( TreeletBuildManager* buildManager,
+                                            gloost::gloostId     treeletGid);
 
 //
 //
