@@ -197,11 +197,13 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
   std::cerr << std::endl << "             number of Treelets:           " << numTreelets;
   std::cerr << std::endl << "             number of nodes per Treelets: " << _numNodesPerTreelet;
   std::cerr << std::endl << "             Treelet size:                 " << _treeletSizeInByte << " (" << _treeletSizeInByte/1024 << " KB)";
+  std::cerr << std::endl << "> ";
 
   _treelets.resize(numTreelets);
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
+    std::cerr << i << ", ";
     _treelets[i] = new Treelet();
     _treelets[i]->loadFromFile(inFile);
   }
@@ -210,24 +212,27 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 
 
   // attributes
-  if (!inFile.openAndLoad(filePath+ ".ia"))
+  gloost::BinaryFile inFileAttributes;
+  if (!inFileAttributes.openAndLoad(filePath+ ".ia"))
   {
     std::cerr << std::endl;
     std::cerr << std::endl << "ERROR in : TreeletMemoryManager::loadFromFile()";
     std::cerr << std::endl << "           Could NOT open file" << filePath << ".ia";
-    std::cerr << std::endl;
+    std::cerr << std::endl << "> ";
     return false;
   }
 
-  _attributeBuffers.resize(numTreelets);
+  unsigned numAttributeBuffers = inFileAttributes.readUInt32();
+  _attributeBuffers.resize(numAttributeBuffers);
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
+    std::cerr << i << ", ";
     _attributeBuffers[i] = new gloost::InterleavedAttributes();
-    _attributeBuffers[i]->loadFromFile(inFile);
+    _attributeBuffers[i]->loadFromFile(inFileAttributes);
   }
 
-  inFile.unload();
+  inFileAttributes.unload();
 
 
   return true;
@@ -278,7 +283,7 @@ TreeletMemoryManager::resetIncoreBuffer()
   }
 
   markIncoreSlotForUpload(0);
- !!!!!!!!
+// !!!!!!!!
 
   if (_attributeBuffers.size())
   {

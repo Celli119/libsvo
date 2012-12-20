@@ -136,6 +136,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
     _attributeBuffers[0] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
                                                              _treelets[0]->getNodes().size());
 
+    _attributeBuffers[0]->fill(0.0);
+
     svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
     fromTrianglesBuilder.build(_treelets[0],
                                mesh);
@@ -208,6 +210,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       _attributeBuffers[treeletId] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
                                                                        _treelets[treeletId]->getNodes().size());
 
+      _attributeBuffers[treeletId]->fill(0.0);
 
       svo::TreeletBuilderFromFaces fromTrianglesBuilder(maxSvoDepth);
       fromTrianglesBuilder.build(_treelets[treeletId],
@@ -235,8 +238,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         Ag_colorAndNormalsTriangles::createFinalLeafesAttributes(this,
                                                                  treeletId,
                                                                  mesh);
-
-
       }
 
       // clear primitive ids since we need them anymore
@@ -253,10 +254,16 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 #endif
 
+  for (int i=_treelets.size()-1; i!=-1; --i)
+  {
+    std::cerr << std::endl << "## Creating attributes for Treelet: " << i;
+    Ag_colorAndNormalsTriangles::createInnerNodesAttributes( this,
+                                                             i);
+  }
+
 
   writeToFile( "/home/otaco/Desktop/SVO_DATA/"
-               + std::string("TreeletBuildManager_out")
-               + ".svo" );
+               + std::string("TreeletBuildManager_out"));
 }
 
 
@@ -274,8 +281,8 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
 {
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuildManager::writeToFile():";
-  std::cerr << std::endl << "  Writing SVO to:";
-  std::cerr << std::endl << "    " << filePath;
+  std::cerr << std::endl << "             Writing SVO to:";
+  std::cerr << std::endl << "             " << filePath<< ".svo";
 
   if (!_treelets.size())
   {
@@ -283,7 +290,7 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
   }
 
   gloost::BinaryFile outFile;
-  if (!outFile.openToWrite(filePath))
+  if (!outFile.openToWrite(filePath + ".svo"))
   {
     return false;
   }
@@ -315,7 +322,7 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
   }
 
   // write svo header
-  outFile.writeUInt32(_treelets.size());
+  outFile.writeUInt32(_attributeBuffers.size());
 
   for (unsigned i=0; i!=_treelets.size(); ++i)
   {
