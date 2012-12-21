@@ -68,7 +68,8 @@ TreeletMemoryManagerCl::TreeletMemoryManagerCl(const std::string& svoFilePath,
                                                gloost::bencl::ClContext* clContext):
   TreeletMemoryManager(svoFilePath,incoreBufferSizeInByte),
   _clContext(clContext),
-  _svoClBufferGid(0)
+  _svoClBufferGid(0),
+  _attributeClBufferGid(0)
 {
 
 
@@ -103,6 +104,10 @@ TreeletMemoryManagerCl::initClBuffer()
 	_svoClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
                                               (unsigned char*)&getIncoreBuffer().front(),
                                               getIncoreBuffer().size()*sizeof(CpuSvoNode));
+
+	_attributeClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+                                                    (unsigned char*)&getAttributeIncoreBuffer()->getVector().front(),
+                                                    getAttributeIncoreBuffer()->getVector().size()*sizeof(float));
 }
 
 
@@ -118,6 +123,21 @@ gloost::gloostId
 TreeletMemoryManagerCl::getClIncoreBufferGid() const
 {
 	return _svoClBufferGid;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the Gid of the ClBuffer containing the ATTRIBUTES
+  \remarks ...
+*/
+
+gloost::gloostId
+TreeletMemoryManagerCl::getClAttributeIncoreBufferGid() const
+{
+	return _attributeClBufferGid;
 }
 
 
@@ -145,49 +165,54 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     return;
   }
 
-//  std::cerr << std::endl << "_incoreSlotsToUpload: " << _incoreSlotsToUpload.size();
-
   static const unsigned maxUploadAmount = 1.0*1024u*1204u;
   unsigned numBytesUploaded      = 0u;
 
 
   while (numBytesUploaded < maxUploadAmount && slotGidIt!=slotGidEndIt)
   {
-//    --slotGidEndIt;
-
-//    numBytesUploaded += getTreeletSizeInByte();
-
-    unsigned srcIndex   = (*slotGidIt)*_numNodesPerTreelet;
-    unsigned destOffset = (*slotGidIt)*getTreeletSizeInByte();
+    // svo data
+    unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
+    unsigned destOffsetInByte = (*slotGidIt)*getTreeletSizeInByte();
 
     int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
                                                 false,
-                                                destOffset,
+                                                destOffsetInByte,
                                                 getTreeletSizeInByte(),
                                                 (const char*)&(_incoreBuffer[srcIndex]));
 
 #if 0
     std::cerr << std::endl;
-    std::cerr << std::endl << "  -> Uploading:  " << (*slotGidIt);
-    std::cerr << std::endl << "     srcIndex:   " << srcIndex;
-    std::cerr << std::endl << "     destOffset: " << destOffset;
-    std::cerr << std::endl << "     size:       " << getTreeletSizeInByte();
+    std::cerr << std::endl << "  -> Uploading:        " << (*slotGidIt);
+    std::cerr << std::endl << "     srcIndex:         " << srcIndex;
+    std::cerr << std::endl << "     destOffsetInByte: " << destOffset;
+    std::cerr << std::endl << "     size:             " << getTreeletSizeInByte();
 
     std::cerr << std::endl << "     status: " << status;
 #endif
 
-    ++slotGidIt;
+
+    // attrib data
+    unsigned attribSrcIndex         = (*slotGidIt)*_numNodesPerTreelet*_incoreAttributeBuffer->getNumElementsPerPackage();
+    unsigned attribDestOffsetInByte = (*slotGidIt)*_attributeBuffers[0]->getVector().size()*sizeof(float);
+
+    gloost::bencl::ClBuffer* incoreAttributeClBuffer = _clContext->getClBuffer(_attributeClBufferGid);
+
+    status = incoreAttributeClBuffer->enqueueWrite(device->getClCommandQueue(),
+                                                   false,
+                                                   attribDestOffsetInByte,
+                                                   _attributeBuffers[0]->getVector().size()*sizeof(float),
+                                                   (const char*)&(_incoreAttributeBuffer->getVector()[attribSrcIndex]));
+
+
 
     clFinish( device->getClCommandQueue() );
+
+
+    ++slotGidIt;
   }
 
-//  if (numBytesUploaded)
-    _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), slotGidIt);
-//    _incoreSlotsToUpload.erase(slotGidEndIt, _incoreSlotsToUpload.end());
-
-
-
-//  _incoreSlotsToUpload.clear();
+  _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), slotGidIt);
 }
 
 

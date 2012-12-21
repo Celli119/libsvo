@@ -84,6 +84,9 @@ class TreeletMemoryManager
     // returns the incore buffer
     std::vector<CpuSvoNode>& getIncoreBuffer();
 
+    // returns the attribute incore buffer
+    gloost::InterleavedAttributes* getAttributeIncoreBuffer();
+
 
     // updates device memory by uploading incore buffer slots
     virtual void updateDeviceMemory();

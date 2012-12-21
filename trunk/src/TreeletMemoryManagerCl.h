@@ -81,6 +81,9 @@ class TreeletMemoryManagerCl: public TreeletMemoryManager
 	  // returns the Gid of the ClBuffer containing the SVO
 	  gloost::gloostId getClIncoreBufferGid() const;
 
+	  // returns the Gid of the ClBuffer containing the ATTRIBUTES
+	  gloost::gloostId getClAttributeIncoreBufferGid() const;
+
 
     // updates device memory by uploading incore buffer slots
     virtual void updateDeviceMemory();
@@ -100,6 +103,7 @@ class TreeletMemoryManagerCl: public TreeletMemoryManager
     gloost::bencl::ClContext* _clContext;
 
     gloost::gloostId          _svoClBufferGid;
+    gloost::gloostId          _attributeClBufferGid;
 
 
 };

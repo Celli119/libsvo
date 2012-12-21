@@ -166,6 +166,21 @@ TreeletMemoryManager::getIncoreBuffer()
 
 
 /**
+  \brief   returns the attribute incore buffer
+  \param   ...
+  \remarks ...
+*/
+
+gloost::InterleavedAttributes*
+TreeletMemoryManager::getAttributeIncoreBuffer()
+{
+  return _incoreAttributeBuffer;
+}
+
+//////////////////////////////////////////////////////
+
+
+/**
   \brief   loads svo/Treelet structure from file
   \param   ...
   \remarks ...
@@ -197,13 +212,13 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
   std::cerr << std::endl << "             number of Treelets:           " << numTreelets;
   std::cerr << std::endl << "             number of nodes per Treelets: " << _numNodesPerTreelet;
   std::cerr << std::endl << "             Treelet size:                 " << _treeletSizeInByte << " (" << _treeletSizeInByte/1024 << " KB)";
-  std::cerr << std::endl << "> ";
+//  std::cerr << std::endl << "> ";
 
   _treelets.resize(numTreelets);
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
-    std::cerr << i << ", ";
+//    std::cerr << i << ", ";
     _treelets[i] = new Treelet();
     _treelets[i]->loadFromFile(inFile);
   }
@@ -218,7 +233,7 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
     std::cerr << std::endl;
     std::cerr << std::endl << "ERROR in : TreeletMemoryManager::loadFromFile()";
     std::cerr << std::endl << "           Could NOT open file" << filePath << ".ia";
-    std::cerr << std::endl << "> ";
+//    std::cerr << std::endl << "> ";
     return false;
   }
 
@@ -227,7 +242,7 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
-    std::cerr << i << ", ";
+//    std::cerr << i << ", ";
     _attributeBuffers[i] = new gloost::InterleavedAttributes();
     _attributeBuffers[i]->loadFromFile(inFileAttributes);
   }
@@ -260,39 +275,31 @@ TreeletMemoryManager::resetIncoreBuffer()
   std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
 
   // allocate incoreBuffer
-  _incoreBuffer.resize(_incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE);
+  unsigned numNodesInIncoreBuffer = _incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE;
+  _incoreBuffer.resize(numNodesInIncoreBuffer);
 
-  std::cerr << std::endl << "             incore buffer size:      " << _incoreBufferSizeInByte/1024/1024;
+  std::cerr << std::endl << "             incore buffer size:      " << _incoreBufferSizeInByte/1024/1024 << " MB";
   std::cerr << std::endl << "             incore num nodes:        " << _incoreBuffer.size();
 
-
-  // memcpy root treelet to incoreBuffer
-  memcpy( (char*)&_incoreBuffer.front(),
-          (char*)&_treelets[0]->getNodes().front(),
-          _treeletSizeInByte);
-
-  // write down where to find root Treelet in the incoreBuffer
-  _treeletGidToSlotGidMap[0u] = 0u;
-
   unsigned maxNumTreeletsInIncoreBuffer = _incoreBufferSizeInByte/_treeletSizeInByte;
-  std::cerr << std::endl << "             max num treelets incore: " << maxNumTreeletsInIncoreBuffer;
-
-  for (unsigned i=1; i!=maxNumTreeletsInIncoreBuffer; ++i)
+  for (unsigned i=0; i!=maxNumTreeletsInIncoreBuffer+1; ++i)
   {
     _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
   }
 
-  markIncoreSlotForUpload(0);
-// !!!!!!!!
 
+  // create incore buffer for attributes
+  std::cerr << std::endl << "             Attribute incore buffer: " << numNodesInIncoreBuffer * _attributeBuffers[0]->getPackageStride() / 1024.0 /1024.0 << " MB";
   if (_attributeBuffers.size())
   {
     _incoreAttributeBuffer = new gloost::InterleavedAttributes(_attributeBuffers[0]->getLayout(),
-                                                               _incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE);
+                                                               numNodesInIncoreBuffer);
   }
+  std::cerr << std::endl << "             Attribute incore buffer size: " << _incoreAttributeBuffer->getVector().size();
 
 
 
+  insertTreeletIntoIncoreBuffer(0);
 }
 
 
@@ -317,11 +324,10 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
     return false;
   }
 
-  static bool messageOut = false;
+  bool messageOut = false;
 
   if (!_freeIncoreSlots.size() || treeletGid >= _treelets.size())
   {
-
     if (!messageOut)
     {
       std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
@@ -329,9 +335,8 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
       messageOut = true;
     }
 
-
     return false;
-    // make place ...
+    // make space available ...
   }
 
   unsigned freeSlotGid = _freeIncoreSlots.top();
@@ -346,11 +351,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   // calculate where to put the Treelet
   unsigned incoreNodePosition = freeSlotGid*_numNodesPerTreelet;
 
-#if 0
-  std::cerr << std::endl << "Adding: " << treeletGid
-            << " into slot " << freeSlotGid
-            << ", at node " << incoreNodePosition;
-#endif
 
   // memcpy root treelet to incoreBuffer
   memcpy( (char*)&_incoreBuffer[incoreNodePosition],
@@ -381,6 +381,19 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 
   // mark incore slot of new Treelet to be uploaded to device memory
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[treeletGid]);
+
+
+
+  // ### copy treelet attributes to incoreBuffer
+
+  unsigned incorePackageIndex   = freeSlotGid*_numNodesPerTreelet;
+  unsigned incoreAttribPosition = _attributeBuffers[treeletGid]->getPackageIndex(incorePackageIndex);
+
+  // memcpy root treelet to incoreBuffer
+  memcpy( (char*)&_incoreAttributeBuffer->getVector()[incoreAttribPosition],
+          (char*)&_attributeBuffers[treeletGid]->getVector().front(),
+          _attributeBuffers[treeletGid]->getVector().size()*sizeof(float));
+
 
 
   return true;

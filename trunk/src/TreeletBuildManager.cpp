@@ -117,8 +117,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
   // creating the Interleaved Attribute Layout
   gloost::InterleavedAttributes attributeProto;
-  attributeProto.addAttribute(1, 8, "compressedNormal");
-  attributeProto.addAttribute(1, 8, "compressedColor");
+  attributeProto.addAttribute(1, 4, "compressedNormal");
+  attributeProto.addAttribute(1, 4, "compressedColor");
 
 
   // Build root Treelet
@@ -256,7 +256,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
   for (int i=_treelets.size()-1; i!=-1; --i)
   {
-    std::cerr << std::endl << "## Creating attributes for Treelet: " << i;
+//    std::cerr << std::endl << "## Creating attributes for Treelet: " << i;
     Ag_colorAndNormalsTriangles::createInnerNodesAttributes( this,
                                                              i);
   }

@@ -2,21 +2,19 @@
 
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 
 //
 //__constant float scale = 1.0f;
 #define MAX_STACK_SIZE        16
-#define MAX_SVO_RAYCAST_DEPTH 12
+#define MAX_SVO_RAYCAST_DEPTH 16
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
 
 //
-typedef struct
-{
+typedef struct {
   unsigned _firstchildIdx;
   unsigned _masks;
 //  unsigned _attibutePos;
@@ -24,16 +22,14 @@ typedef struct
 
 
 //
-typedef struct
-{
+typedef struct {
   unsigned _packed_normal;
   unsigned _packed_color;
 } __attribute__ ( ( aligned ( 8 ) ) ) Attribs;
 
 
 //
-typedef struct
-{
+typedef struct {
   unsigned parentNodeIndex;
   float    parentTMin;
   float    parentTMax;
@@ -42,8 +38,7 @@ typedef struct
 
 
 //
-typedef struct
-{
+typedef struct {
   bool     hit;
   unsigned nodeIndex;
   unsigned attribIndex;
@@ -61,8 +56,7 @@ typedef struct
 
 inline void swapToIncreasing(float* value1, float* value2)
 {
-  if (*value1 > *value2)
-  {
+  if (*value1 > *value2) {
     float temp = *value1;
     *value1 = *value2;
     *value2 = temp;
@@ -94,8 +88,7 @@ inline unsigned getNthchildIdx( const unsigned masks,
 {
   unsigned index = firstchildIdx;
 
-  for (unsigned i=0; i!=childIdx; ++i)
-  {
+  for (unsigned i=0; i!=childIdx; ++i) {
     index += getValidMaskFlag(masks, i);
   }
 
@@ -113,18 +106,18 @@ intersectAABB( const float3 rayOrigin,
 {
 
 
-	// source: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+  // source: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 
 
-	/*
-	For each pair of planes P associated with X, Y, and Z do:
+  /*
+  For each pair of planes P associated with X, Y, and Z do:
   (example using X planes)
   if direction Xd = 0 then the ray is parallel to the X planes.
   So, if origin Xo is not between the slabs ( Xo < Xl or Xo > Xh) then return false
   else, if the ray is not parallel to the plane then
   begin
   compute the intersection distance of the planes
-	T1 = (Xl - Xo) / Xd
+  T1 = (Xl - Xo) / Xd
   T2 = (Xh - Xo) / Xd
   If T1 > T2 swap (T1, T2) // since T1 intersection with near plane
 
@@ -137,20 +130,18 @@ intersectAABB( const float3 rayOrigin,
   end of for loop
   If Box survived all above tests, return true with
   intersection point Tnear and exit point Tfar.
-	*/
+  */
 
-	float tNear                = -10000000.0f;
-	float tFar                 =  10000000.0f;
-	const float boxRadius      = 0.5f;
-	const float rayOriginArray[3]    = {rayOrigin.x, rayOrigin.y, rayOrigin.z};
-	const float rayDirectionArray[3] = {rayDirection.x, rayDirection.y, rayDirection.z};
+  float tNear                = -10000000.0f;
+  float tFar                 =  10000000.0f;
+  const float boxRadius      = 0.5f;
+  const float rayOriginArray[3]    = {rayOrigin.x, rayOrigin.y, rayOrigin.z};
+  const float rayDirectionArray[3] = {rayDirection.x, rayDirection.y, rayDirection.z};
 
 
   // parallel to plane 0..1
-	for (int i=0; i!=3; ++i)
-	{
-    if (rayDirectionArray[i] == 0 && (-boxRadius > rayOriginArray[i] || boxRadius < rayOriginArray[i]))
-    {
+  for (int i=0; i!=3; ++i) {
+    if (rayDirectionArray[i] == 0 && (-boxRadius > rayOriginArray[i] || boxRadius < rayOriginArray[i])) {
       return false;
     }
 
@@ -158,33 +149,28 @@ intersectAABB( const float3 rayOrigin,
     float t2 = (boxRadius - rayOriginArray[i]) / rayDirectionArray[i];
 
     // swap
-    if (t1 > t2)
-    {
+    if (t1 > t2) {
       float temp = t1;
       t1 = t2;
       t2 = temp;
     }
 
-    if (t1 > tNear)
-    {
+    if (t1 > tNear) {
       tNear = t1;
     }
 
-    if (t2 < tFar)
-    {
+    if (t2 < tFar) {
       tFar = t2;
     }
 
-    if (tNear > tFar)
-    {
+    if (tNear > tFar) {
       return false;
     }
 
-    if (tFar < 0.0f)
-    {
+    if (tFar < 0.0f) {
       return false;
     }
-	}
+  }
 
   *tMin = tNear;
   *tMax = tFar;
@@ -225,8 +211,7 @@ sample( __global const SvoNode* svo,
   result->hit           = false;
 
   float tMin,tMax;
-  if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax))
-  {
+  if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax)) {
     return false;
   }
 
@@ -243,9 +228,15 @@ sample( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
-  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
-  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  if ( fabs(rayDirection.x) < epsilon) {
+    rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+  }
+  if ( fabs(rayDirection.y) < epsilon) {
+    rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+  }
+  if ( fabs(rayDirection.z) < epsilon) {
+    rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -267,39 +258,35 @@ sample( __global const SvoNode* svo,
 
 /////////////////// LOOP ///////////////////////////////XS
 
-  while (scale < scaleMax)
-  {
+  while (scale < scaleMax) {
     ++whileCounter;
 
-    if (whileCounter == maxLoops)
-    {
+    if (whileCounter == maxLoops) {
       break;
     }
 
 //    if (!parent)
 //    {
-      parent = &stack[scale];
-      scale_exp2       = pow(2.0f, scale - scaleMax);
-      childSizeHalf    = scale_exp2*0.5f;
+    parent = &stack[scale];
+    scale_exp2       = pow(2.0f, scale - scaleMax);
+    childSizeHalf    = scale_exp2*0.5f;
 
 
 //    }
 
     // ### POP if parent is behind the camera
-    if ( parent->parentTMax < 0.0f)
-    {
+    if ( parent->parentTMax < 0.0f) {
       ++scale;
       parent = 0;
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
-    {
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1) {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
-                                        + 2*(childEntryPoint.y > 0.0f)
-                                        +   (childEntryPoint.z > 0.0f));
+                                          + 2*(childEntryPoint.y > 0.0f)
+                                          +   (childEntryPoint.z > 0.0f));
 
       // childCenter in world coordinates
       float3 childCenter = (float3)(-0.5f + (bool)(childIdx & 4),
@@ -323,23 +310,22 @@ sample( __global const SvoNode* svo,
       float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
 
       // if child is valid
-      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-      {
+      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
         // TERMINATE if voxel is a leaf
-        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-        {
+        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
-                                                                         svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                         childIdx);
+                               svo[parent->parentNodeIndex]._firstchildIdx,
+                               childIdx);
 //          // check if leaf points to another treelet
-//          if (svo[leafIndex]._masks)
+////          if (svo[leafIndex]._masks)
 //          {
 //            // update parent befor push
 //            parent->parentTMin = tcMax;
 //
 //            // ### PUSH
 //            --scale;
-//            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
+////            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
+//            stack[scale].parentNodeIndex = 0;
 //            stack[scale].parentTMin      = tcMin;
 //            stack[scale].parentTMax      = tcMax;
 //            stack[scale].parentCenter    = childCenter;
@@ -356,15 +342,12 @@ sample( __global const SvoNode* svo,
           result->numWhileLoops = whileCounter;
           result->nodeCenter    = childCenter;
           return true;
-        }
-        else
-        {
+        } else {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
-          {
+          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                                                               svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                               childIdx);
+                                      svo[parent->parentNodeIndex]._firstchildIdx,
+                                      childIdx);
             result->hit           = true;
             result->nodeIndex     = returnchildIdx;
             result->depth         = scaleMax-scale+1;
@@ -380,8 +363,8 @@ sample( __global const SvoNode* svo,
           // ### PUSH
           --scale;
           stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
-                                                                                  svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                                  childIdx);
+                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                         childIdx);
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
           stack[scale].parentCenter    = childCenter;
@@ -389,15 +372,11 @@ sample( __global const SvoNode* svo,
           parent = 0;
           continue;
         }
-      }
-      else
-      {
+      } else {
         // ### ADVANCE
         parent->parentTMin = tcMax;
       }
-    }
-    else
-    {
+    } else {
       // POP
       ++scale;
       parent = 0;
@@ -435,7 +414,7 @@ getNormal(unsigned attribPos,
 
 inline float4
 getColor(unsigned attribPos,
-          __global Attribs* attribs)
+         __global Attribs* attribs)
 {
   return ((unpackRgbaFromUnsigned(attribs[attribPos]._packed_color)*0.003921569f));
 }
@@ -488,13 +467,11 @@ shade_svoDepth(const SampleResult* result)
 inline float4
 shade_diffuse_color_shadow(const SampleResult* result,
                            __global const SvoNode* svo,
-                           __global unsigned* attribIndices,
                            __global Attribs* attribs)
 {
-  if (result->hit)
-  {
-    float3 normal = getNormal(result->attribIndex, attribs);
-    float4 color = getColor(result->attribIndex, attribs);
+  if (result->hit) {
+    float3 normal = getNormal(result->nodeIndex, attribs);
+    float4 color = getColor(result->nodeIndex, attribs);
 
 
     const float3 lightDirection = normalize((float3)(-0.5f, 1.0f, 0.6f));
@@ -504,11 +481,11 @@ shade_diffuse_color_shadow(const SampleResult* result,
     SampleResult resultShadow;
     float3 shadowRayOrigin = result->nodeCenter + normal*0.01f;
     float shadow = sample( svo,
-                          shadowRayOrigin, lightDirection,
-                          0.001f,
-                          &resultShadow);
+                           shadowRayOrigin, lightDirection,
+                           0.001f,
+                           &resultShadow);
 #else
-    float shadow = 1.0f;
+    float shadow = 0.0f;
 #endif
 
     color = color*nDotL*(1.0f-shadow)+color*0.2f;
@@ -526,66 +503,161 @@ shade_diffuse_color_shadow(const SampleResult* result,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//
+//inline float4
+//shade_diffuse_color_reflection(const SampleResult* result,
+//                               __global const SvoNode* svo,
+//                               __global unsigned* attribIndices,
+//                               __global Attribs* attribs,
+//                               const float3 rayDirection,
+//                               int          numReflections)
+//{
+//
+//  if (result->hit) {
+//    SampleResult refectResult = *result;
+//
+//    float4 resultcolor   = (float4)(0.0f,0.0f,0.0f,0.0f);
+//    float3 viewDirection = rayDirection;
+//
+//    int reflectCounter = numReflections;
+//
+//    float strength = 0.75f;
+//
+//    while (true) {
+//      // color and normal for current sample
+//      float3 normal = getNormal(refectResult.attribIndex, attribs);
+//
+//      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color_shadow(&refectResult,
+//                    svo,
+//                    attribIndices,
+//                    attribs)*strength;
+//
+//      strength *= 0.75f;
+//
+//      if (reflectCounter == 0 || !refectResult.hit) {
+//        break;
+//      } else {
+//
+//        const float3 reflectDir    = normalize(viewDirection + ( -2.0f * normal * dot( normal, viewDirection )));
+//        float3       reflectOrigin = refectResult.nodeCenter  + normal*0.01f;
+//
+//        sample( svo,
+//                reflectOrigin, reflectDir,
+//                0.001f,
+//                &refectResult);
+//
+//        viewDirection = reflectDir;
+//
+//        --reflectCounter;
+//      }
+//    }
+//    return resultcolor;
+//  }
+//  return (float4)( 0.2f,
+//                   0.3f,
+//                   0.2f,
+//                   1.0f);
+//}
 
-inline float4
-shade_diffuse_color_reflection(const SampleResult* result,
-                                __global const SvoNode* svo,
-                                __global unsigned* attribIndices,
-                                __global Attribs* attribs,
-                                const float3 rayDirection,
-                                int          numReflections)
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+#define Gamma          0.80
+#define IntensityMax 255.0f
+
+//double round(double d)
+//{
+//  return floor(d + 0.5);
+//}
+
+unsigned
+Adjust(const float Color, const float Factor)
 {
-
-  if (result->hit)
-  {
-    SampleResult refectResult = *result;
-
-    float4 resultcolor   = (float4)(0.0f,0.0f,0.0f,0.0f);
-    float3 viewDirection = rayDirection;
-
-    int reflectCounter = numReflections;
-
-    float strength = 0.75f;
-
-    while (true)
-    {
-      // color and normal for current sample
-      float3 normal = getNormal(refectResult.attribIndex, attribs);
-
-      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color_shadow(&refectResult,
-                                                                               svo,
-                                                                               attribIndices,
-                                                                               attribs)*strength;
-
-      strength *= 0.75f;
-
-      if (reflectCounter == 0 || !refectResult.hit)
-      {
-        break;
-      }
-      else
-      {
-
-        const float3 reflectDir    = normalize(viewDirection + ( -2.0f * normal * dot( normal, viewDirection )));
-        float3       reflectOrigin = refectResult.nodeCenter  + normal*0.01f;
-
-        sample( svo,
-                reflectOrigin, reflectDir,
-                0.001f,
-                &refectResult);
-
-        viewDirection = reflectDir;
-
-        --reflectCounter;
-      }
-    }
-    return resultcolor;
+  if (Color == 0.0) {
+    return 0;
+  } else {
+    int res = round(IntensityMax * pow(Color * Factor, Gamma));
+    return min(255, max(0, res));
   }
-  return (float4)( 0.2f,
-                   0.3f,
-                   0.2f,
-                   1.0f);
 }
+
+
+
+float3
+WavelengthToRGB(const float Wavelength)
+{
+  float Blue;
+  float factor;
+  float Green;
+  float Red;
+
+  if(380 <= Wavelength && Wavelength <= 440) {
+    Red   = -(Wavelength - 440) / (440 - 380);
+    Green = 0.0;
+    Blue  = 1.0;
+  } else if(440 < Wavelength && Wavelength <= 490) {
+    Red   = 0.0;
+    Green = (Wavelength - 440) / (490 - 440);
+    Blue  = 1.0;
+  } else if(490 < Wavelength && Wavelength <= 510) {
+    Red   = 0.0;
+    Green = 1.0;
+    Blue  = -(Wavelength - 510) / (510 - 490);
+  } else if(510 < Wavelength && Wavelength <= 580) {
+    Red   = (Wavelength - 510) / (580 - 510);
+    Green = 1.0;
+    Blue  = 0.0;
+  } else if(580 < Wavelength && Wavelength <= 645) {
+    Red   = 1.0;
+    Green = -(Wavelength - 645) / (645 - 580);
+    Blue  = 0.0;
+  } else if(645 < Wavelength && Wavelength <= 780) {
+    Red   = 1.0;
+    Green = 0.0;
+    Blue  = 0.0;
+  } else {
+    Red   = 0.0;
+    Green = 0.0;
+    Blue  = 0.0;
+  }
+  if(380 <= Wavelength && Wavelength <= 420) {
+    factor = 0.3 + 0.7*(Wavelength - 380) / (420 - 380);
+  } else if(420 < Wavelength && Wavelength <= 701) {
+    factor = 1.0;
+  } else if(701 < Wavelength && Wavelength <= 780) {
+    factor = 0.3 + 0.7*(780 - Wavelength) / (780 - 701);
+  } else {
+    factor = 0.0;
+  }
+
+  return (float3)(Adjust(Red,   factor), Adjust(Green, factor), Adjust(Blue,  factor));
+}
+
+
+
+
+float GetWaveLengthFromDataPoint(float Value, float MinValue, float MaxValue)
+{
+  const float MinVisibleWavelength = 380.0;//350.0;
+  const float MaxVisibleWavelength = 780.0;//650.0;
+  //Convert data value in the range of MinValues..MaxValues to the
+  //range 350..650
+  return (Value - MinValue) / (MaxValue-MinValue) * (MaxVisibleWavelength - MinVisibleWavelength) + MinVisibleWavelength;
+}
+
+
+float3
+DataPointToColor(float Value, float MinValue, float MaxValue)
+{
+  float Wavelength = GetWaveLengthFromDataPoint(Value, MinValue, MaxValue);
+  float3 rgb       = WavelengthToRGB(Wavelength);
+
+  const float fac = 1.0/255.0;
+  return (float3)(rgb.x * fac, rgb.y * fac, rgb.z * fac);
+}
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -594,6 +666,7 @@ shade_diffuse_color_reflection(const SampleResult* result,
 __kernel void
 renderToBuffer ( __write_only image2d_t renderbuffer,
                  __global SvoNode*      svo,
+                 __global Attribs*      attribs,
                  const float4           frameBufferSize,
                  const float4           pixelFarVectorH,
                  const float4           pixelFarVectorV,
@@ -622,20 +695,19 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
           frameBufferSize.z,
           &result); // wich is the tScaleRatio
 
-  switch ((int)otherParams.x) // rendermode select
-  {
-//    case 0:
-//          if (result.hit)
-//          {
-//            write_imagef ( renderbuffer,
-//                          (int2)(x,y),
-//                          (float4)(getColor(attribIndices[result.nodeIndex], attribs).xyz,1.0f));
-//            return;
-//          }
-//          write_imagef (renderbuffer,
-//                        (int2)(x,y),
-//                        (float4)(0.2f,0.3f,0.2f,1.0f));
-//          break;
+  switch ((int)otherParams.x) { // rendermode select
+    case 0:
+          if (result.hit)
+          {
+            write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(getColor(result.nodeIndex, attribs).xyz, 1.0f));
+            return;
+          }
+          write_imagef (renderbuffer,
+                        (int2)(x,y),
+                        (float4)(0.2f,0.3f,0.2f,1.0f));
+          break;
 //    case 1:
 //
 //          if (result.hit)
@@ -652,45 +724,50 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 //                          (float4)(0.2f,0.3f,0.2f,1.0f));
 //        break;
 
-    case 2:
-        write_imagef ( renderbuffer,
-                      (int2)(x,y),
-                      shade_svoDepth(&result));
-        break;
+  case 1:
+    {
+      float3 color = DataPointToColor(result.numWhileLoops, 0.0f, MAX_STACK_SIZE*30);
+      write_imagef ( renderbuffer,
+                     (int2)(x,y),
+                     (float4)(color.x, color.y, color.z, 1.0f));
+    }
+    break;
 
-    case 3:
-        write_imagef ( renderbuffer,
-                      (int2)(x,y),
-                      shade_pixelDepth(&result));
-        break;
+  case 2:
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   shade_svoDepth(&result));
+    break;
 
-    case 4:
-        write_imagef ( renderbuffer,
-                      (int2)(x,y),
-                      shade_iterationDepth(&result));
-        break;
+  case 3:
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   shade_pixelDepth(&result));
+    break;
+
+  case 4:
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   shade_iterationDepth(&result));
+    break;
 
 //    case 5:
 //        write_imagef ( renderbuffer,
 //                      (int2)(x,y),
 //                      shade_diffuse_color_reflection(&result,
 //                                                svo,
-//                                                attribIndices,
 //                                                attribs,
 //                                                rayDirection.xyz,
 //                                                2));
 //        break;
-//
-//    case 6:
-//
-//        result.attribIndex = attribIndices[result.nodeIndex];
-//        write_imagef ( renderbuffer,
-//                      (int2)(x,y),
-//                      shade_diffuse_color_shadow(&result,
-//                                                  svo,
-//                                                  attribIndices,
-//                                                  attribs));
-//        break;
+
+    case 6:
+        write_imagef ( renderbuffer,
+                      (int2)(x,y),
+                      shade_diffuse_color_shadow(&result,
+                                                  svo,
+                                                  attribs));
+        break;
   }
 }
 
@@ -719,16 +796,14 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 ///////////////////////////////////////////////////////////////////////////////
 
 //
-typedef struct
-{
+typedef struct {
   unsigned _first;
   float    _second;
 } __attribute__ ( ( aligned ( 8 ) ) ) FeedBackDataElement;
 
 
 //
-typedef struct
-{
+typedef struct {
   bool     hit;
   unsigned nodeIndex;
   unsigned depth;
@@ -746,17 +821,16 @@ typedef struct
 
 bool
 sampleAnalyse( __global const SvoNode* svo,
-              float3 rayOrigin,
-              float3 rayDirection,
-              const float tScaleRatio,
-              FeedBackDataSample* sampleResult)
+               float3 rayOrigin,
+               float3 rayDirection,
+               const float tScaleRatio,
+               FeedBackDataSample* sampleResult)
 {
   sampleResult->numWhileLoops = 0;
   sampleResult->hit           = false;
 
   float tMin,tMax;
-  if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax))
-  {
+  if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax)) {
     return false;
   }
 
@@ -773,9 +847,15 @@ sampleAnalyse( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
-  if ( fabs(rayDirection.y) < epsilon) rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
-  if ( fabs(rayDirection.z) < epsilon) rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  if ( fabs(rayDirection.x) < epsilon) {
+    rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+  }
+  if ( fabs(rayDirection.y) < epsilon) {
+    rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+  }
+  if ( fabs(rayDirection.z) < epsilon) {
+    rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
   // precalculate ray coefficients, tx(x) = "(1/dx)"x + "(-px/dx)"
@@ -797,39 +877,35 @@ sampleAnalyse( __global const SvoNode* svo,
 
 /////////////////// LOOP ///////////////////////////////XS
 
-  while (scale < scaleMax)
-  {
+  while (scale < scaleMax) {
     ++whileCounter;
 
-    if (whileCounter == maxLoops)
-    {
+    if (whileCounter == maxLoops) {
       break;
     }
 
 //    if (!parent)
 //    {
-      parent = &stack[scale];
-      scale_exp2       = pow(2.0f, scale - scaleMax);
-      childSizeHalf    = scale_exp2*0.5f;
+    parent = &stack[scale];
+    scale_exp2       = pow(2.0f, scale - scaleMax);
+    childSizeHalf    = scale_exp2*0.5f;
 
 
 //    }
 
     // ### POP if parent is behind the camera
-    if ( parent->parentTMax < 0.0f)
-    {
+    if ( parent->parentTMax < 0.0f) {
       ++scale;
       parent = 0;
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
-    {
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1) {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
-                                        + 2*(childEntryPoint.y > 0.0f)
-                                        +   (childEntryPoint.z > 0.0f));
+                                          + 2*(childEntryPoint.y > 0.0f)
+                                          +   (childEntryPoint.z > 0.0f));
 
       // childCenter in world coordinates
       float3 childCenter = (float3)(-0.5f + (bool)(childIdx & 4),
@@ -853,14 +929,12 @@ sampleAnalyse( __global const SvoNode* svo,
       float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
 
       // if child is valid
-      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-      {
+      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
         // TERMINATE if voxel is a leaf
-        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-        {
+        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
-                                                                         svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                         childIdx);
+                               svo[parent->parentNodeIndex]._firstchildIdx,
+                               childIdx);
           // check if leaf points to another treelet
 //          if (svo[leafIndex]._masks)
           {
@@ -879,15 +953,12 @@ sampleAnalyse( __global const SvoNode* svo,
 
           // else: return leaf
 
-        }
-        else
-        {
+        } else {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
-          {
+          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                                                               svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                               childIdx);
+                                      svo[parent->parentNodeIndex]._firstchildIdx,
+                                      childIdx);
             sampleResult->hit           = false; //true;
             sampleResult->nodeIndex     = returnchildIdx;
             sampleResult->depth         = scaleMax-scale+1;
@@ -902,8 +973,8 @@ sampleAnalyse( __global const SvoNode* svo,
           // ### PUSH
           --scale;
           stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
-                                                                                  svo[parent->parentNodeIndex]._firstchildIdx,
-                                                                                  childIdx);
+                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                         childIdx);
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
           stack[scale].parentCenter    = childCenter;
@@ -911,15 +982,11 @@ sampleAnalyse( __global const SvoNode* svo,
           parent = 0;
           continue;
         }
-      }
-      else
-      {
+      } else {
         // ### ADVANCE
         parent->parentTMin = tcMax;
       }
-    }
-    else
-    {
+    } else {
       // POP
       ++scale;
       parent = 0;
@@ -959,8 +1026,8 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
 
   // create ray for this pixel
   float4 pickPointOnFarPlane = far_lower_left
-                             + (pixelFarVectorH * x)
-                             + (pixelFarVectorV * ((int)frameBufferSize.y - y));
+                               + (pixelFarVectorH * x)
+                               + (pixelFarVectorV * ((int)frameBufferSize.y - y));
 
   float4 rayDirection = pickPointOnFarPlane - cameraPosition;
   rayDirection.w      = 0.0f;
@@ -978,13 +1045,10 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataElement feedBackElemet;
 
 
-  if (result.hit == true)
-  {
+  if (result.hit == true) {
     feedBackElemet._first  = result.nodeIndex;
     feedBackElemet._second = 0.0;
-  }
-  else
-  {
+  } else {
     feedBackElemet._first  = 1;
     feedBackElemet._second = 0.0f;
   }
