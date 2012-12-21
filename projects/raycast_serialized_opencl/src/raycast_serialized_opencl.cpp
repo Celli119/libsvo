@@ -187,7 +187,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      1024/*MB*/ * 1024 * 1024,
+                                                      640/*MB*/ * 1024 * 1024,
                                                       g_context);
 
 
@@ -196,6 +196,7 @@ void init()
 
   // assign incore buffer to kernel argument
   g_context->setKernelArgBuffer("renderToBuffer", 1, g_clMemoryManager->getClIncoreBufferGid());
+  g_context->setKernelArgBuffer("renderToBuffer", 2, g_clMemoryManager->getClAttributeIncoreBufferGid());
 
 
 
@@ -318,7 +319,7 @@ void frameStep()
 
 
   gloost::Vector3 camSpaceSpeed(0.0f, 0.0f, 0.0f);
-  float speedAdd = 0.0008f;
+  float speedAdd = 0.026f*g_timePerFrame;
 
   if (glfwGetKey('V' ))
   {
@@ -418,12 +419,12 @@ void frameStep()
     gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
     gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
 
-    g_context->setKernelArgFloat4("renderToBuffer", 2, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
-    g_context->setKernelArgFloat4("renderToBuffer", 3, frustumOnePixelWidth);
-    g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelHeight);
-    g_context->setKernelArgFloat4("renderToBuffer", 5, frustum.far_lower_left);
-    g_context->setKernelArgFloat4("renderToBuffer", 6, modelMatrix * g_camera->getPosition());
-    g_context->setKernelArgFloat4("renderToBuffer", 7, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+    g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
+    g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
+    g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
+    g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
+    g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
+    g_context->setKernelArgFloat4("renderToBuffer", 8, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
     g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
     {

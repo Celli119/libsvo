@@ -135,23 +135,25 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
 
     // compress attributes
     unsigned compressedNormal = gloost::Vector3::compressAsNormal(normal);
-    unsigned compressedColor = gloost::Vector3::compressAsColor(color);
+    unsigned compressedColor  = gloost::Vector3::compressAsColor(color);
 
 
     // write attributes to attribute buffer
     unsigned nodeAttributePosition = buildManager->getAttributeBuffer(treeletGid)->getPackageIndex(queueElement._localLeafIndex);
     buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition++] = gloost::unsigned_as_float(compressedNormal);
     buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition]   = gloost::unsigned_as_float(compressedColor);
-
 //
+////
 //    std::cerr << std::endl << "";
 //    std::cerr << std::endl << "createFinalLeafesAttributes ---------------------------------------------------------------------";
-//    std::cerr << std::endl << "normal          : " << gloost::Vector3::uncompressAsNormal(compressedNormal);
-//    std::cerr << std::endl << "compressedNormal: " << normal;
-//    std::cerr << std::endl;
+//    std::cerr << std::endl << "normal          : " << normal;
+//    std::cerr << std::endl << "compressedNormal: " << gloost::Vector3::uncompressAsNormal(compressedNormal);
+//    std::cerr << std::endl << "compressedNormal: " << compressedNormal;
+////    std::cerr << std::endl;
 //    std::cerr << std::endl << "           Color: " << color;
-//    std::cerr << std::endl << "compressedColor: " << gloost::Vector3::uncompressAsColor(gloost::Vector3::compressAsColor(color));
-
+//    std::cerr << std::endl << "compressedColor: " << gloost::Vector3::uncompressAsColor(compressedColor);
+//    std::cerr << std::endl << "compressedColor: " << compressedColor;
+//
 
   }
 
@@ -195,7 +197,7 @@ Ag_colorAndNormalsTriangles::createInnerNodesAttributes( TreeletBuildManager* bu
     parentTreeletAttributebuffer->getVector()[destIndex++] = treeletAttributebuffer->getVector()[sourceIndex++];
     parentTreeletAttributebuffer->getVector()[destIndex]   = treeletAttributebuffer->getVector()[sourceIndex];
 
-    std::cerr << std::endl << "propergate from: " << treeletGid << " to " << treelet->getParentTreeletGid() << " at " << treelet->getParentTreeletLeafPosition();
+//    std::cerr << std::endl << "propergate from: " << treeletGid << " to " << treelet->getParentTreeletGid() << " at " << treelet->getParentTreeletLeafPosition();
   }
   else
   {
