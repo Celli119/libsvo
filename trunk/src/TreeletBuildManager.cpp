@@ -253,6 +253,10 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
   }
 #endif
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from TreeletBuildManager::buildFromFaces():";
+  std::cerr << std::endl << "             Creating inner nodes attributes";
+  std::cerr << std::endl << "             for " << _treelets.size() << " treelets";
 
   for (int i=_treelets.size()-1; i!=-1; --i)
   {

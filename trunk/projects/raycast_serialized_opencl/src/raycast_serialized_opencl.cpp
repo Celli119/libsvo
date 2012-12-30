@@ -89,7 +89,7 @@ unsigned g_framebufferTextureId = 0;
 // info
 bool        g_showTextInfo         = true;
 bool        g_showRayCastImage     = true;
-unsigned    g_viewMode             = 4;
+unsigned    g_viewMode             = 0u;
 std::string g_viewModeText         = "color";
 bool        g_frameDirty           = true;
 bool        g_raycastEveryFrame    = true;
@@ -132,12 +132,14 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "san-miguel";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "crytek_sponza";
-//  const std::string svoBaseName  = "sibenik";
+  const std::string svoBaseName  = "sibenik";
+
+  const unsigned incoreBufferSizeInByte = 640/*MB*/ * 1024 * 1024;
 
 
 
@@ -187,7 +189,7 @@ void init()
 
 
   g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
-                                                      640/*MB*/ * 1024 * 1024,
+                                                      incoreBufferSizeInByte,
                                                       g_context);
 
 
@@ -242,27 +244,6 @@ void initCl()
                                                                  frameBufferTexture->getTextureHandle());
 
   g_context->setKernelArgBuffer("renderToBuffer", 0, renderbufferGid);
-
-
-
-
-  // assign attribute indices
-//  gloost::gloostId attribIndicesDataGid = g_context->createClBuffer( CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-//                                                                    (unsigned char*)&g_svo->getSerializedAttributeIndices().front(),
-//                                                                    g_svo->getSerializedNodes().size()*sizeof(unsigned));
-//
-//  g_context->setKernelArgBuffer("renderToBuffer", 2, attribIndicesDataGid);
-
-
-  // assign attrib data
-//  gloost::gloostId attribDataGid = g_context->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-//                                                            (unsigned char*)g_voxelAttributes->getData(),
-//                                                            g_voxelAttributes->getNumPackages()*g_voxelAttributes->getPackageStride());
-//
-//  g_context->setKernelArgBuffer("renderToBuffer", 3, attribDataGid);
-
-
-
 }
 
 
@@ -307,8 +288,8 @@ void frameStep()
 
 
   static gloost::Vector3 camSpeed(0.0f, 0.0f, 0.0f);
-  static gloost::Point3 camPos = gloost::Vector3(0.0f,0.0f,0.0f);
-  camPos +=camSpeed;
+  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f,0.0f);
+  camSpeed *= 0.8;
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),
                                    -g_cameraRotateX,
@@ -345,16 +326,15 @@ void frameStep()
 
   if (glfwGetKey(' ' ))
   {
-    camSpaceSpeed +=  upVector * speedAdd;
+    camSpeed +=  upVector * speedAdd;
   }
   else if (glfwGetKey(GLFW_KEY_LSHIFT ))
   {
-    camSpaceSpeed +=  upVector * -speedAdd;
+    camSpeed +=  upVector * -speedAdd;
   }
 
-  camSpeed *= 0.8;
   camSpeed += g_camera->getViewMatrix().inverted() * camSpaceSpeed;
-
+  camPos +=camSpeed;
 
 
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
@@ -376,7 +356,8 @@ void frameStep()
 
 
 
-
+  // update incore buffer
+  g_clMemoryManager->updateDeviceMemory();
 
   if (g_enableDynamicLoading)
   {
@@ -396,13 +377,7 @@ void frameStep()
       g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt));
     }
 
-//    std::cerr << std::endl << "visibleTreelets: " << visibleTreelets.size();
-
   }
-
-  g_clMemoryManager->updateDeviceMemory();
-
-
 
 
 
@@ -438,8 +413,6 @@ void frameStep()
     g_context->releaseGlObjects(g_deviceGid);
     g_frameDirty = false;
   }
-
-
 
 }
 
@@ -522,9 +495,8 @@ void draw2d()
       {
         g_texter->begin();
         {
-          g_texter->renderTextLine(20, g_screenHeight -20, "SVO raycast opencl");
+          g_texter->renderTextLine(20, g_screenHeight -20, "SVO raycasting opencl");
           g_texter->renderFreeLine();
-          g_texter->renderTextLine("frame counter:      " + gloost::toString(g_frameCounter));
           g_texter->renderTextLine("Time per frame:     " + gloost::toString(avarageTimePerFrame));
           g_texter->renderTextLine("fps:                " + gloost::toString(1.0/avarageTimePerFrame));
           g_texter->renderTextLine("view mode (1...5):  " + g_viewModeText);
@@ -532,9 +504,16 @@ void draw2d()
           glColor4f(1.0f, 1.0f, 1.0f, 0.5);
           g_texter->renderTextLine("(h) Show text info: " + gloost::toString( g_showTextInfo )) ;
           g_texter->renderFreeLine();
-          g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
+          g_texter->renderFreeLine();
+          glColor4f(0.9f, 0.9f, 1.0f, 1.0);
+          if (!g_clMemoryManager->getFreeIncoreSlotStack().size())
+          {
+            glColor4f(1.0f, 0.0f, 0.0f, 1.0);
+          }
+          g_texter->renderTextLine("free incore slots:  " + gloost::toString(g_clMemoryManager->getFreeIncoreSlotStack().size()));
+          g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_clMemoryManager->getIncoreSlotsToUpload().size()));
         }
         g_texter->end();
 
@@ -718,7 +697,7 @@ int main(int argc, char *argv[])
   }
 
 
-  glfwSetWindowPos( 160, 0);
+  glfwSetWindowPos( 220, 0);
   glfwSetWindowSizeCallback(resize);
   glfwSetKeyCallback(key);
 

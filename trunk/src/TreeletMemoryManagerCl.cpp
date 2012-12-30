@@ -165,8 +165,8 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     return;
   }
 
-  static const unsigned maxUploadAmount = 1.0*1024u*1204u;
-  unsigned numBytesUploaded      = 0u;
+  static const unsigned maxUploadAmount = 1024u*1204u;
+  unsigned numBytesUploaded             = 0u;
 
 
   while (numBytesUploaded < maxUploadAmount && slotGidIt!=slotGidEndIt)
@@ -204,13 +204,9 @@ TreeletMemoryManagerCl::updateDeviceMemory()
                                                    _attributeBuffers[0]->getVector().size()*sizeof(float),
                                                    (const char*)&(_incoreAttributeBuffer->getVector()[attribSrcIndex]));
 
-
-
-    clFinish( device->getClCommandQueue() );
-
-
     ++slotGidIt;
   }
+  clFinish( device->getClCommandQueue() );
 
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), slotGidIt);
 }
