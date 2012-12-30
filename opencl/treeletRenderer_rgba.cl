@@ -1,7 +1,6 @@
 
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 
 //
@@ -15,7 +14,7 @@
 
 //
 typedef struct {
-  unsigned _firstchildIdx;
+  unsigned _firstchildIndex;
   unsigned _masks;
 //  unsigned _attibutePos;
 } __attribute__ ( ( aligned ( 8 ) ) ) SvoNode;
@@ -314,7 +313,7 @@ sample( __global const SvoNode* svo,
         // TERMINATE if voxel is a leaf
         if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
-                               svo[parent->parentNodeIndex]._firstchildIdx,
+                               svo[parent->parentNodeIndex]._firstchildIndex,
                                childIdx);
 //          // check if leaf points to another treelet
 ////          if (svo[leafIndex]._masks)
@@ -346,7 +345,7 @@ sample( __global const SvoNode* svo,
           // TERMINATE if voxel is small enough
           if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                      svo[parent->parentNodeIndex]._firstchildIdx,
+                                      svo[parent->parentNodeIndex]._firstchildIndex,
                                       childIdx);
             result->hit           = true;
             result->nodeIndex     = returnchildIdx;
@@ -363,7 +362,7 @@ sample( __global const SvoNode* svo,
           // ### PUSH
           --scale;
           stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
-                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                         svo[parent->parentNodeIndex]._firstchildIndex,
                                          childIdx);
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
@@ -477,7 +476,7 @@ shade_diffuse_color_shadow(const SampleResult* result,
     const float3 lightDirection = normalize((float3)(-0.5f, 1.0f, 0.6f));
     float nDotL = max(0.0f, dot(normal, lightDirection));
 
-#if 1
+#if 0
     SampleResult resultShadow;
     float3 shadowRayOrigin = result->nodeCenter + normal*0.01f;
     float shadow = sample( svo,
@@ -696,18 +695,17 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
           &result); // wich is the tScaleRatio
 
   switch ((int)otherParams.x) { // rendermode select
-    case 0:
-          if (result.hit)
-          {
-            write_imagef ( renderbuffer,
-                          (int2)(x,y),
-                          (float4)(getColor(result.nodeIndex, attribs).xyz, 1.0f));
-            return;
-          }
-          write_imagef (renderbuffer,
-                        (int2)(x,y),
-                        (float4)(0.2f,0.3f,0.2f,1.0f));
-          break;
+  case 0:
+    if (result.hit) {
+      write_imagef ( renderbuffer,
+                     (int2)(x,y),
+                     (float4)(getColor(result.nodeIndex, attribs).xyz, 1.0f));
+      return;
+    }
+    write_imagef (renderbuffer,
+                  (int2)(x,y),
+                  (float4)(0.2f,0.3f,0.2f,1.0f));
+    break;
 //    case 1:
 //
 //          if (result.hit)
@@ -724,8 +722,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 //                          (float4)(0.2f,0.3f,0.2f,1.0f));
 //        break;
 
-  case 1:
-    {
+  case 1: {
       float3 color = DataPointToColor(result.numWhileLoops, 0.0f, MAX_STACK_SIZE*30);
       write_imagef ( renderbuffer,
                      (int2)(x,y),
@@ -761,13 +758,13 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 //                                                2));
 //        break;
 
-    case 6:
-        write_imagef ( renderbuffer,
-                      (int2)(x,y),
-                      shade_diffuse_color_shadow(&result,
-                                                  svo,
-                                                  attribs));
-        break;
+  case 6:
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   shade_diffuse_color_shadow(&result,
+                       svo,
+                       attribs));
+    break;
   }
 }
 
@@ -814,9 +811,6 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
-///////////////////////////////////////////////////////////////////////////////
 
 
 bool
@@ -900,7 +894,8 @@ sampleAnalyse( __global const SvoNode* svo,
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1) {
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
+    {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
@@ -929,38 +924,33 @@ sampleAnalyse( __global const SvoNode* svo,
       float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
 
       // if child is valid
-      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
+      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
+      {
         // TERMINATE if voxel is a leaf
-        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
+        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
+        {
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
-                               svo[parent->parentNodeIndex]._firstchildIdx,
+                               svo[parent->parentNodeIndex]._firstchildIndex,
                                childIdx);
-          // check if leaf points to another treelet
-//          if (svo[leafIndex]._masks)
-          {
-            // update parent befor push
-//            parent->parentTMin = tcMax;
 
-            // ### WRITE required Treelet Gid
-
-            sampleResult->hit           = true;
-            sampleResult->nodeIndex     = svo[leafIndex]._firstchildIdx; // <- which is the Treelet Gid of the child Treelet
-            sampleResult->depth         = scaleMax-scale;
-            sampleResult->t             = parent->parentTMin;
-            sampleResult->numWhileLoops = whileCounter;
-            return true;
-          }
-
-          // else: return leaf
-
-        } else {
+          // ### WRITE required Treelet Gid encoded in the first child
+          sampleResult->hit           = true;
+          sampleResult->nodeIndex     = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
+          sampleResult->depth         = scaleMax-scale;
+          sampleResult->t             = parent->parentTMin;
+          sampleResult->numWhileLoops = whileCounter;
+          return true;
+        }
+        else
+        {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
-            unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                      svo[parent->parentNodeIndex]._firstchildIdx,
-                                      childIdx);
-            sampleResult->hit           = false; //true;
-            sampleResult->nodeIndex     = returnchildIdx;
+          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
+          {
+            unsigned returnchildIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
+                                                                                 svo[parent->parentNodeIndex]._firstchildIndex,
+                                                                                 childIdx);
+            sampleResult->hit           = false;
+            sampleResult->nodeIndex     = returnchildIndex;
             sampleResult->depth         = scaleMax-scale+1;
             sampleResult->t             = parent->parentTMin;
             sampleResult->numWhileLoops = whileCounter;
@@ -973,7 +963,7 @@ sampleAnalyse( __global const SvoNode* svo,
           // ### PUSH
           --scale;
           stack[scale].parentNodeIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks, // <- relative indexing
-                                         svo[parent->parentNodeIndex]._firstchildIdx,
+                                         svo[parent->parentNodeIndex]._firstchildIndex,
                                          childIdx);
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;

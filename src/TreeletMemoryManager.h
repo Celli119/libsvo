@@ -99,6 +99,13 @@ class TreeletMemoryManager
     virtual void resetIncoreBuffer();
 
 
+    // returns a const reference to the stack of free incore slots
+    virtual const std::stack<unsigned>& getFreeIncoreSlotStack() const;
+
+    // returns a set of incore slot Gids that should be transfered to the server
+    virtual const std::set<gloost::gloostId>& getIncoreSlotsToUpload() const;
+
+
 	protected:
 
 

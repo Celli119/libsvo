@@ -122,8 +122,6 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 {
   _visibleTreelets.clear();
 
-
-
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
 
@@ -149,10 +147,12 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                            gloost::Vector3(8, 8, 0));
 
 
+  // read back the filled buffer
   _memoryManager->getContext()->readFromClBufferToCharPointerComplete(deviceGid,
                                                                       _feedbackBufferGid,
                                                                       (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                       true);
+
 
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
@@ -167,7 +167,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 1000;
+  static const unsigned maxTreeletsToPropergate = 500;
 
   if (_visibleTreelets.size() > maxTreeletsToPropergate)
   {

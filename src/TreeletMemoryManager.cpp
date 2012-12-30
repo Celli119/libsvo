@@ -266,7 +266,6 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 void
 TreeletMemoryManager::resetIncoreBuffer()
 {
-
   _freeIncoreSlots = std::stack<unsigned>();
   _treeletGidToSlotGidMap.clear();
   _incoreSlotsToUpload.clear();
@@ -275,14 +274,14 @@ TreeletMemoryManager::resetIncoreBuffer()
   std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
 
   // allocate incoreBuffer
-  unsigned numNodesInIncoreBuffer = _incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE;
+  unsigned numNodesInIncoreBuffer = (_incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE);
   _incoreBuffer.resize(numNodesInIncoreBuffer);
 
   std::cerr << std::endl << "             incore buffer size:      " << _incoreBufferSizeInByte/1024/1024 << " MB";
   std::cerr << std::endl << "             incore num nodes:        " << _incoreBuffer.size();
 
-  unsigned maxNumTreeletsInIncoreBuffer = _incoreBufferSizeInByte/_treeletSizeInByte;
-  for (unsigned i=0; i!=maxNumTreeletsInIncoreBuffer+1; ++i)
+  unsigned maxNumTreeletsInIncoreBuffer = std::floor(_incoreBufferSizeInByte/(float)_treeletSizeInByte);
+  for (unsigned i=1; i!=maxNumTreeletsInIncoreBuffer+1; ++i)
   {
     _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
   }
@@ -296,8 +295,6 @@ TreeletMemoryManager::resetIncoreBuffer()
                                                                numNodesInIncoreBuffer);
   }
   std::cerr << std::endl << "             Attribute incore buffer size: " << _incoreAttributeBuffer->getVector().size();
-
-
 
   insertTreeletIntoIncoreBuffer(0);
 }
@@ -324,16 +321,16 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
     return false;
   }
 
-  bool messageOut = false;
+//  bool messageOut = false;
 
   if (!_freeIncoreSlots.size() || treeletGid >= _treelets.size())
   {
-    if (!messageOut)
-    {
-      std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
-      std::cerr << std::endl << "             Out of incore slots!";
-      messageOut = true;
-    }
+//    if (!messageOut)
+//    {
+//      std::cerr << std::endl << "Warning from TreeletMemoryManager::insertTreeletIntoGpuBuffer: ";
+//      std::cerr << std::endl << "             Out of incore slots!";
+//      messageOut = true;
+//    }
 
     return false;
     // make space available ...
@@ -357,7 +354,28 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
           (char*)&_treelets[treeletGid]->getNodes().front(),
           _treeletSizeInByte);
 
+
+
+  // ### copy treelet attributes to incoreBuffer
+  unsigned incorePackageIndex   = freeSlotGid*_numNodesPerTreelet;
+  unsigned incoreAttribPosition = _attributeBuffers[treeletGid]->getPackageIndex(incorePackageIndex);
+
+  // memcpy root treelet to incoreBuffer
+  memcpy( (char*)&_incoreAttributeBuffer->getVector()[incoreAttribPosition],
+          (char*)&_attributeBuffers[treeletGid]->getVector().front(),
+          _attributeBuffers[treeletGid]->getVector().size()*sizeof(float));
+
+
+  // mark incore slot of new Treelet to be uploaded to device memory
+  markIncoreSlotForUpload(_treeletGidToSlotGidMap[treeletGid]);
+
+
   // updating corresponding parent treelets leaf
+  if (treeletGid == 0)
+  {
+    return true;
+  }
+
   gloost::gloostId parentTreeletGid                = _treelets[treeletGid]->getParentTreeletGid();
   gloost::gloostId parentTreeletLeafPosition       = _treelets[treeletGid]->getParentTreeletLeafPosition();
   gloost::gloostId parentTreeletLeafParentPosition = _treelets[treeletGid]->getParentTreeletLeafsParentPosition();
@@ -378,21 +396,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 
   // mark incore slot of parent to be uploaded to device memory
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
-
-  // mark incore slot of new Treelet to be uploaded to device memory
-  markIncoreSlotForUpload(_treeletGidToSlotGidMap[treeletGid]);
-
-
-
-  // ### copy treelet attributes to incoreBuffer
-
-  unsigned incorePackageIndex   = freeSlotGid*_numNodesPerTreelet;
-  unsigned incoreAttribPosition = _attributeBuffers[treeletGid]->getPackageIndex(incorePackageIndex);
-
-  // memcpy root treelet to incoreBuffer
-  memcpy( (char*)&_incoreAttributeBuffer->getVector()[incoreAttribPosition],
-          (char*)&_attributeBuffers[treeletGid]->getVector().front(),
-          _attributeBuffers[treeletGid]->getVector().size()*sizeof(float));
 
 
 
@@ -432,6 +435,40 @@ TreeletMemoryManager::updateDeviceMemory()
 //  {
 //    _incoreSlotsToUpload.
 //  }
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a const reference to the stack of free incore slots
+  \param   ...
+  \remarks ...
+*/
+
+/*virtual */
+const std::stack<unsigned>&
+TreeletMemoryManager::getFreeIncoreSlotStack() const
+{
+  return _freeIncoreSlots;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a set of incore slot Gids that should be transfered to the server
+  \param   ...
+  \remarks ...
+*/
+
+/*virtual */
+const std::set<gloost::gloostId>&
+TreeletMemoryManager::getIncoreSlotsToUpload() const
+{
+  return _incoreSlotsToUpload;
 }
 
 
