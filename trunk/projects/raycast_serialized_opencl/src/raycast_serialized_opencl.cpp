@@ -125,8 +125,8 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth  = g_screenWidth  / 1.0;
-  g_bufferHeight = g_screenHeight / 1.0;
+  g_bufferWidth  = g_screenWidth  / 2.0;
+  g_bufferHeight = g_screenHeight / 2.0;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
@@ -139,7 +139,7 @@ void init()
 //  const std::string svoBaseName  = "terrain_05";
 //  const std::string svoBaseName  = "sibenik";
 
-  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 368/*MB*/ * 1024 * 1024;
 
 
 
@@ -355,10 +355,10 @@ void frameStep()
   gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
 
 
-
   // update incore buffer
   g_clMemoryManager->updateDeviceMemory();
 
+#if 0
   if (g_enableDynamicLoading)
   {
     // run analyse render pass
@@ -378,7 +378,7 @@ void frameStep()
     }
 
   }
-
+#endif
 
 
 

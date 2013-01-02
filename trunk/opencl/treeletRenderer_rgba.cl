@@ -5,8 +5,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        16
-#define MAX_SVO_RAYCAST_DEPTH 14
+#define MAX_STACK_SIZE        12
+#define MAX_SVO_RAYCAST_DEPTH 12
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -808,7 +808,8 @@ typedef struct
 {
   int      _leafeHit;
   int      _nodePosOrTreeletGid;
-  float    _quality;
+  float    _qualityIfLeafe;
+  float    _quality2;
 }/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
 
 
@@ -937,7 +938,7 @@ sampleAnalyse( __global const SvoNode* svo,
           // ### WRITE required Treelet Gid encoded in the first child
           sampleResult->_leafeHit            = true;
           sampleResult->_nodePosOrTreeletGid = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
-          sampleResult->_quality             = scale_exp2/tScaleRatio*tcMin;
+          sampleResult->_qualityIfLeafe      = scale_exp2/tScaleRatio*tcMin;
           return true;
         }
         else
@@ -950,7 +951,7 @@ sampleAnalyse( __global const SvoNode* svo,
                                                                                  childIdx);
             sampleResult->_leafeHit            = false;
             sampleResult->_nodePosOrTreeletGid = 0;//returnchildIndex;
-            sampleResult->_quality             = 0.0f;//tScaleRatio*tcMin / scale_exp2;
+//            sampleResult->_qualityIfLeafe      = 0.0f;//tScaleRatio*tcMin / scale_exp2;
             return false;
           }
 
@@ -1016,7 +1017,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataSample result;
   result._leafeHit            = 0;
   result._nodePosOrTreeletGid = 0;
-  result._quality             = 0;
+  result._qualityIfLeafe      = 0;
 
 
   // primary ray
@@ -1027,18 +1028,18 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
 
 
   FeedBackDataElement feedBackElemet;
-  feedBackElemet._nodePosOrTreeletGid = 0;
-  feedBackElemet._isLeafe             = 0;
-  feedBackElemet._qualityIfLeafe      = 0.0f;
+//  feedBackElemet._nodePosOrTreeletGid = result._nodePosOrTreeletGid;
+//  feedBackElemet._isLeafe             = result._leafeHit;
+//  feedBackElemet._qualityIfLeafe      = result._qualityIfLeafe;
   feedBackElemet._quality2            = 0.0f;
 
 
-  if (result._leafeHit != 0)
-  {
-    feedBackElemet._nodePosOrTreeletGid  = result._nodePosOrTreeletGid;
-    feedBackElemet._isLeafe              = 1;
-    feedBackElemet._qualityIfLeafe       = result._quality;
-  }
+//  if (result._leafeHit != 0)
+//  {
+//    feedBackElemet._nodePosOrTreeletGid  = result._nodePosOrTreeletGid;
+//    feedBackElemet._isLeafe              = 1;
+//    feedBackElemet._qualityIfLeafe       = result._quality;
+//  }
 
 
   const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
