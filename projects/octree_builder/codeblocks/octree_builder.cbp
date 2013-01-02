@@ -36,6 +36,7 @@
 					<Add library="libtinyxml" />
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
+					<Add library="/usr/lib/x86_64-linux-gnu/libgomp.so.1" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -67,12 +68,14 @@
 					<Add library="libtinyxml" />
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
+					<Add library="/usr/lib/x86_64-linux-gnu/libgomp.so.1" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-fopenmp" />
 			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../src" />
 			<Add directory="../../../src" />

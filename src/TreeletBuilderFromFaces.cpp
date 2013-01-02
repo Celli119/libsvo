@@ -211,8 +211,8 @@ TreeletBuilderFromFaces::buildFromQueue()
 
 //    omp_set_dynamic(0);
     omp_set_num_threads(4);
-//    #pragma omp parallel for
-    #pragma omp for nowait
+    #pragma omp parallel for
+//    #pragma omp for
     for (unsigned i=0u; i<8u; ++i)
     {
 //      std::cerr << std::endl << "I am thread " << omp_get_thread_num()+1 << " of " << omp_get_num_threads();

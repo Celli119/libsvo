@@ -91,11 +91,11 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
 
 
   // fill up incoreBuffer
-//  unsigned treeletGid = 1;
-//  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(treeletGid))
-//  {
-//    ++treeletGid;
-//  }
+  unsigned treeletGid = 1;
+  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(treeletGid))
+  {
+    ++treeletGid;
+  }
 
 }
 
