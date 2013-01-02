@@ -132,14 +132,14 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "san-miguel";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
-//  const std::string svoBaseName  = "crytek_sponza";
-  const std::string svoBaseName  = "sibenik";
+//  const std::string svoBaseName  = "terrain_05";
+//  const std::string svoBaseName  = "sibenik";
 
-  const unsigned incoreBufferSizeInByte = 640/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
 
 
@@ -288,7 +288,7 @@ void frameStep()
 
 
   static gloost::Vector3 camSpeed(0.0f, 0.0f, 0.0f);
-  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f,0.0f);
+  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f, -2.0f);
   camSpeed *= 0.8;
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),

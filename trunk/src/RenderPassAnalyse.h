@@ -41,12 +41,16 @@ class RenderPassAnalyse
 	  {
 	    FeedBackDataElement()
 	    {
-	      _first  = 0u;
-	      _second = 0.0f;
+	      _nodePosOrTreeletGid = 0;
+	      _isLeafe             = 0;
+	      _qualityIfLeafe      = 0.0f;
+	      quality2             = 0.0f;
 	    }
 
-      unsigned _first;
-      float    _second;
+      int      _nodePosOrTreeletGid;
+      int      _isLeafe;
+      float    _qualityIfLeafe;
+      float    quality2;
 	  };
 
 
@@ -76,9 +80,9 @@ class RenderPassAnalyse
    unsigned                _bufferHeight;
 
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
-   gloost::gloostId                 _feedbackBufferGid;
+   gloost::gloostId                _feedbackBufferGid;
 
-   std::set<gloost::gloostId>       _visibleTreelets;
+   std::set<gloost::gloostId>      _visibleTreelets;
 
 
 	private:

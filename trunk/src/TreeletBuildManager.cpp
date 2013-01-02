@@ -144,7 +144,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 
-#if 1
   /**
     Build Treelets as long as there are leafes that have not maxDepth within the svo
   */
@@ -154,7 +153,17 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   {
     treeletsWithSubTreeletsQueue.push(_treelets[0]);
   }
+  else
+  {
+    Ag_colorAndNormalsTriangles::createFinalLeafesAttributes(this,
+                                                             0,
+                                                             mesh);
 
+    Ag_colorAndNormalsTriangles::createInnerNodesAttributes( this,
+                                                             0);
+  }
+
+#if 1
 
   static unsigned finalLeafeMemSize = 0; // <- debug
   unsigned treeletId                = 1u;

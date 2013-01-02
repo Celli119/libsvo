@@ -83,7 +83,7 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
   std::cerr << std::endl << "  height: " << _bufferHeight;
   std::cerr << std::endl;
 
-	_feedbackBufferGid = _memoryManager->getContext()->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_WRITE_ONLY,
+	_feedbackBufferGid = _memoryManager->getContext()->createClBuffer(CL_MEM_WRITE_ONLY,
                                                                    (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                     _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
@@ -152,44 +152,56 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                                                       _feedbackBufferGid,
                                                                       (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                       true);
+  clFinish( _memoryManager->getContext()->getDevice(deviceGid)->getClCommandQueue() );
 
 
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
 
-    if (_hostSideFeedbackBuffer[i]._first)
+    // !!! TREELET id can be 0 if leaf has no subTreelet
+
+    if (_hostSideFeedbackBuffer[i]._isLeafe && _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
-//      std::cerr << std::endl << "######: " << i;
-//      std::cerr << std::endl << "_first:  " << _hostSideFeedbackBuffer[i]._first;
-//      std::cerr << std::endl << "_second: " << _hostSideFeedbackBuffer[i]._second;
-      _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._first);
+#if 0
+      std::cerr << std::endl;
+      std::cerr << std::endl << "######:               " << i;
+      std::cerr << std::endl << "_isLeafe              " << _hostSideFeedbackBuffer[i]._isLeafe;
+      std::cerr << std::endl << "_qualityIfLeafe       " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+      std::cerr << std::endl << "_nodePosOrTreeletGid: " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
+#endif
+//      if (!_hostSideFeedbackBuffer[i]._isLeafe)
+//      {
+//        std::cerr << std::endl << "AAAAAAAAAAAAAAAAAA: " << _hostSideFeedbackBuffer[i]._isLeafe;
+//      }
+
+
+      _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
     }
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 500;
-
-  if (_visibleTreelets.size() > maxTreeletsToPropergate)
-  {
-    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
-    unsigned count = 0u;
-
-    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
-    {
-      ++count;
-      ++vtIt;
-    }
-
-    if (vtIt != _visibleTreelets.end() )
-    {
-//      std::cerr << std::endl << "erase: " << _visibleTreelets.size()-count;
-       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
-    }
-
-//    std::cerr << std::endl << "count:            " << count;
-//    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
-
-  }
+//  static const unsigned maxTreeletsToPropergate = 1024;
+//
+//  if (_visibleTreelets.size() > maxTreeletsToPropergate)
+//  {
+//    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
+//    unsigned count = 0u;
+//
+//    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
+//    {
+//      ++count;
+//      ++vtIt;
+//    }
+//
+//    if (vtIt != _visibleTreelets.end() )
+//    {
+//       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
+//    }
+////
+////    std::cerr << std::endl << "count:            " << count;
+////    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+//
+//  }
 
 
 

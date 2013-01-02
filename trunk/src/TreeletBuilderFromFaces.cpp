@@ -40,6 +40,7 @@
 #include <iostream>
 #include <boost/thread.hpp>
 //#include <chrono>
+#include <omp.h>
 
 
 
@@ -187,9 +188,6 @@ TreeletBuilderFromFaces::buildFromQueue()
 
   static const float offset               = 0.25f;
   static const gloost::Matrix scaleToHalf = gloost::Matrix::createScaleMatrix(0.5f);
-  float childOffsetX;
-  float childOffsetY;
-  float childOffsetZ;
 
   unsigned currentNodeIndex = 1u;
   unsigned whileCounter     = 0u;
@@ -209,78 +207,82 @@ TreeletBuilderFromFaces::buildFromQueue()
 //#endif
 
     const Treelet::QueueElement& parentQueuedElement = _queue.front();
-    std::vector<Treelet::QueueElement> childQueueElements(8);
+    std::vector<Treelet::QueueElement> childQueueElements(8, Treelet::QueueElement());
 
-    // 8 possible children
-    for (unsigned z=0; z!=2u; ++z)
+//    omp_set_dynamic(0);
+    omp_set_num_threads(4);
+//    #pragma omp parallel for
+    #pragma omp for nowait
+    for (unsigned i=0u; i<8u; ++i)
     {
-      for (unsigned y=0; y!=2u; ++y)
+//      std::cerr << std::endl << "I am thread " << omp_get_thread_num()+1 << " of " << omp_get_num_threads();
+
+      float childOffsetX;
+      float childOffsetY;
+      float childOffsetZ;
+      bool x = i & 4;
+      bool y = i & 2;
+      bool z = i & 1;
+
+      unsigned childIdx = i;
+
+      if (x)
       {
-        for (unsigned x=0; x!=2u; ++x)
+        childOffsetX = offset;
+      }
+      else
+      {
+        childOffsetX = -offset;
+      }
+
+      if (y)
+      {
+        childOffsetY = offset;
+      }
+      else
+      {
+        childOffsetY = -offset;
+      }
+
+      if (z)
+      {
+        childOffsetZ = offset;
+      }
+      else
+      {
+        childOffsetZ = -offset;
+      }
+
+      // child voxel transformation
+      gloost::Matrix aabbTransform = parentQueuedElement._aabbTransform
+                                     * gloost::Matrix::createTransMatrix(childOffsetX, childOffsetY, childOffsetZ);
+      aabbTransform = aabbTransform * scaleToHalf;
+
+      childQueueElements[childIdx]._aabbTransform = aabbTransform;
+      childQueueElements[childIdx]._depth         = parentQueuedElement._depth +1;
+
+      gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
+      bbox.transform(aabbTransform);
+
+      // test this possible leafe with all triagles
+      for (unsigned tId=0; tId!=parentQueuedElement._primitiveIds.size(); ++tId)
+      {
+        const BuilderTriangleFace triangle(_mesh, parentQueuedElement._primitiveIds[tId]);
+
+        if (triangle.intersectAABB(bbox))
         {
-          unsigned childIndex = 4*x+2*y+z;
-
-          gloost::Vector3 childOffset(0.0,0.0,0.0);
-
-          if (x)
-          {
-            childOffsetX = offset;
-          }
-          else
-          {
-            childOffsetX = -offset;
-          }
-
-          if (y)
-          {
-            childOffsetY = offset;
-          }
-          else
-          {
-            childOffsetY = -offset;
-          }
-
-          if (z)
-          {
-            childOffsetZ = offset;
-          }
-          else
-          {
-            childOffsetZ = -offset;
-          }
-
-          // child voxel transformation
-          gloost::Matrix aabbTransform = parentQueuedElement._aabbTransform
-                                         * gloost::Matrix::createTransMatrix(childOffsetX, childOffsetY, childOffsetZ);
-          aabbTransform = aabbTransform * gloost::Matrix::createScaleMatrix(0.5);
-
-          childQueueElements[childIndex]._aabbTransform = aabbTransform;
-          childQueueElements[childIndex]._depth         = parentQueuedElement._depth +1;
-
-          gloost::BoundingBox bbox(gloost::Point3(-0.5,-0.5,-0.5), gloost::Point3(0.5,0.5,0.5));
-          bbox.transform(aabbTransform);
-
-          // test this possible leafe with all triagles
-          for (unsigned tId=0; tId!=parentQueuedElement._primitiveIds.size(); ++tId)
-          {
-            const BuilderTriangleFace triangle(_mesh, parentQueuedElement._primitiveIds[tId]);
-
-            if (triangle.intersectAABB(bbox))
-            {
-              childQueueElements[childIndex]._primitiveIds.push_back(parentQueuedElement._primitiveIds[tId]);
-            }
-          }
+          childQueueElements[childIdx]._primitiveIds.push_back(parentQueuedElement._primitiveIds[tId]);
         }
       }
     }
 
-
+#if 1
     // update parent node and build serial svo structure by checking content of new QueueElement
     bool isFirstValidChild = true;
-    for (unsigned childIndex=0; childIndex!=8; ++childIndex)
+    for (unsigned childIdx=0; childIdx!=8; ++childIdx)
     {
       // use only children with triangles
-      if (childQueueElements[childIndex]._primitiveIds.size())
+      if (childQueueElements[childIdx]._primitiveIds.size())
       {
         // update existing parent node so that the firstChildIndex is pointing to this node
         if (isFirstValidChild)
@@ -291,17 +293,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         }
 
         // set child valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIndex, true);
+        _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIdx, true);
 
         // set the location within the serialized svo to the queueElement
-        childQueueElements[childIndex]._localLeafIndex       = currentNodeIndex;
-        childQueueElements[childIndex]._idx                  = childIndex;
-        childQueueElements[childIndex]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
+        childQueueElements[childIdx]._localLeafIndex       = currentNodeIndex;
+        childQueueElements[childIdx]._idx                  = childIdx;
+        childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
         // queue children
         {
-          _queue.push(childQueueElements[childIndex]);
+          _queue.push(childQueueElements[childIdx]);
         }
 
         ++currentNodeIndex;
@@ -309,10 +311,10 @@ TreeletBuilderFromFaces::buildFromQueue()
       else
       {
         // set child NOT valid (Note: It's unknown for now if this child is a leaf)
-        _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIndex, false);
+        _treelet->getNodes()[parentQueuedElement._localLeafIndex].setValidMaskFlag(childIdx, false);
       }
     }
-
+#endif
     // unqueue parent element
     _queue.pop();
 
