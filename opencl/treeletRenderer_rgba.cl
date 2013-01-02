@@ -6,7 +6,7 @@
 //
 //__constant float scale = 1.0f;
 #define MAX_STACK_SIZE        16
-#define MAX_SVO_RAYCAST_DEPTH 16
+#define MAX_SVO_RAYCAST_DEPTH 14
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -343,7 +343,7 @@ sample( __global const SvoNode* svo,
           return true;
         } else {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
+          if (tScaleRatio*tcMin > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
             unsigned returnchildIdx = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                       svo[parent->parentNodeIndex]._firstchildIndex,
                                       childIdx);
@@ -473,7 +473,7 @@ shade_diffuse_color_shadow(const SampleResult* result,
     float4 color = getColor(result->nodeIndex, attribs);
 
 
-    const float3 lightDirection = normalize((float3)(-0.5f, 1.0f, 0.6f));
+    const float3 lightDirection = normalize((float3)(-0.2f, 1.0f, 0.0f));
     float nDotL = max(0.0f, dot(normal, lightDirection));
 
 #if 0
@@ -696,7 +696,8 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 
   switch ((int)otherParams.x) { // rendermode select
   case 0:
-    if (result.hit) {
+    if (result.hit)
+    {
       write_imagef ( renderbuffer,
                      (int2)(x,y),
                      (float4)(getColor(result.nodeIndex, attribs).xyz, 1.0f));
@@ -706,23 +707,23 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                   (int2)(x,y),
                   (float4)(0.2f,0.3f,0.2f,1.0f));
     break;
-//    case 1:
-//
-//          if (result.hit)
-//          {
-//            result.attribIndex = attribIndices[result.nodeIndex];
-//            write_imagef ( renderbuffer,
-//                          (int2)(x,y),
-//                          (float4)(getNormal(result.attribIndex, attribs), 1.0));
-//            return;
-//          }
-//
-//           write_imagef ( renderbuffer,
-//                          (int2)(x,y),
-//                          (float4)(0.2f,0.3f,0.2f,1.0f));
-//        break;
+    case 1:
 
-  case 1: {
+          if (result.hit)
+          {
+            write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(getNormal(result.nodeIndex, attribs), 1.0));
+            return;
+          }
+
+           write_imagef ( renderbuffer,
+                          (int2)(x,y),
+                          (float4)(0.2f,0.3f,0.2f,1.0f));
+        break;
+
+  case 2:
+    {
       float3 color = DataPointToColor(result.numWhileLoops, 0.0f, MAX_STACK_SIZE*30);
       write_imagef ( renderbuffer,
                      (int2)(x,y),
@@ -730,19 +731,19 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
     }
     break;
 
-  case 2:
+  case 3:
     write_imagef ( renderbuffer,
                    (int2)(x,y),
                    shade_svoDepth(&result));
     break;
 
-  case 3:
+  case 4:
     write_imagef ( renderbuffer,
                    (int2)(x,y),
                    shade_pixelDepth(&result));
     break;
 
-  case 4:
+  case 5:
     write_imagef ( renderbuffer,
                    (int2)(x,y),
                    shade_iterationDepth(&result));
@@ -793,20 +794,22 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 ///////////////////////////////////////////////////////////////////////////////
 
 //
-typedef struct {
-  unsigned _first;
-  float    _second;
-} __attribute__ ( ( aligned ( 8 ) ) ) FeedBackDataElement;
+typedef struct
+{
+  int   _nodePosOrTreeletGid;
+  int   _isLeafe;
+  float _qualityIfLeafe;
+  float _quality2;
+} __attribute__ ( ( aligned ( 16 ) ) ) FeedBackDataElement;
 
 
 //
-typedef struct {
-  bool     hit;
-  unsigned nodeIndex;
-  unsigned depth;
-  float    t;
-  unsigned numWhileLoops;
-}/*__attribute__ ( ( aligned ( 20 ) ) )*/ FeedBackDataSample;
+typedef struct
+{
+  int      _leafeHit;
+  int      _nodePosOrTreeletGid;
+  float    _quality;
+}/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -820,9 +823,6 @@ sampleAnalyse( __global const SvoNode* svo,
                const float tScaleRatio,
                FeedBackDataSample* sampleResult)
 {
-  sampleResult->numWhileLoops = 0;
-  sampleResult->hit           = false;
-
   float tMin,tMax;
   if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax)) {
     return false;
@@ -933,27 +933,24 @@ sampleAnalyse( __global const SvoNode* svo,
                                svo[parent->parentNodeIndex]._firstchildIndex,
                                childIdx);
 
+
           // ### WRITE required Treelet Gid encoded in the first child
-          sampleResult->hit           = true;
-          sampleResult->nodeIndex     = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
-          sampleResult->depth         = scaleMax-scale;
-          sampleResult->t             = parent->parentTMin;
-          sampleResult->numWhileLoops = whileCounter;
+          sampleResult->_leafeHit            = true;
+          sampleResult->_nodePosOrTreeletGid = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
+          sampleResult->_quality             = scale_exp2/tScaleRatio*tcMin;
           return true;
         }
         else
         {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMax > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
+          if (tScaleRatio*tcMin > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
           {
             unsigned returnchildIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                                                                  svo[parent->parentNodeIndex]._firstchildIndex,
                                                                                  childIdx);
-            sampleResult->hit           = false;
-            sampleResult->nodeIndex     = returnchildIndex;
-            sampleResult->depth         = scaleMax-scale+1;
-            sampleResult->t             = parent->parentTMin;
-            sampleResult->numWhileLoops = whileCounter;
+            sampleResult->_leafeHit            = false;
+            sampleResult->_nodePosOrTreeletGid = 0;//returnchildIndex;
+            sampleResult->_quality             = 0.0f;//tScaleRatio*tcMin / scale_exp2;
             return false;
           }
 
@@ -984,13 +981,6 @@ sampleAnalyse( __global const SvoNode* svo,
     }
 
   } // while
-
-
-  sampleResult->hit           = false;
-  sampleResult->nodeIndex     = 0;
-  sampleResult->depth         = 0;
-  sampleResult->t             = tMax;
-  sampleResult->numWhileLoops = whileCounter;
 
 
   return false;
@@ -1024,6 +1014,10 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   rayDirection        = normalize(rayDirection);
 
   FeedBackDataSample result;
+  result._leafeHit            = 0;
+  result._nodePosOrTreeletGid = 0;
+  result._quality             = 0;
+
 
   // primary ray
   sampleAnalyse(  svo,
@@ -1033,14 +1027,17 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
 
 
   FeedBackDataElement feedBackElemet;
+  feedBackElemet._nodePosOrTreeletGid = 0;
+  feedBackElemet._isLeafe             = 0;
+  feedBackElemet._qualityIfLeafe      = 0.0f;
+  feedBackElemet._quality2            = 0.0f;
 
 
-  if (result.hit == true) {
-    feedBackElemet._first  = result.nodeIndex;
-    feedBackElemet._second = 0.0;
-  } else {
-    feedBackElemet._first  = 1;
-    feedBackElemet._second = 0.0f;
+  if (result._leafeHit != 0)
+  {
+    feedBackElemet._nodePosOrTreeletGid  = result._nodePosOrTreeletGid;
+    feedBackElemet._isLeafe              = 1;
+    feedBackElemet._qualityIfLeafe       = result._quality;
   }
 
 

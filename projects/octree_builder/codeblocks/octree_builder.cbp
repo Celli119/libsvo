@@ -23,6 +23,7 @@
 					<Add option="-O" />
 					<Add option="-Wall" />
 					<Add option="-W" />
+					<Add option="-fopenmp" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -54,6 +55,7 @@
 					<Add option="-O" />
 					<Add option="-Wall" />
 					<Add option="-W" />
+					<Add option="-fopenmp" />
 				</Compiler>
 				<Linker>
 					<Add library="libsvo_db" />
