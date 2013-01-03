@@ -118,7 +118,10 @@ void
 RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       gloost::PerspectiveCamera* camera,
                                       const gloost::Matrix&      modelMatrix,
-                                      float                      tScaleRatio)
+                                      float                      tScaleRatio,
+                                      const gloost::Vector3&     frameBufferFrustumOnePixelWidth,
+                                      const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
+                                      unsigned                   frameBufferToFeedbackBufferRatio)
 {
   _visibleTreelets.clear();
 
@@ -130,13 +133,20 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
   gloost::Vector3 frustumOnePixelHeight = frustumV_vec/_bufferHeight;
 
+
+  // adding a random offset to the frustum.far_lower_left
+  gloost::Vector3 frustumFarLowerLeftPlusOffset = frustum.far_lower_left
+                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
+                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+
+
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
   clContext->setKernelArgBuffer("renderToFeedbackBuffer", 0, _feedbackBufferGid);
   clContext->setKernelArgBuffer("renderToFeedbackBuffer", 1, _memoryManager->getClIncoreBufferGid());
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
-  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustum.far_lower_left);
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustumFarLowerLeftPlusOffset /*frustum.far_lower_left*/);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix * camera->getPosition());
 
   clContext->enqueueKernel(deviceGid,
@@ -158,50 +168,47 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
 
-    // !!! TREELET id can be 0 if leaf has no subTreelet
-
-    if (_hostSideFeedbackBuffer[i]._isLeafe && _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
+    // if there was a hit within the svo
+    if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
-#if 0
-      std::cerr << std::endl;
-      std::cerr << std::endl << "######:               " << i;
-      std::cerr << std::endl << "_isLeafe              " << _hostSideFeedbackBuffer[i]._isLeafe;
-      std::cerr << std::endl << "_qualityIfLeafe       " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-      std::cerr << std::endl << "_nodePosOrTreeletGid: " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
-#endif
-//      if (!_hostSideFeedbackBuffer[i]._isLeafe)
-//      {
-//        std::cerr << std::endl << "AAAAAAAAAAAAAAAAAA: " << _hostSideFeedbackBuffer[i]._isLeafe;
-//      }
-
-
-      _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
+      // if this hit was an  leafe
+      if (_hostSideFeedbackBuffer[i]._isLeafe)
+      {
+  #if 0
+        std::cerr << std::endl;
+        std::cerr << std::endl << "######:               " << i;
+        std::cerr << std::endl << "_isLeafe              " << _hostSideFeedbackBuffer[i]._isLeafe;
+        std::cerr << std::endl << "_qualityIfLeafe       " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+        std::cerr << std::endl << "_nodePosOrTreeletGid: " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
+  #endif
+        _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
+      }
     }
   }
 
 
-//  static const unsigned maxTreeletsToPropergate = 1024;
+  static const unsigned maxTreeletsToPropergate = 1024;
+
+  if (_visibleTreelets.size() > maxTreeletsToPropergate)
+  {
+    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
+    unsigned count = 0u;
+
+    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
+    {
+      ++count;
+      ++vtIt;
+    }
+
+    if (vtIt != _visibleTreelets.end() )
+    {
+       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
+    }
 //
-//  if (_visibleTreelets.size() > maxTreeletsToPropergate)
-//  {
-//    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
-//    unsigned count = 0u;
-//
-//    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
-//    {
-//      ++count;
-//      ++vtIt;
-//    }
-//
-//    if (vtIt != _visibleTreelets.end() )
-//    {
-//       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
-//    }
-////
-////    std::cerr << std::endl << "count:            " << count;
-////    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
-//
-//  }
+//    std::cerr << std::endl << "count:            " << count;
+//    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+
+  }
 
 
 

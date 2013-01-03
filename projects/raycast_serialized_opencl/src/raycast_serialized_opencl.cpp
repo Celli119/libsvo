@@ -29,7 +29,7 @@
 
 
 /// general setup
-static unsigned int g_screenWidth  = 1024;
+static unsigned int g_screenWidth  = 1280;
 static unsigned int g_screenHeight = 768;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 4.0f;
+const float                  g_fbToAnalyseBufferDevide = 8.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -125,21 +125,28 @@ void idle(void);
 
 void init()
 {
-  g_bufferWidth  = g_screenWidth  / 2.0;
-  g_bufferHeight = g_screenHeight / 2.0;
+
+  const unsigned screenDivide           = 1u;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+
+  g_bufferWidth  = g_screenWidth  / (float)screenDivide;
+  g_bufferHeight = g_screenHeight / (float)screenDivide;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "san-miguel";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "terrain_05";
 //  const std::string svoBaseName  = "sibenik";
-
-  const unsigned incoreBufferSizeInByte = 368/*MB*/ * 1024 * 1024;
+//  const std::string svoBaseName  = "venus_12";
+//  const std::string svoBaseName  = "ĺucy_12";
+//  const std::string svoBaseName  = "xyzrgb_statuette_12";
+  const std::string svoBaseName  = "david_2mm_12";
+//  const std::string svoBaseName  = "malaysia";
 
 
 
@@ -177,11 +184,9 @@ void init()
                                            0.01,
                                            20.0);
 
-  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0) * g_camera->getAspect();
+  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::PI / 360.0f) * g_camera->getAspect();
   g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
-
-
 
 
   // init cl stuff
@@ -192,7 +197,6 @@ void init()
                                                       incoreBufferSizeInByte,
                                                       g_context);
 
-
   // creates the incore ClBuffer
   g_clMemoryManager->initClBuffer();
 
@@ -201,13 +205,10 @@ void init()
   g_context->setKernelArgBuffer("renderToBuffer", 2, g_clMemoryManager->getClAttributeIncoreBufferGid());
 
 
-
   // analyse pass init
-
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
                                                    g_bufferWidth/g_fbToAnalyseBufferDevide,
                                                    g_bufferHeight/g_fbToAnalyseBufferDevide);
-
 }
 
 
@@ -216,7 +217,6 @@ void init()
 
 void initCl()
 {
-
   // change Device here!
   g_deviceGid = 0;
 
@@ -292,7 +292,7 @@ void frameStep()
   camSpeed *= 0.8;
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),
-                                   -g_cameraRotateX,
+                                                   -g_cameraRotateX,
                                    cos(g_cameraRotateY)).normalized() * g_cameraDistance;
 
 
@@ -355,17 +355,47 @@ void frameStep()
   gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
 
 
+  // start raycasting
+  const gloost::Frustum& frustum = g_camera->getFrustum();
+
+  gloost::Vector3 frustumH_vec          = frustum.far_lower_right - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/g_bufferWidth;
+  gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
+  gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
+
+  g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
+  g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
+  g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
+  g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
+  g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
+  g_context->setKernelArgFloat4("renderToBuffer", 8, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+
+  g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
+  {
+    g_context->enqueueKernel(g_deviceGid,
+                             "renderToBuffer",
+                             2u,
+                             gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
+                             true,
+                             gloost::Vector3(8, 8, 0));
+  }
+  g_context->releaseGlObjects(g_deviceGid);
+
+
   // update incore buffer
   g_clMemoryManager->updateDeviceMemory();
 
-#if 0
+#if 1
   if (g_enableDynamicLoading)
   {
     // run analyse render pass
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
                                             modelMatrix,
-                                            g_tScaleRatio);
+                                            g_tScaleRatio,
+                                            frustumOnePixelWidth,
+                                            frustumOnePixelHeight,
+                                            g_fbToAnalyseBufferDevide);
 
     std::set<gloost::gloostId>& visibleTreelets = g_renderPassAnalyse->getVisibleTreelets();
 
@@ -376,43 +406,9 @@ void frameStep()
     {
       g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt));
     }
-
   }
 #endif
 
-
-
-  if (g_raycastEveryFrame || g_frameDirty)
-  {
-
-
-    // start raycasting
-    const gloost::Frustum& frustum = g_camera->getFrustum();
-
-    gloost::Vector3 frustumH_vec          = frustum.far_lower_right - frustum.far_lower_left;
-    gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/g_bufferWidth;
-    gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
-    gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
-
-    g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
-    g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
-    g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
-    g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
-    g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
-    g_context->setKernelArgFloat4("renderToBuffer", 8, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
-
-    g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
-    {
-      g_context->enqueueKernel(g_deviceGid,
-                               "renderToBuffer",
-                               2u,
-                               gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
-                               true,
-                               gloost::Vector3(8, 8, 0));
-    }
-    g_context->releaseGlObjects(g_deviceGid);
-    g_frameDirty = false;
-  }
 
 }
 
@@ -501,9 +497,9 @@ void draw2d()
           g_texter->renderTextLine("fps:                " + gloost::toString(1.0/avarageTimePerFrame));
           g_texter->renderTextLine("view mode (1...5):  " + g_viewModeText);
           g_texter->renderFreeLine();
-          glColor4f(1.0f, 1.0f, 1.0f, 0.5);
-          g_texter->renderTextLine("(h) Show text info: " + gloost::toString( g_showTextInfo )) ;
-          g_texter->renderFreeLine();
+//          glColor4f(1.0f, 1.0f, 1.0f, 0.5);
+//          g_texter->renderTextLine("(h) Show text info: " + gloost::toString( g_showTextInfo )) ;
+//          g_texter->renderFreeLine();
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
           g_texter->renderFreeLine();

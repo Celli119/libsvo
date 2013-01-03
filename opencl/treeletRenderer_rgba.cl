@@ -5,8 +5,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        12
-#define MAX_SVO_RAYCAST_DEPTH 12
+#define MAX_STACK_SIZE        14
+#define MAX_SVO_RAYCAST_DEPTH 14
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -473,7 +473,7 @@ shade_diffuse_color_shadow(const SampleResult* result,
     float4 color = getColor(result->nodeIndex, attribs);
 
 
-    const float3 lightDirection = normalize((float3)(-0.2f, 1.0f, 0.0f));
+    const float3 lightDirection = normalize((float3)(0.5f, 1.0f, 0.75f));
     float nDotL = max(0.0f, dot(normal, lightDirection));
 
 #if 0
@@ -1034,12 +1034,12 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   feedBackElemet._quality2            = 0.0f;
 
 
-//  if (result._leafeHit != 0)
-//  {
-//    feedBackElemet._nodePosOrTreeletGid  = result._nodePosOrTreeletGid;
-//    feedBackElemet._isLeafe              = 1;
-//    feedBackElemet._qualityIfLeafe       = result._quality;
-//  }
+  if (result._leafeHit != 0)
+  {
+    feedBackElemet._nodePosOrTreeletGid  = result._nodePosOrTreeletGid;
+    feedBackElemet._isLeafe              = 1;
+    feedBackElemet._qualityIfLeafe       = result._qualityIfLeafe;
+  }
 
 
   const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));

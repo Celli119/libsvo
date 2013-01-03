@@ -67,7 +67,10 @@ class RenderPassAnalyse
 	  void performAnalysePass(gloost::gloostId           deviceGid,
                             gloost::PerspectiveCamera* camera,
                             const gloost::Matrix&      modelMatrix,
-                            float                      tScaleRatio);
+                            float                      tScaleRatio,
+                            const gloost::Vector3&     frameBufferFrustumOnePixelWidth,
+                            const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
+                            unsigned                   frameBufferToFeedbackBufferRatio);
 
 
     // returns a std::set of TreeletIds belonging to visible leaves
