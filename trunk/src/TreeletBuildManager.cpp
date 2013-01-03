@@ -165,7 +165,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
 #if 1
 
-  static unsigned finalLeafeMemSize = 0; // <- debug
   unsigned treeletId                = 1u;
   unsigned queueItemCount           = _treelets[0]->getIncompleteLeafQueueElements().size();
 
@@ -205,7 +204,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
         std::cerr << std::endl << "            progress:           " << completeRatio << " %";
         std::cerr << std::endl << "            estimated svo size: " << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " (x2) GB";
         std::cerr << std::endl << "            Current depth:      " << parentIncompleteQueueElements[i]._depth;
-        std::cerr << std::endl << "            finalLeafeMemSize:  " << finalLeafeMemSize / 1024.0 / 1024.0 << " MB";
       }
 #endif
 
@@ -241,8 +239,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
       if (_treelets[treeletId]->getFinalLeafQueueElements().size())
       {
-        finalLeafeMemSize += sizeof(Treelet::QueueElement) * _treelets[treeletId]->getFinalLeafQueueElements().size();
-
         // create attributes for all final leaf samples and delete the final leafes samples
         Ag_colorAndNormalsTriangles::createFinalLeafesAttributes(this,
                                                                  treeletId,
