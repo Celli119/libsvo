@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="../../../Source/libsvo/projects/raycast_serialized_opencl/codeblocks/raycast_serialized_opencl.cbp" active="1">
+		<Project filename="../../../Source/libsvo/projects/raycast_serialized_opencl/codeblocks/raycast_serialized_opencl.cbp">
 			<Depends filename="../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp" />
 		</Project>
 		<Project filename="../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp">
@@ -11,6 +11,5 @@
 		<Project filename="../../../Source/libsvo/projects/octree_builder/codeblocks/octree_builder.cbp">
 			<Depends filename="../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp" />
 		</Project>
-		<Project filename="../../../Source/wecomeinpeace/codeblocks/wcip_gnulinux.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
