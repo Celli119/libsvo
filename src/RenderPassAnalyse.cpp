@@ -165,23 +165,32 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clFinish( _memoryManager->getContext()->getDevice(deviceGid)->getClCommandQueue() );
 
 
+
+  std::cerr << std::endl << "###############################################: ";
+
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
 
     // if there was a hit within the svo
     if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
+      std::cerr << std::endl;
+      std::cerr << std::endl << "_nodePosOrTreeletGid:   " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
+      std::cerr << std::endl << "_isLeafeWithSubtreelet: " << _hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet;
+      std::cerr << std::endl << "_qualityIfLeafe:        " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+
+
       // if this hit was an  leafe
-      if (_hostSideFeedbackBuffer[i]._isLeafe)
+      if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
       {
+        _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
   #if 0
         std::cerr << std::endl;
-        std::cerr << std::endl << "######:               " << i;
-        std::cerr << std::endl << "_isLeafe              " << _hostSideFeedbackBuffer[i]._isLeafe;
-        std::cerr << std::endl << "_qualityIfLeafe       " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-        std::cerr << std::endl << "_nodePosOrTreeletGid: " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
+        std::cerr << std::endl << "######:                 " << i;
+        std::cerr << std::endl << "_isLeafeWithSubtreelet: " << _hostSideFeedbackBuffer[i]._isLeafe;
+        std::cerr << std::endl << "_qualityIfLeafe:        " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+        std::cerr << std::endl << "_nodePosOrTreeletGid:   " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
   #endif
-        _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
       }
     }
   }
