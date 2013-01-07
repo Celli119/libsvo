@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 32.0f;
+const float                  g_fbToAnalyseBufferDevide = 4.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -143,10 +143,11 @@ void init()
 //  const std::string svoBaseName  = "terrain_05";
 //  const std::string svoBaseName  = "sibenik";
 //  const std::string svoBaseName  = "venus_12";
+//  const std::string svoBaseName  = "xyzrgb_manuscript_12";
 //  const std::string svoBaseName  = "ĺucy_12";
 //  const std::string svoBaseName  = "xyzrgb_statuette_12";
 //  const std::string svoBaseName  = "david_2mm_12";
-  const std::string svoBaseName  = "monster_6";
+  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
 //  const std::string svoBaseName  = "malaysia";
 
