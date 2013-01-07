@@ -174,11 +174,13 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
     // if there was a hit within the svo
     if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
+
+#if 0
       std::cerr << std::endl;
       std::cerr << std::endl << "_nodePosOrTreeletGid:   " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
       std::cerr << std::endl << "_isLeafeWithSubtreelet: " << _hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet;
       std::cerr << std::endl << "_qualityIfLeafe:        " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-
+#endif
 
       // if this hit was an  leafe
       if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)

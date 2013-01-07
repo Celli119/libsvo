@@ -228,13 +228,13 @@ sample( __global const SvoNode* svo,
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
   if ( fabs(rayDirection.x) < epsilon) {
-    rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+    rayDirection.x = epsilon * sign(rayDirection.x)*10.0f;
   }
   if ( fabs(rayDirection.y) < epsilon) {
-    rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+    rayDirection.y = epsilon * sign(rayDirection.y)*10.0f;
   }
   if ( fabs(rayDirection.z) < epsilon) {
-    rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+    rayDirection.z = epsilon * sign(rayDirection.z)*10.0f;
   }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 

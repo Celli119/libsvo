@@ -41,10 +41,10 @@ class RenderPassAnalyse
 	  {
 	    FeedBackDataElement()
 	    {
-	      _nodePosOrTreeletGid = 0;
+	      _nodePosOrTreeletGid   = 0;
 	      _isLeafeWithSubtreelet = 0;
-	      _qualityIfLeafe      = 0.0f;
-	      quality2             = 0.0f;
+	      _qualityIfLeafe        = 0.0f;
+	      quality2               = 0.0f;
 	    }
 
       int      _nodePosOrTreeletGid;
