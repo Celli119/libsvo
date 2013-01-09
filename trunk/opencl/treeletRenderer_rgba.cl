@@ -217,6 +217,7 @@ sample( __global const SvoNode* svo,
   const int   scaleMax   = MAX_STACK_SIZE;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
+  const float minNormal  = 0.0001f;
   const float epsilon    = 0.0001f;
 
   StackElement stack[MAX_STACK_SIZE];
@@ -227,14 +228,14 @@ sample( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) {
-    rayDirection.x = epsilon * sign(rayDirection.x)*10.0f;
+  if ( fabs(rayDirection.x) < minNormal) {
+    rayDirection.x = minNormal * sign(rayDirection.x)*100.0f;
   }
-  if ( fabs(rayDirection.y) < epsilon) {
-    rayDirection.y = epsilon * sign(rayDirection.y)*10.0f;
+  if ( fabs(rayDirection.y) < minNormal) {
+    rayDirection.y = minNormal * sign(rayDirection.y)*100.0f;
   }
-  if ( fabs(rayDirection.z) < epsilon) {
-    rayDirection.z = epsilon * sign(rayDirection.z)*10.0f;
+  if ( fabs(rayDirection.z) < minNormal) {
+    rayDirection.z = minNormal * sign(rayDirection.z)*100.0f;
   }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
@@ -264,14 +265,12 @@ sample( __global const SvoNode* svo,
       break;
     }
 
-//    if (!parent)
-//    {
-    parent = &stack[scale];
-    scale_exp2       = pow(2.0f, scale - scaleMax);
-    childSizeHalf    = scale_exp2*0.5f;
-
-
-//    }
+    if (!parent)
+    {
+      parent = &stack[scale];
+      scale_exp2       = pow(2.0f, scale - scaleMax);
+      childSizeHalf    = scale_exp2*0.5f;
+    }
 
     // ### POP if parent is behind the camera
     if ( parent->parentTMax < 0.0f) {

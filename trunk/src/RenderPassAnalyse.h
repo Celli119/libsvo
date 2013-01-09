@@ -53,6 +53,20 @@ class RenderPassAnalyse
       float    quality2;
 	  };
 
+	  struct TreeletGidAndQuality
+	  {
+      TreeletGidAndQuality(int treeletGid, float quality)
+      {
+        _treeletGid = treeletGid;
+        _quality    = quality;
+      }
+
+      int      _treeletGid;
+      float    _quality;
+	  };
+
+
+
 
     // class constructor
     RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
@@ -74,7 +88,7 @@ class RenderPassAnalyse
 
 
     // returns a std::set of TreeletIds belonging to visible leaves
-    std::set<gloost::gloostId>& getVisibleTreelets();
+    std::set<TreeletGidAndQuality>& getVisibleTreeletsGids();
 
 	protected:
 
@@ -85,7 +99,7 @@ class RenderPassAnalyse
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
    gloost::gloostId                _feedbackBufferGid;
 
-   std::set<gloost::gloostId>      _visibleTreelets;
+   std::set<TreeletGidAndQuality>  _visibleTreeletsGids;
 
 
 	private:
@@ -93,6 +107,11 @@ class RenderPassAnalyse
    // ...
 
 };
+
+inline bool operator<(const RenderPassAnalyse::TreeletGidAndQuality &a, const RenderPassAnalyse::TreeletGidAndQuality &b)
+{
+    return a._quality > b._quality;
+}
 
 
 } // namespace svo

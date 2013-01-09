@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 4.0f;
+const float                  g_fbToAnalyseBufferDevide = 8.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -147,7 +147,8 @@ void init()
 //  const std::string svoBaseName  = "ĺucy_12";
 //  const std::string svoBaseName  = "xyzrgb_statuette_12";
 //  const std::string svoBaseName  = "david_2mm_12";
-  const std::string svoBaseName  = "monster_12";
+  const std::string svoBaseName  = "david_2mm_13";
+//  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
 //  const std::string svoBaseName  = "malaysia";
 
@@ -400,14 +401,14 @@ void frameStep()
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDevide);
 
-    std::set<gloost::gloostId>& visibleTreelets = g_renderPassAnalyse->getVisibleTreelets();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>& visibleTreelets = g_renderPassAnalyse->getVisibleTreeletsGids();
 
-    std::set<gloost::gloostId>::iterator treeletGidIt    = visibleTreelets.begin();
-    std::set<gloost::gloostId>::iterator treeletGidEndIt = visibleTreelets.end();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidIt    = visibleTreelets.begin();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidEndIt = visibleTreelets.end();
 
     for (; treeletGidIt!=treeletGidEndIt; ++treeletGidIt)
     {
-      g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt));
+      g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt)._treeletGid);
     }
 
 //    g_enableDynamicLoading = false;

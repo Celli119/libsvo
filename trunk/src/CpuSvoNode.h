@@ -62,7 +62,7 @@ class CpuSvoNode
     CpuSvoNode();
 
     // class constructor
-    CpuSvoNode( unsigned        firstchildIndex,
+    CpuSvoNode( int             firstchildIndex,
                 const BitMask8& validMask,
                 const BitMask8& leafMask,
                 unsigned        attribPosition);
@@ -72,13 +72,13 @@ class CpuSvoNode
 
 
     // returns array of children
-    unsigned getFirstChildIndex() const;
+    int getFirstChildIndex() const;
 
     // sets the child on index i
-    void setFirstChildIndex(unsigned index);
+    void setFirstChildIndex(int index);
 
     // returns the nth child node index within the serialized data
-    unsigned getNthChildIndex(unsigned childIndex);
+    int getNthChildIndex(int childIndex);
 
 
     // sets the slot index of the corresponding treelet for this leaf
@@ -97,7 +97,7 @@ class CpuSvoNode
 	private:
 
     // ...
-    unsigned _firstChildIndex;
+    int _firstChildIndex;
 
     gloost::BitMask _masks; // 8 bit leaf mask (0..7) + 8 bit valid mask (8..15)
 
