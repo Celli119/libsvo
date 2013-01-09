@@ -69,7 +69,7 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _bufferHeight(bufferHeight),
     _hostSideFeedbackBuffer(),
     _feedbackBufferGid(0),
-    _visibleTreelets()
+    _visibleTreeletsGids()
 {
 
 
@@ -123,7 +123,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
                                       unsigned                   frameBufferToFeedbackBufferRatio)
 {
-  _visibleTreelets.clear();
+  _visibleTreeletsGids.clear();
 
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
@@ -166,7 +166,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
 
-  std::cerr << std::endl << "###############################################: ";
+//  std::cerr << std::endl << "###############################################: ";
 
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
@@ -174,57 +174,46 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
     // if there was a hit within the svo
     if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
-
-#if 0
-      std::cerr << std::endl;
-      std::cerr << std::endl << "_nodePosOrTreeletGid:   " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
-      std::cerr << std::endl << "_isLeafeWithSubtreelet: " << _hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet;
-      std::cerr << std::endl << "_qualityIfLeafe:        " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-#endif
-
-      // if this hit was an  leafe
+      // if this hit was a leaf
       if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
       {
-        _visibleTreelets.insert(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
-  #if 0
-        std::cerr << std::endl;
-        std::cerr << std::endl << "######:                 " << i;
-        std::cerr << std::endl << "_isLeafeWithSubtreelet: " << _hostSideFeedbackBuffer[i]._isLeafe;
-        std::cerr << std::endl << "_qualityIfLeafe:        " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-        std::cerr << std::endl << "_nodePosOrTreeletGid:   " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
-  #endif
+        _visibleTreeletsGids.insert(TreeletGidAndQuality(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
+                                                         _hostSideFeedbackBuffer[i]._qualityIfLeafe));
+      }
+      else
+      {
+
       }
     }
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 1024;
+  static const unsigned maxTreeletsToPropergate = 768;
 
-  if (_visibleTreelets.size() > maxTreeletsToPropergate)
+  if (_visibleTreeletsGids.size() > maxTreeletsToPropergate)
   {
-    std::set<gloost::gloostId>::iterator vtIt = _visibleTreelets.begin();
+    std::set<TreeletGidAndQuality>::iterator vtIt = _visibleTreeletsGids.begin();
     unsigned count = 0u;
 
-    while (count < maxTreeletsToPropergate && vtIt != _visibleTreelets.end())
+    while (count < maxTreeletsToPropergate && vtIt != _visibleTreeletsGids.end())
     {
       ++count;
       ++vtIt;
     }
 
-    if (vtIt != _visibleTreelets.end() )
+    if (vtIt != _visibleTreeletsGids.end() )
     {
-       _visibleTreelets.erase(vtIt, _visibleTreelets.end());
+       _visibleTreeletsGids.erase(vtIt, _visibleTreeletsGids.end());
     }
-//
-//    std::cerr << std::endl << "count:            " << count;
-//    std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
 
+//    std::cerr << std::endl << "count:            " << count;
+//    std::cerr << std::endl << "_visibleTreeletsGids: " << _visibleTreeletsGids.size();
   }
 
 
 
 
-//  std::cerr << std::endl << "_visibleTreelets: " << _visibleTreelets.size();
+//  std::cerr << std::endl << "_visibleTreeletsGids: " << _visibleTreeletsGids.size();
 //
 }
 
@@ -238,10 +227,10 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   \remarks ...
 */
 
-std::set<gloost::gloostId>&
-RenderPassAnalyse::getVisibleTreelets()
+std::set<RenderPassAnalyse::TreeletGidAndQuality>&
+RenderPassAnalyse::getVisibleTreeletsGids()
 {
-  return _visibleTreelets;
+  return _visibleTreeletsGids;
 }
 
 

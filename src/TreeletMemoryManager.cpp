@@ -395,10 +395,8 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   // update leaf mask of leafs parent so that the leaf is no leaf anymore
   _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, false);
 
-
   // mark incore slot of parent to be uploaded to device memory
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
-
 
 
   return true;

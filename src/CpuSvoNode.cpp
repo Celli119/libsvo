@@ -73,7 +73,7 @@ CpuSvoNode::CpuSvoNode():
   \remarks ...
 */
 
-CpuSvoNode::CpuSvoNode( unsigned        firstchildIndex,
+CpuSvoNode::CpuSvoNode( int             firstchildIndex,
                         const BitMask8& validMask,
                         const BitMask8& leafMask,
                         unsigned        attribPosition):
@@ -109,7 +109,7 @@ CpuSvoNode::~CpuSvoNode()
   \remarks ...
 */
 
-unsigned
+int
 CpuSvoNode::getFirstChildIndex() const
 {
   return _firstChildIndex;
@@ -126,7 +126,7 @@ CpuSvoNode::getFirstChildIndex() const
 */
 
 void
-CpuSvoNode::setFirstChildIndex(unsigned index)
+CpuSvoNode::setFirstChildIndex(int index)
 {
   _firstChildIndex = index;
 }
@@ -141,12 +141,12 @@ CpuSvoNode::setFirstChildIndex(unsigned index)
   \remarks ...
 */
 
-unsigned
-CpuSvoNode::getNthChildIndex(unsigned childIndex)
+int
+CpuSvoNode::getNthChildIndex(int childIndex)
 {
-  unsigned index = _firstChildIndex;
+  int index = _firstChildIndex;
 
-  for (unsigned i=0; i!=childIndex; ++i)
+  for (int i=0; i!=childIndex; ++i)
   {
     index += _masks.getFlag(i+SVO_CPUSVONODE_OFFSET_VALIDMASK);
   }
