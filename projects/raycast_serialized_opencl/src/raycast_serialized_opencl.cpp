@@ -29,8 +29,8 @@
 
 
 /// general setup
-static unsigned int g_screenWidth  = 1280;
-static unsigned int g_screenHeight = 768;
+static unsigned int g_screenWidth  = 1024;
+static unsigned int g_screenHeight = 1024;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
 static unsigned int g_bufferHeight  = g_bufferHeight;
@@ -141,13 +141,13 @@ void init()
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "terrain_05";
-//  const std::string svoBaseName  = "sibenik";
+  const std::string svoBaseName  = "sibenik";
 //  const std::string svoBaseName  = "venus_12";
 //  const std::string svoBaseName  = "xyzrgb_manuscript_12";
 //  const std::string svoBaseName  = "ĺucy_12";
 //  const std::string svoBaseName  = "xyzrgb_statuette_12";
 //  const std::string svoBaseName  = "david_2mm_12";
-  const std::string svoBaseName  = "david_2mm_13";
+//  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
 //  const std::string svoBaseName  = "malaysia";
@@ -167,11 +167,11 @@ void init()
 
   gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
                                                   g_bufferHeight,
-                                                  1,
+                                                  2,
                                                   0,//(unsigned char*)&pixelData->getVector().front(),
                                                   16,
                                                   GL_TEXTURE_2D,
-                                                  GL_RGBA,
+                                                  GL_RGBA16F,
                                                   GL_RGBA,
                                                   GL_FLOAT);
 
@@ -292,7 +292,7 @@ void frameStep()
 
 
   static gloost::Vector3 camSpeed(0.0f, 0.0f, 0.0f);
-  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f, -2.0f);
+  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f, -1.0f);
   camSpeed *= 0.8;
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),
@@ -304,7 +304,7 @@ void frameStep()
 
 
   gloost::Vector3 camSpaceSpeed(0.0f, 0.0f, 0.0f);
-  float speedAdd = 0.026f*g_timePerFrame;
+  float speedAdd = 0.03f*g_timePerFrame;
 
   if (glfwGetKey('V' ))
   {
@@ -401,7 +401,7 @@ void frameStep()
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDevide);
 
-    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>& visibleTreelets = g_renderPassAnalyse->getVisibleTreeletsGids();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>& visibleTreelets = g_renderPassAnalyse->getVisibleNewTreeletsGids();
 
     std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidIt    = visibleTreelets.begin();
     std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidEndIt = visibleTreelets.end();
@@ -502,7 +502,7 @@ void draw2d()
           g_texter->renderFreeLine();
           g_texter->renderTextLine("Time per frame:     " + gloost::toString(avarageTimePerFrame));
           g_texter->renderTextLine("fps:                " + gloost::toString(1.0/avarageTimePerFrame));
-          g_texter->renderTextLine("view mode (1...5):  " + g_viewModeText);
+          g_texter->renderTextLine("view mode (1...7):  " + gloost::toString(g_viewMode));
           g_texter->renderFreeLine();
 //          glColor4f(1.0f, 1.0f, 1.0f, 0.5);
 //          g_texter->renderTextLine("(h) Show text info: " + gloost::toString( g_showTextInfo )) ;
@@ -634,6 +634,11 @@ void key(int key, int state)
       case '6':
         g_viewMode = 6;
         g_viewModeText = "shaded";
+        break;
+
+      case '7':
+        g_viewMode = 7;
+        g_viewModeText = "quality to wavelength";
         break;
 
       case 'R':

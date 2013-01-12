@@ -124,6 +124,9 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
       float u,v;
       triangle.calculateUAndV( voxelCenter, u, v);
 
+      u = gloost::clamp(u, 0.0f, 1.0f);
+      v = gloost::clamp(v, 0.0f, 1.0f);
+
       normal += triangle.interpolateNormal(u, v);
       color  += triangle.interpolateColor(u, v);
     }
@@ -132,6 +135,12 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
     color  /= queueElement._primitiveIds.size();
 
     normal.normalize();
+
+
+
+    color[0] = gloost::clamp(color[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
+    color[1] = gloost::clamp(color[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
+    color[2] = gloost::clamp(color[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
 
     // compress attributes
     unsigned compressedNormal = gloost::Vector3::compressAsNormal(normal);
@@ -306,6 +315,11 @@ Ag_colorAndNormalsTriangles::averageFromeChildAttributes( TreeletBuildManager* b
   avarageNormal.normalize();
 
   unsigned compressedNormal = gloost::Vector3::compressAsNormal(avarageNormal);
+
+  avarageColor[0] = gloost::clamp(avarageColor[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
+  avarageColor[1] = gloost::clamp(avarageColor[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
+  avarageColor[2] = gloost::clamp(avarageColor[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
+
   unsigned compressedColor = gloost::Vector3::compressAsColor(avarageColor);
 
   // write attributes to attribute buffer

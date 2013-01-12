@@ -27,6 +27,7 @@
 // svo system includes
 #include <RenderPassAnalyse.h>
 #include <TreeletMemoryManagerCl.h>
+#include <Treelet.h>
 
 // gloost system includes
 #include <gloost/TextureManager.h>
@@ -69,7 +70,8 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _bufferHeight(bufferHeight),
     _hostSideFeedbackBuffer(),
     _feedbackBufferGid(0),
-    _visibleTreeletsGids()
+    _visibleNewTreeletsGids(),
+    _visibleOldTreeletsGids()
 {
 
 
@@ -123,7 +125,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
                                       unsigned                   frameBufferToFeedbackBufferRatio)
 {
-  _visibleTreeletsGids.clear();
+  _visibleNewTreeletsGids.clear();
 
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
@@ -136,8 +138,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
   // adding a random offset to the frustum.far_lower_left
   gloost::Vector3 frustumFarLowerLeftPlusOffset = frustum.far_lower_left
-                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
-                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+                                                + gloost::frand()*2.0*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
+                                                + gloost::frand()*2.0*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
 
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
@@ -165,8 +167,11 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clFinish( _memoryManager->getContext()->getDevice(deviceGid)->getClCommandQueue() );
 
 
+  std::map<gloost::gloostId, float> oldTreeletId;
 
-//  std::cerr << std::endl << "###############################################: ";
+  std::cerr << std::endl;
+  std::cerr << std::endl << "###############################: ";
+  std::cerr << std::endl;
 
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
@@ -177,43 +182,72 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
       // if this hit was a leaf
       if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
       {
-        _visibleTreeletsGids.insert(TreeletGidAndQuality(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
-                                                         _hostSideFeedbackBuffer[i]._qualityIfLeafe));
+        _visibleNewTreeletsGids.insert(TreeletGidAndQuality(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
+                                                            _hostSideFeedbackBuffer[i]._qualityIfLeafe));
       }
       else
       {
+        unsigned slotId     = _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid / _memoryManager->getNumNodesPerTreelet();
+        unsigned treeletGid = _memoryManager->getSlots()[slotId];
+        Treelet* treelet    = _memoryManager->getTreelet(treeletGid);
+
+        while (treeletGid != 0)
+        {
+          std::map<gloost::gloostId, float>::iterator pos = oldTreeletId.find(treeletGid);
+
+          if (pos != oldTreeletId.end())
+          {
+            if ((*pos).second < _hostSideFeedbackBuffer[i]._qualityIfLeafe)
+            {
+              (*pos).second = _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+              std::cerr << std::endl << "replacing: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+            }
+            else
+            {
+              std::cerr << std::endl << "dropping: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+            }
+          }
+          else
+          {
+            oldTreeletId[treelet->getTreeletGid()] = _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+            std::cerr << std::endl << "adding: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
+          }
+          treeletGid = _memoryManager->getTreelet(treeletGid)->getParentTreeletGid();
+        }
+
+
 
       }
     }
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 768;
+  static const unsigned maxTreeletsToPropergate = 1568;
 
-  if (_visibleTreeletsGids.size() > maxTreeletsToPropergate)
+  if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
-    std::set<TreeletGidAndQuality>::iterator vtIt = _visibleTreeletsGids.begin();
+    std::set<TreeletGidAndQuality>::iterator vtIt = _visibleNewTreeletsGids.begin();
     unsigned count = 0u;
 
-    while (count < maxTreeletsToPropergate && vtIt != _visibleTreeletsGids.end())
+    while (count < maxTreeletsToPropergate && vtIt != _visibleNewTreeletsGids.end())
     {
       ++count;
       ++vtIt;
     }
 
-    if (vtIt != _visibleTreeletsGids.end() )
+    if (vtIt != _visibleNewTreeletsGids.end() )
     {
-       _visibleTreeletsGids.erase(vtIt, _visibleTreeletsGids.end());
+       _visibleNewTreeletsGids.erase(vtIt, _visibleNewTreeletsGids.end());
     }
 
 //    std::cerr << std::endl << "count:            " << count;
-//    std::cerr << std::endl << "_visibleTreeletsGids: " << _visibleTreeletsGids.size();
+//    std::cerr << std::endl << "_visibleNewTreeletsGids: " << _visibleNewTreeletsGids.size();
   }
 
 
 
 
-//  std::cerr << std::endl << "_visibleTreeletsGids: " << _visibleTreeletsGids.size();
+//  std::cerr << std::endl << "_visibleNewTreeletsGids: " << _visibleNewTreeletsGids.size();
 //
 }
 
@@ -228,9 +262,25 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 */
 
 std::set<RenderPassAnalyse::TreeletGidAndQuality>&
-RenderPassAnalyse::getVisibleTreeletsGids()
+RenderPassAnalyse::getVisibleNewTreeletsGids()
 {
-  return _visibleTreeletsGids;
+  return _visibleNewTreeletsGids;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a std::set of TreeletIds belonging inner nodes or final leaves
+  \param   ...
+  \remarks ...
+*/
+
+std::set<RenderPassAnalyse::TreeletGidAndQuality>&
+RenderPassAnalyse::getVisibleOldTreeletsGids()
+{
+  return _visibleOldTreeletsGids;
 }
 
 
