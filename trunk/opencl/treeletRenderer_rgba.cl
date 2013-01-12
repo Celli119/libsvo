@@ -5,8 +5,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        14
-#define MAX_SVO_RAYCAST_DEPTH 14
+#define MAX_STACK_SIZE        12
+#define MAX_SVO_RAYCAST_DEPTH 12
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,10 @@ typedef struct {
   unsigned attribIndex;
   unsigned depth;
   float    t;
+  float    quality;
   unsigned numWhileLoops;
   float3   nodeCenter;
-} __attribute__ ( ( aligned ( 32 ) ) ) SampleResult;
+} __attribute__ ( ( aligned ( 64 ) ) ) SampleResult;
 
 
 
@@ -339,6 +340,7 @@ sample( __global const SvoNode* svo,
           result->t             = parent->parentTMin;
           result->numWhileLoops = whileCounter;
           result->nodeCenter    = childCenter;
+          result->quality       = scale_exp2-(tScaleRatio*tcMin);
           return true;
         } else {
           // TERMINATE if voxel is small enough
@@ -352,6 +354,7 @@ sample( __global const SvoNode* svo,
             result->t             = parent->parentTMin;
             result->numWhileLoops = whileCounter;
             result->nodeCenter    = childCenter;
+            result->quality       = 0.0;
             return true;
           }
 
@@ -686,6 +689,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
   rayDirection        = normalize(rayDirection);
 
   SampleResult result;
+  result.quality = 0;
 
   // primary ray
   sample( svo,
@@ -748,22 +752,45 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                    shade_iterationDepth(&result));
     break;
 
-//    case 5:
-//        write_imagef ( renderbuffer,
-//                      (int2)(x,y),
-//                      shade_diffuse_color_reflection(&result,
-//                                                svo,
-//                                                attribs,
-//                                                rayDirection.xyz,
-//                                                2));
-//        break;
-
   case 6:
     write_imagef ( renderbuffer,
                    (int2)(x,y),
                    shade_diffuse_color_shadow(&result,
                        svo,
                        attribs));
+    break;
+
+  case 7:
+    {
+      if (result.hit)
+      {
+//        if (result.quality > 0.0f)
+//        {
+//          float3 color = DataPointToColor(result.quality, 0.0f, 0.01);
+          result.quality = sqrt(sqrt(result.quality));
+          write_imagef ( renderbuffer,
+                         (int2)(x,y),
+                         (float4)(result.quality,
+                                  result.quality,
+                                  result.quality,
+                                  1.0f));
+          return;
+//        }
+//        else // no quality
+//        {
+//          write_imagef ( renderbuffer,
+//                   (int2)(x,y),
+//                   (float4)(0.4,0.4,0.4, 1.0f));
+//        }
+
+      }
+      else // bg
+      {
+        write_imagef ( renderbuffer,
+                 (int2)(x,y),
+                 (float4)(0.6,0.3,0.3, 1.0f));
+      }
+    }
     break;
   }
 }
@@ -1041,7 +1068,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
 
   FeedBackDataElement feedBackElemet;
   feedBackElemet._nodePosOrTreeletGid    = result._nodePosOrTreeletGid;
-  feedBackElemet._isLeafeWithSubtreelet = result._isLeafeWithSubtreelet;
+  feedBackElemet._isLeafeWithSubtreelet  = result._isLeafeWithSubtreelet;
   feedBackElemet._qualityIfLeafe         = result._qualityIfLeafe;
   feedBackElemet._quality2               = 0.0f;
 

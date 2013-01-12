@@ -88,7 +88,10 @@ class RenderPassAnalyse
 
 
     // returns a std::set of TreeletIds belonging to visible leaves
-    std::set<TreeletGidAndQuality>& getVisibleTreeletsGids();
+    std::set<TreeletGidAndQuality>& getVisibleNewTreeletsGids();
+    // returns a std::set of TreeletIds belonging inner nodes or final leaves
+    std::set<TreeletGidAndQuality>& getVisibleOldTreeletsGids();
+
 
 	protected:
 
@@ -97,9 +100,10 @@ class RenderPassAnalyse
    unsigned                _bufferHeight;
 
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
-   gloost::gloostId                _feedbackBufferGid;
+   gloost::gloostId                 _feedbackBufferGid;
 
-   std::set<TreeletGidAndQuality>  _visibleTreeletsGids;
+   std::set<TreeletGidAndQuality>  _visibleNewTreeletsGids;
+   std::set<TreeletGidAndQuality>  _visibleOldTreeletsGids;
 
 
 	private:
@@ -112,6 +116,11 @@ inline bool operator<(const RenderPassAnalyse::TreeletGidAndQuality &a, const Re
 {
     return a._quality > b._quality;
 }
+
+//inline bool operator==(const RenderPassAnalyse::TreeletGidAndQuality &a, const RenderPassAnalyse::TreeletGidAndQuality &b)
+//{
+//    return a._treeletGid == b._treeletGid;
+//}
 
 
 } // namespace svo

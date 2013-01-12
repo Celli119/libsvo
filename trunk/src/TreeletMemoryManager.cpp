@@ -72,6 +72,7 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   _incoreAttributeBuffer(0),
   _incoreBufferSizeInByte(incoreBufferSizeInByte),
   _treeletGidToSlotGidMap(),
+  _slots(),
   _freeIncoreSlots(),
   _incoreSlotsToUpload()
 {
@@ -147,6 +148,21 @@ TreeletMemoryManager::getTreeletSizeInByte() const
   return _treeletSizeInByte;
 }
 
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the number of nodes per treelet
+  \param   ...
+  \remarks ...
+*/
+
+unsigned
+TreeletMemoryManager::getNumNodesPerTreelet() const
+{
+  return _numNodesPerTreelet;
+}
 
 //////////////////////////////////////////////////////
 
@@ -283,6 +299,9 @@ TreeletMemoryManager::resetIncoreBuffer()
   std::cerr << std::endl << "             incore num nodes:        " << _incoreBuffer.size();
 
   unsigned maxNumTreeletsInIncoreBuffer = std::floor(_incoreBufferSizeInByte/(float)_treeletSizeInByte);
+
+  _slots.resize(maxNumTreeletsInIncoreBuffer, 0);
+
   for (unsigned i=1; i!=maxNumTreeletsInIncoreBuffer+1; ++i)
   {
     _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
@@ -316,7 +335,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 {
 
   // test if Treelet is allready in incore buffer
-
   std::map<gloost::gloostId, gloost::gloostId>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
   if (pos != _treeletGidToSlotGidMap.end() &&  (*pos).second != 0)
   {
@@ -340,6 +358,8 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 
   unsigned freeSlotGid = _freeIncoreSlots.top();
   _freeIncoreSlots.pop();
+
+  _slots[freeSlotGid] = treeletGid;
 
   // update lookup the treeletGid -> incoreBufferSlot
   _treeletGidToSlotGidMap[treeletGid] = freeSlotGid;
@@ -469,6 +489,22 @@ const std::set<gloost::gloostId>&
 TreeletMemoryManager::getIncoreSlotsToUpload() const
 {
   return _incoreSlotsToUpload;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a vector containing a Treelet Gid for each slot
+  \param   ...
+  \remarks ...
+*/
+
+/*virtual */
+std::vector<unsigned>& TreeletMemoryManager::getSlots()
+{
+  return _slots;
 }
 
 

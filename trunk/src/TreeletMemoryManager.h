@@ -80,6 +80,9 @@ class TreeletMemoryManager
     // returns the Treelet size in bytes
     unsigned getTreeletSizeInByte() const;
 
+    // returns the number of nodes per treelet
+    unsigned getNumNodesPerTreelet() const;
+
 
     // returns the incore buffer
     std::vector<CpuSvoNode>& getIncoreBuffer();
@@ -106,6 +109,10 @@ class TreeletMemoryManager
     virtual const std::set<gloost::gloostId>& getIncoreSlotsToUpload() const;
 
 
+    // rettuns a vector containing a Treelet Gid for each slot
+    std::vector<unsigned>& getSlots();
+
+
 	protected:
 
 
@@ -120,6 +127,7 @@ class TreeletMemoryManager
     gloost::InterleavedAttributes*               _incoreAttributeBuffer;
     unsigned                                     _incoreBufferSizeInByte;
     std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap;
+    std::vector<unsigned>                        _slots;
     std::stack<unsigned>                         _freeIncoreSlots;
 
     std::set<gloost::gloostId>                   _incoreSlotsToUpload;
