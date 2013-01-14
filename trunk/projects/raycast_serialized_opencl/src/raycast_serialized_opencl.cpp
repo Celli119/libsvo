@@ -136,12 +136,12 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "san-miguel";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "terrain_05";
-  const std::string svoBaseName  = "sibenik";
+//  const std::string svoBaseName  = "sibenik";
 //  const std::string svoBaseName  = "venus_12";
 //  const std::string svoBaseName  = "xyzrgb_manuscript_12";
 //  const std::string svoBaseName  = "ĺucy_12";
@@ -386,8 +386,6 @@ void frameStep()
   g_context->releaseGlObjects(g_deviceGid);
 
 
-  // update incore buffer
-  g_clMemoryManager->updateDeviceMemory();
 
 #if 1
   if (g_enableDynamicLoading)
@@ -401,10 +399,10 @@ void frameStep()
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDevide);
 
-    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>& visibleTreelets = g_renderPassAnalyse->getVisibleNewTreeletsGids();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = g_renderPassAnalyse->getVisibleNewTreeletsGids();
 
-    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidIt    = visibleTreelets.begin();
-    std::set<svo::RenderPassAnalyse::TreeletGidAndQuality>::iterator treeletGidEndIt = visibleTreelets.end();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidIt    = visibleTreelets.begin();
+    std::set<svo::RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidEndIt = visibleTreelets.end();
 
     for (; treeletGidIt!=treeletGidEndIt; ++treeletGidIt)
     {
@@ -415,6 +413,10 @@ void frameStep()
 
   }
 #endif
+
+
+  // update incore buffer
+  g_clMemoryManager->updateDeviceMemory();
 
 
 }
@@ -510,13 +512,19 @@ void draw2d()
           glColor4f(0.8f, 0.8f, 1.0f, 1.0);
           g_texter->renderTextLine("LOD multiplier:     " + gloost::toString(g_tScaleRatioMultiplyer));
           g_texter->renderFreeLine();
+
+          glColor4f(0.8f, 1.0f, 0.8f, 1.0);
+          g_texter->renderTextLine("new treelets visible:  " + gloost::toString(g_renderPassAnalyse->getVisibleNewTreeletsGids().size()));
+          g_texter->renderTextLine("old treelets visible:  " + gloost::toString(g_renderPassAnalyse->getVisibleOldTreeletsGids().size()));
+
+          g_texter->renderFreeLine();
           glColor4f(0.9f, 0.9f, 1.0f, 1.0);
           if (!g_clMemoryManager->getFreeIncoreSlotStack().size())
           {
             glColor4f(1.0f, 0.0f, 0.0f, 1.0);
           }
           g_texter->renderTextLine("free incore slots:  " + gloost::toString(g_clMemoryManager->getFreeIncoreSlotStack().size()));
-          g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_clMemoryManager->getIncoreSlotsToUpload().size()));
+          g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_renderPassAnalyse->getVisibleNewTreeletsGids().size()));
         }
         g_texter->end();
 

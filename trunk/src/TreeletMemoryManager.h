@@ -58,6 +58,7 @@ namespace svo
 {
 
   class Treelet;
+  class RenderPassAnalyse;
 
 
   //  Page, a subtree of the whole svo
@@ -91,11 +92,17 @@ class TreeletMemoryManager
     gloost::InterleavedAttributes* getAttributeIncoreBuffer();
 
 
-    // updates device memory by uploading incore buffer slots
-    virtual void updateDeviceMemory();
+
+    // updates the client side incore buffer
+    void updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse);
 
     // inserts a Treelet into the gpu buffer
     bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
+
+    // updates device memory by uploading incore buffer slots
+    virtual void updateDeviceMemory();
+
+
 
 
     // inits the incoreBuffer

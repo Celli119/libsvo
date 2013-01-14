@@ -126,6 +126,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       unsigned                   frameBufferToFeedbackBufferRatio)
 {
   _visibleNewTreeletsGids.clear();
+  _visibleOldTreeletsGids.clear();
 
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
@@ -138,8 +139,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
   // adding a random offset to the frustum.far_lower_left
   gloost::Vector3 frustumFarLowerLeftPlusOffset = frustum.far_lower_left
-                                                + gloost::frand()*2.0*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
-                                                + gloost::frand()*2.0*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
+                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
 
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
@@ -167,66 +168,89 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clFinish( _memoryManager->getContext()->getDevice(deviceGid)->getClCommandQueue() );
 
 
-  std::map<gloost::gloostId, float> oldTreeletId;
+  // analyse buffer
+  std::map<gloost::gloostId, float> visibleNewTreeletGidsMap;
+  std::map<gloost::gloostId, float> visibleOldTreeletGidsMap;
 
-  std::cerr << std::endl;
-  std::cerr << std::endl << "###############################: ";
-  std::cerr << std::endl;
+
+  unsigned hitCounter = 0;
 
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
-
     // if there was a hit within the svo
     if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
-      // if this hit was a leaf
+      ++hitCounter;
+
+      // if this hit was a leaf with assoziated subTreelet
       if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
       {
-        _visibleNewTreeletsGids.insert(TreeletGidAndQuality(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
-                                                            _hostSideFeedbackBuffer[i]._qualityIfLeafe));
+        std::map<gloost::gloostId, float>::iterator pos = visibleNewTreeletGidsMap.find(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
+
+        if (pos == visibleNewTreeletGidsMap.end())
+        {
+          visibleNewTreeletGidsMap[_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid] = _hostSideFeedbackBuffer[i]._errorIfLeafe;
+        }
+        else
+        {
+          if (pos->second < _hostSideFeedbackBuffer[i]._errorIfLeafe)
+          {
+            pos->second = _hostSideFeedbackBuffer[i]._errorIfLeafe;
+          }
+        }
+
+        addParentTreeletsToVisibleTreelets( i,
+                                            _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
+                                            _hostSideFeedbackBuffer[i]._errorIfLeafe,
+                                            visibleOldTreeletGidsMap);
       }
+      // if this hit was an inner node or a final leaf
       else
       {
         unsigned slotId     = _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid / _memoryManager->getNumNodesPerTreelet();
         unsigned treeletGid = _memoryManager->getSlots()[slotId];
-        Treelet* treelet    = _memoryManager->getTreelet(treeletGid);
 
-        while (treeletGid != 0)
-        {
-          std::map<gloost::gloostId, float>::iterator pos = oldTreeletId.find(treeletGid);
-
-          if (pos != oldTreeletId.end())
-          {
-            if ((*pos).second < _hostSideFeedbackBuffer[i]._qualityIfLeafe)
-            {
-              (*pos).second = _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-              std::cerr << std::endl << "replacing: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-            }
-            else
-            {
-              std::cerr << std::endl << "dropping: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-            }
-          }
-          else
-          {
-            oldTreeletId[treelet->getTreeletGid()] = _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-            std::cerr << std::endl << "adding: " << treeletGid << " with quality " << _hostSideFeedbackBuffer[i]._qualityIfLeafe;
-          }
-          treeletGid = _memoryManager->getTreelet(treeletGid)->getParentTreeletGid();
-        }
-
-
-
+        addParentTreeletsToVisibleTreelets( i,
+                                            treeletGid,
+                                            _hostSideFeedbackBuffer[i]._errorIfLeafe,
+                                            visibleOldTreeletGidsMap);
       }
     }
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 1568;
+  // copy visible new treelets
+  std::map<gloost::gloostId, float>::iterator visibleNewIt    = visibleNewTreeletGidsMap.begin();
+  std::map<gloost::gloostId, float>::iterator visibleNewEndIt = visibleNewTreeletGidsMap.end();
 
+  while (visibleNewIt != visibleNewEndIt)
+  {
+    _visibleNewTreeletsGids.insert(TreeletGidAndError(visibleNewIt->first,visibleNewIt->second));
+    ++visibleNewIt;
+  }
+
+  // copy visible old treelets
+  std::map<gloost::gloostId, float>::iterator visibleOldIt    = visibleOldTreeletGidsMap.begin();
+  std::map<gloost::gloostId, float>::iterator visibleOldEndIt = visibleOldTreeletGidsMap.end();
+
+  while (visibleOldIt != visibleOldEndIt)
+  {
+    _visibleOldTreeletsGids.insert((*visibleOldIt).first);
+    ++visibleOldIt;
+  }
+
+
+//  std::cerr << std::endl << "-----------------------------:";
+//  std::cerr << std::endl << "hitCounter:                " << hitCounter;
+//  std::cerr << std::endl << "uniqueTreeletCounter:      " << uniqueTreeletCounter.size();
+//  std::cerr << std::endl << "visibleTreeletGids:        " << visibleTreeletGids.size();
+//  std::cerr << std::endl << "_visibleOldTreeletsGids:   " << _visibleOldTreeletsGids.size();
+
+
+  static const unsigned maxTreeletsToPropergate = 1024;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
-    std::set<TreeletGidAndQuality>::iterator vtIt = _visibleNewTreeletsGids.begin();
+    std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
     unsigned count = 0u;
 
     while (count < maxTreeletsToPropergate && vtIt != _visibleNewTreeletsGids.end())
@@ -239,16 +263,47 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
     {
        _visibleNewTreeletsGids.erase(vtIt, _visibleNewTreeletsGids.end());
     }
-
-//    std::cerr << std::endl << "count:            " << count;
-//    std::cerr << std::endl << "_visibleNewTreeletsGids: " << _visibleNewTreeletsGids.size();
   }
+}
 
 
+//////////////////////////////////////////////////////
 
 
-//  std::cerr << std::endl << "_visibleNewTreeletsGids: " << _visibleNewTreeletsGids.size();
-//
+/**
+  \brief   adds all parent Treelet Gids to the container, replaces error values with bigger ones
+  \param   ...
+  \remarks ...
+*/
+
+void
+RenderPassAnalyse::addParentTreeletsToVisibleTreelets( unsigned feedbackBufferIndex,
+                                                       gloost::gloostId treeletId,
+                                                       float error,
+                                                       std::map<gloost::gloostId, float>& treeletGidContainer)
+{
+  while (treeletId != 0)
+  {
+    std::map<gloost::gloostId, float>::iterator pos = treeletGidContainer.find(treeletId);
+
+    // if this gid was not found
+    if (pos == treeletGidContainer.end())
+    {
+      // add to countainer
+      treeletGidContainer[treeletId] = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
+    }
+    else
+    {
+//      // if the error is bigger
+//      if ((*pos).second < _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe)
+//      {
+//        // replace error value to the bigger one
+//        (*pos).second = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
+//      }
+    }
+    // repeat for the parent
+    treeletId = _memoryManager->getTreelet(treeletId)->getParentTreeletGid();
+  }
 }
 
 
@@ -261,7 +316,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   \remarks ...
 */
 
-std::set<RenderPassAnalyse::TreeletGidAndQuality>&
+std::set<RenderPassAnalyse::TreeletGidAndError>&
 RenderPassAnalyse::getVisibleNewTreeletsGids()
 {
   return _visibleNewTreeletsGids;
@@ -277,7 +332,7 @@ RenderPassAnalyse::getVisibleNewTreeletsGids()
   \remarks ...
 */
 
-std::set<RenderPassAnalyse::TreeletGidAndQuality>&
+std::set<gloost::gloostId>&
 RenderPassAnalyse::getVisibleOldTreeletsGids()
 {
   return _visibleOldTreeletsGids;

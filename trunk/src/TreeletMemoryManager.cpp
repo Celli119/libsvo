@@ -28,6 +28,7 @@
 #include <TreeletMemoryManager.h>
 #include <Treelet.h>
 #include <TreeletBuilderFromFaces.h>
+#include <RenderPassAnalyse.h>
 #include <attribute_generators/Ag_colorAndNormalsTriangles.h>
 
 
@@ -325,6 +326,22 @@ TreeletMemoryManager::resetIncoreBuffer()
 
 
 /**
+  \brief   updates the client side incore buffer
+  \param   ...
+  \remarks ...
+*/
+
+void
+TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse)
+{
+
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
   \brief   inserts a Treelet into the gpu buffer
   \param   ...
   \remarks ...
@@ -338,6 +355,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
   std::map<gloost::gloostId, gloost::gloostId>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
   if (pos != _treeletGidToSlotGidMap.end() &&  (*pos).second != 0)
   {
+    std::cerr << std::endl << "insertTreeletIntoIncoreBuffer: " << treeletGid << " is allready in incoreBuffer !!!";
     return false;
   }
 
