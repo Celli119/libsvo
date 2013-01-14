@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 
 namespace gloost
@@ -43,26 +44,26 @@ class RenderPassAnalyse
 	    {
 	      _nodePosOrTreeletGid   = 0;
 	      _isLeafeWithSubtreelet = 0;
-	      _qualityIfLeafe        = 0.0f;
-	      quality2               = 0.0f;
+	      _errorIfLeafe        = 0.0f;
+	      unused               = 0.0f;
 	    }
 
       int      _nodePosOrTreeletGid;
       int      _isLeafeWithSubtreelet;
-      float    _qualityIfLeafe;
-      float    quality2;
+      float    _errorIfLeafe;
+      float    unused;
 	  };
 
-	  struct TreeletGidAndQuality
+	  struct TreeletGidAndError
 	  {
-      TreeletGidAndQuality(int treeletGid, float quality)
+      TreeletGidAndError(int treeletGid, float error)
       {
         _treeletGid = treeletGid;
-        _quality    = quality;
+        _error      = error;
       }
 
       int      _treeletGid;
-      float    _quality;
+      float    _error;
 	  };
 
 
@@ -88,9 +89,9 @@ class RenderPassAnalyse
 
 
     // returns a std::set of TreeletIds belonging to visible leaves
-    std::set<TreeletGidAndQuality>& getVisibleNewTreeletsGids();
+    std::set<TreeletGidAndError>&    getVisibleNewTreeletsGids();
     // returns a std::set of TreeletIds belonging inner nodes or final leaves
-    std::set<TreeletGidAndQuality>& getVisibleOldTreeletsGids();
+    std::set<gloost::gloostId>& getVisibleOldTreeletsGids();
 
 
 	protected:
@@ -102,25 +103,31 @@ class RenderPassAnalyse
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
    gloost::gloostId                 _feedbackBufferGid;
 
-   std::set<TreeletGidAndQuality>  _visibleNewTreeletsGids;
-   std::set<TreeletGidAndQuality>  _visibleOldTreeletsGids;
+   std::set<TreeletGidAndError>    _visibleNewTreeletsGids;
+   std::set<gloost::gloostId>      _visibleOldTreeletsGids;
+
+   // adds all parent Treelet Gids to the container, replaces error values with bigger ones
+   void addParentTreeletsToVisibleTreelets(unsigned feedbackBufferIndex,
+                                           gloost::gloostId childTreeletId,
+                                           float error,
+                                           std::map<gloost::gloostId, float>& treeletGidContainer);
 
 
 	private:
 
-   // ...
+   //
 
 };
 
-inline bool operator<(const RenderPassAnalyse::TreeletGidAndQuality &a, const RenderPassAnalyse::TreeletGidAndQuality &b)
+inline bool operator<(const RenderPassAnalyse::TreeletGidAndError &a, const RenderPassAnalyse::TreeletGidAndError &b)
 {
-    return a._quality > b._quality;
+  return a._error > b._error;
 }
 
-//inline bool operator==(const RenderPassAnalyse::TreeletGidAndQuality &a, const RenderPassAnalyse::TreeletGidAndQuality &b)
-//{
-//    return a._treeletGid == b._treeletGid;
-//}
+inline bool operator==(const RenderPassAnalyse::TreeletGidAndError &a, const RenderPassAnalyse::TreeletGidAndError &b)
+{
+  return a._treeletGid == b._treeletGid;
+}
 
 
 } // namespace svo

@@ -824,7 +824,7 @@ typedef struct
 {
   int   _nodePosOrTreeletGid;
   int   _isLeafeWithSubtreelet;
-  float _qualityIfLeafe;
+  float _errorIfLeafe;
   float _quality2;
 } __attribute__ ( ( aligned ( 16 ) ) ) FeedBackDataElement;
 
@@ -834,7 +834,7 @@ typedef struct
 {
   int      _isLeafeWithSubtreelet;
   int      _nodePosOrTreeletGid;
-  float    _qualityIfLeafe;
+  float    _errorIfLeafe;
   float    _quality2;
 }/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
 
@@ -971,7 +971,7 @@ sampleAnalyse( __global const SvoNode* svo,
             // ### WRITE required Treelet Gid encoded in the first child
             sampleResult->_isLeafeWithSubtreelet            = true;
             sampleResult->_nodePosOrTreeletGid = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
-            sampleResult->_qualityIfLeafe      = scale_exp2-(tScaleRatio*tcMin);
+            sampleResult->_errorIfLeafe      = scale_exp2-(tScaleRatio*tcMin);
           }
           else
           {
@@ -991,7 +991,7 @@ sampleAnalyse( __global const SvoNode* svo,
                                                                                  childIdx);
             sampleResult->_isLeafeWithSubtreelet            = false;
             sampleResult->_nodePosOrTreeletGid = returnchildIndex;
-//            sampleResult->_qualityIfLeafe      = 0.0f;//tScaleRatio*tcMin / scale_exp2;
+//            sampleResult->_errorIfLeafe      = 0.0f;//tScaleRatio*tcMin / scale_exp2;
             return true;
           }
 
@@ -1057,7 +1057,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataSample result;
   result._isLeafeWithSubtreelet = 0;
   result._nodePosOrTreeletGid   = 0;
-  result._qualityIfLeafe        = 0.0f;
+  result._errorIfLeafe        = 0.0f;
 
 
   // primary ray
@@ -1069,7 +1069,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataElement feedBackElemet;
   feedBackElemet._nodePosOrTreeletGid    = result._nodePosOrTreeletGid;
   feedBackElemet._isLeafeWithSubtreelet  = result._isLeafeWithSubtreelet;
-  feedBackElemet._qualityIfLeafe         = result._qualityIfLeafe;
+  feedBackElemet._errorIfLeafe         = result._errorIfLeafe;
   feedBackElemet._quality2               = 0.0f;
 
   const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
