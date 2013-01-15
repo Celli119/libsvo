@@ -297,7 +297,7 @@ void frameStep()
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),
                                                    -g_cameraRotateX,
-                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance;
+                                                   cos(g_cameraRotateY)).normalized() * g_cameraDistance;
 
 
   g_camera->lookAt(camPos, camDir, gloost::Vector3(0.0f, 1.0f, 0.0f));
@@ -399,15 +399,9 @@ void frameStep()
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDevide);
 
-    std::set<svo::RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = g_renderPassAnalyse->getVisibleNewTreeletsGids();
+    g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
 
-    std::set<svo::RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidIt    = visibleTreelets.begin();
-    std::set<svo::RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidEndIt = visibleTreelets.end();
 
-    for (; treeletGidIt!=treeletGidEndIt; ++treeletGidIt)
-    {
-      g_clMemoryManager->insertTreeletIntoIncoreBuffer((*treeletGidIt)._treeletGid);
-    }
 
 //    g_enableDynamicLoading = false;
 

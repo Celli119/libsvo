@@ -165,10 +165,9 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                                                       _feedbackBufferGid,
                                                                       (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                       true);
-  clFinish( _memoryManager->getContext()->getDevice(deviceGid)->getClCommandQueue() );
-
 
   // analyse buffer
+  // use mapsd here to ensure unique treelt ids
   std::map<gloost::gloostId, float> visibleNewTreeletGidsMap;
   std::map<gloost::gloostId, float> visibleOldTreeletGidsMap;
 
@@ -193,7 +192,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
         }
         else
         {
-          if (pos->second < _hostSideFeedbackBuffer[i]._errorIfLeafe)
+          if (_hostSideFeedbackBuffer[i]._errorIfLeafe > pos->second)
           {
             pos->second = _hostSideFeedbackBuffer[i]._errorIfLeafe;
           }
@@ -235,7 +234,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
   while (visibleOldIt != visibleOldEndIt)
   {
-    _visibleOldTreeletsGids.insert((*visibleOldIt).first);
+//    _visibleOldTreeletsGids.insert((*visibleOldIt).first);
+    _visibleOldTreeletsGids.insert(TreeletGidAndError((*visibleOldIt).first, (*visibleOldIt).second));
     ++visibleOldIt;
   }
 
@@ -294,12 +294,12 @@ RenderPassAnalyse::addParentTreeletsToVisibleTreelets( unsigned feedbackBufferIn
     }
     else
     {
-//      // if the error is bigger
-//      if ((*pos).second < _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe)
-//      {
-//        // replace error value to the bigger one
-//        (*pos).second = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
-//      }
+      // if the error is bigger
+      if (_hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe > (*pos).second)
+      {
+        // replace error value to the bigger one
+        (*pos).second = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
+      }
     }
     // repeat for the parent
     treeletId = _memoryManager->getTreelet(treeletId)->getParentTreeletGid();
@@ -316,7 +316,7 @@ RenderPassAnalyse::addParentTreeletsToVisibleTreelets( unsigned feedbackBufferIn
   \remarks ...
 */
 
-std::set<RenderPassAnalyse::TreeletGidAndError>&
+std::multiset<RenderPassAnalyse::TreeletGidAndError>&
 RenderPassAnalyse::getVisibleNewTreeletsGids()
 {
   return _visibleNewTreeletsGids;
@@ -332,7 +332,7 @@ RenderPassAnalyse::getVisibleNewTreeletsGids()
   \remarks ...
 */
 
-std::set<gloost::gloostId>&
+std::multiset<RenderPassAnalyse::TreeletGidAndError>&
 RenderPassAnalyse::getVisibleOldTreeletsGids()
 {
   return _visibleOldTreeletsGids;
