@@ -89,9 +89,9 @@ class RenderPassAnalyse
 
 
     // returns a std::set of TreeletIds belonging to visible leaves
-    std::set<TreeletGidAndError>&    getVisibleNewTreeletsGids();
+    std::multiset<TreeletGidAndError>& getVisibleNewTreeletsGids();
     // returns a std::set of TreeletIds belonging inner nodes or final leaves
-    std::set<gloost::gloostId>& getVisibleOldTreeletsGids();
+    std::multiset<TreeletGidAndError>& getVisibleOldTreeletsGids();
 
 
 	protected:
@@ -103,8 +103,8 @@ class RenderPassAnalyse
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
    gloost::gloostId                 _feedbackBufferGid;
 
-   std::set<TreeletGidAndError>    _visibleNewTreeletsGids;
-   std::set<gloost::gloostId>      _visibleOldTreeletsGids;
+   std::multiset<TreeletGidAndError>     _visibleNewTreeletsGids;
+   std::multiset<TreeletGidAndError>     _visibleOldTreeletsGids;
 
    // adds all parent Treelet Gids to the container, replaces error values with bigger ones
    void addParentTreeletsToVisibleTreelets(unsigned feedbackBufferIndex,

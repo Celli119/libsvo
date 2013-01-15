@@ -334,7 +334,15 @@ TreeletMemoryManager::resetIncoreBuffer()
 void
 TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse)
 {
+  std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = renderPassAnalyse->getVisibleNewTreeletsGids();
 
+  std::multiset<RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidIt    = visibleTreelets.begin();
+  std::multiset<RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidEndIt = visibleTreelets.end();
+
+  for (; treeletGidIt!=treeletGidEndIt; ++treeletGidIt)
+  {
+    insertTreeletIntoIncoreBuffer((*treeletGidIt)._treeletGid);
+  }
 }
 
 

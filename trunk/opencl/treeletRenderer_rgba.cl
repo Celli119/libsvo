@@ -33,7 +33,7 @@ typedef struct {
   float    parentTMin;
   float    parentTMax;
   float3   parentCenter;
-} __attribute__ ( ( aligned ( 32 ) ) ) StackElement;
+} /*__attribute__ ( ( aligned ( 32 ) ) )*/ StackElement;
 
 
 //
@@ -221,7 +221,7 @@ sample( __global const SvoNode* svo,
   const float minNormal  = 0.0001f;
   const float epsilon    = 0.0001f;
 
-  StackElement stack[MAX_STACK_SIZE];
+  private StackElement stack[MAX_STACK_SIZE];
 
   // init stack with root node
   stack[scale].parentNodeIndex = 0;
@@ -230,13 +230,13 @@ sample( __global const SvoNode* svo,
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
   if ( fabs(rayDirection.x) < minNormal) {
-    rayDirection.x = minNormal * sign(rayDirection.x)*100.0f;
+    rayDirection.x = minNormal * sign(rayDirection.x);
   }
   if ( fabs(rayDirection.y) < minNormal) {
-    rayDirection.y = minNormal * sign(rayDirection.y)*100.0f;
+    rayDirection.y = minNormal * sign(rayDirection.y);
   }
   if ( fabs(rayDirection.z) < minNormal) {
-    rayDirection.z = minNormal * sign(rayDirection.z)*100.0f;
+    rayDirection.z = minNormal * sign(rayDirection.z);
   }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
@@ -266,7 +266,7 @@ sample( __global const SvoNode* svo,
       break;
     }
 
-    if (!parent)
+//    if (!parent)
     {
       parent = &stack[scale];
       scale_exp2       = pow(2.0f, scale - scaleMax);
@@ -280,7 +280,7 @@ sample( __global const SvoNode* svo,
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1) {
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon) {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
@@ -860,7 +860,7 @@ sampleAnalyse( __global const SvoNode* svo,
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
   const float epsilon    = 0.0001f;
 
-  StackElement stack[MAX_STACK_SIZE];
+  private StackElement stack[MAX_STACK_SIZE];
 
   // init stack with root node
   stack[scale].parentNodeIndex = 0;
@@ -966,17 +966,19 @@ sampleAnalyse( __global const SvoNode* svo,
                the firtChildIndex is the Gid of that subtreelet
             2. This leafe is a leafe of ther whole svo and has no subtreelet
           */
+
+          sampleResult->_errorIfLeafe = scale_exp2-(tScaleRatio*tcMin);
+
           if (svo[leafIndex]._firstchildIndex)
           {
             // ### WRITE required Treelet Gid encoded in the first child
-            sampleResult->_isLeafeWithSubtreelet            = true;
-            sampleResult->_nodePosOrTreeletGid = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
-            sampleResult->_errorIfLeafe      = scale_exp2-(tScaleRatio*tcMin);
+            sampleResult->_isLeafeWithSubtreelet = true;
+            sampleResult->_nodePosOrTreeletGid   = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
           }
           else
           {
-            sampleResult->_isLeafeWithSubtreelet            = false;
-            sampleResult->_nodePosOrTreeletGid = leafIndex;
+            sampleResult->_isLeafeWithSubtreelet = false;
+            sampleResult->_nodePosOrTreeletGid   = leafIndex;
           }
 
           return true;
@@ -1057,7 +1059,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataSample result;
   result._isLeafeWithSubtreelet = 0;
   result._nodePosOrTreeletGid   = 0;
-  result._errorIfLeafe        = 0.0f;
+  result._errorIfLeafe          = 0.0f;
 
 
   // primary ray
@@ -1069,10 +1071,10 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   FeedBackDataElement feedBackElemet;
   feedBackElemet._nodePosOrTreeletGid    = result._nodePosOrTreeletGid;
   feedBackElemet._isLeafeWithSubtreelet  = result._isLeafeWithSubtreelet;
-  feedBackElemet._errorIfLeafe         = result._errorIfLeafe;
-  feedBackElemet._quality2               = 0.0f;
+  feedBackElemet._errorIfLeafe           = result._errorIfLeafe;
+  feedBackElemet._quality2               = 1.0f;
 
-  const unsigned frameBufferPosition = (unsigned)(get_global_id(0) + frameBufferSize.x*get_global_id(1));
+  const unsigned frameBufferPosition = (unsigned)(x + frameBufferSize.x*y);
   feedbackBuffer[frameBufferPosition] = feedBackElemet;
 }
 
