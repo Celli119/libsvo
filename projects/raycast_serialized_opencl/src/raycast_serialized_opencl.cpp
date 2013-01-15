@@ -127,7 +127,7 @@ void init()
 {
 
   const unsigned screenDivide           = 1u;
-  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -707,7 +707,7 @@ int main(int argc, char *argv[])
   }
 
 
-  glfwSetWindowPos( 220, 0);
+  glfwSetWindowPos( 500, 0);
   glfwSetWindowSizeCallback(resize);
   glfwSetKeyCallback(key);
 
