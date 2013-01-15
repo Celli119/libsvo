@@ -101,11 +101,11 @@ TreeletMemoryManagerCl::~TreeletMemoryManagerCl()
 void
 TreeletMemoryManagerCl::initClBuffer()
 {
-	_svoClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+	_svoClBufferGid = _clContext->createClBuffer(CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
                                               (unsigned char*)&getIncoreBuffer().front(),
                                               getIncoreBuffer().size()*sizeof(CpuSvoNode));
 
-	_attributeClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+	_attributeClBufferGid = _clContext->createClBuffer(CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
                                                     (unsigned char*)&getAttributeIncoreBuffer()->getVector().front(),
                                                     getAttributeIncoreBuffer()->getVector().size()*sizeof(float));
 }
@@ -165,12 +165,13 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     return;
   }
 
-  static const unsigned maxUploadAmount = 1024u*1204u;
-  unsigned numBytesUploaded             = 0u;
+//  static const unsigned maxUploadAmount = 1024u*1204u;
+//  unsigned numBytesUploaded             = 0u;
 
 
-  while (numBytesUploaded < maxUploadAmount && slotGidIt!=slotGidEndIt)
+  while (/*numBytesUploaded < maxUploadAmount &&*/ slotGidIt!=slotGidEndIt)
   {
+
     // svo data
     unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
     unsigned destOffsetInByte = (*slotGidIt)*getTreeletSizeInByte();
