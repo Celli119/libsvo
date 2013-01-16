@@ -137,7 +137,7 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "bike";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
@@ -151,6 +151,7 @@ void init()
 //  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
+  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
 //  const std::string svoBaseName  = "malaysia";
 
 
