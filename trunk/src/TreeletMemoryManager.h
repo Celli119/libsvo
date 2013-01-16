@@ -136,8 +136,8 @@ class TreeletMemoryManager
     std::vector<CpuSvoNode>                      _incoreBuffer;
     gloost::InterleavedAttributes*               _incoreAttributeBuffer;
     unsigned                                     _incoreBufferSizeInByte;
-    std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap;
-    std::vector<unsigned>                        _slots;
+    std::map<gloost::gloostId, unsigned>         _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
+    std::vector<unsigned>                        _slots;                  // << assoziation from slot id to Treelet Gid
     std::stack<unsigned>                         _freeIncoreSlots;
 
     std::set<gloost::gloostId>                   _incoreSlotsToUpload;

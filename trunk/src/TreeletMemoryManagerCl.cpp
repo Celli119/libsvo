@@ -153,6 +153,7 @@ TreeletMemoryManagerCl::getClAttributeIncoreBufferGid() const
 void
 TreeletMemoryManagerCl::updateDeviceMemory()
 {
+
   // collect incore buffer ranges to upload
   gloost::bencl::ClBuffer* incoreClBuffer = _clContext->getClBuffer(_svoClBufferGid);
   gloost::bencl::ClDevice* device         = _clContext->getDevice(0);

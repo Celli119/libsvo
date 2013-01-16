@@ -73,11 +73,12 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 2.0f;
+const float                  g_fbToAnalyseBufferDevide = 8.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
 
+#include <contrib/Timer.h>
 
 // setup for rendering into frame buffer
 #include <gloost/TextureManager.h>
@@ -90,7 +91,7 @@ unsigned g_framebufferTextureId = 0;
 bool        g_showTextInfo         = true;
 bool        g_showRayCastImage     = true;
 unsigned    g_viewMode             = 0u;
-std::string g_viewModeText         = "color";
+//std::string g_viewModeText         = "color";
 bool        g_frameDirty           = true;
 bool        g_raycastEveryFrame    = true;
 bool        g_enableDynamicLoading = false;
@@ -126,8 +127,8 @@ void idle(void);
 void init()
 {
 
-  const unsigned screenDivide           = 4u;
-  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1u;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -136,8 +137,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
-  const std::string svoBaseName  = "bike";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "bike";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "terrain_05";
@@ -165,7 +166,7 @@ void init()
 
   gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
                                                   g_bufferHeight,
-                                                  2,
+                                                  1,
                                                   0,//(unsigned char*)&pixelData->getVector().front(),
                                                   16,
                                                   GL_TEXTURE_2D,
@@ -407,8 +408,31 @@ void frameStep()
 #endif
 
 
+#define SVO_TEST_TIMER;
+#ifdef SVO_TEST_TIMER
+  // timer
+  static gloostTest::Timer timerupdateDeviceMemory;
+  static unsigned          stepCounterUpdateDeviceMemory = 0;
+  ++stepCounterUpdateDeviceMemory;
+  timerupdateDeviceMemory.start();
+#endif
+
+
   // update incore buffer
   g_clMemoryManager->updateDeviceMemory();
+
+
+#ifdef SVO_TEST_TIMER
+  timerupdateDeviceMemory.stop();
+
+  if (stepCounterUpdateDeviceMemory == 30)
+  {
+    std::cerr << std::endl << "timerUpdateDeviceMem: " << timerupdateDeviceMemory.getDurationInMicroseconds()/1000.0/((double)stepCounterUpdateDeviceMemory) << " ms";
+    timerupdateDeviceMemory.reset();
+    stepCounterUpdateDeviceMemory = 0;
+  }
+#endif
+
 
 
 }
@@ -603,42 +627,42 @@ void key(int key, int state)
 
       case '0':
         g_viewMode = 0;
-        g_viewModeText = "color";
+//        g_viewModeText = "color";
         break;
 
       case '1':
         g_viewMode = 1;
-        g_viewModeText = "normals";
+//        g_viewModeText = "normals";
         break;
 
       case '2':
         g_viewMode = 2;
-        g_viewModeText = "svo depth";
+//        g_viewModeText = "svo depth";
         break;
 
       case '3':
         g_viewMode = 3;
-        g_viewModeText = "ray t";
+//        g_viewModeText = "ray t";
         break;
 
       case '4':
         g_viewMode = 4;
-        g_viewModeText = "iterations";
+//        g_viewModeText = "iterations";
         break;
 
       case '5':
         g_viewMode = 5;
-        g_viewModeText = "diffuse + reflection + shadow";
+//        g_viewModeText = "diffuse + reflection + shadow";
         break;
 
       case '6':
         g_viewMode = 6;
-        g_viewModeText = "shaded";
+//        g_viewModeText = "shaded";
         break;
 
       case '7':
         g_viewMode = 7;
-        g_viewModeText = "quality to wavelength";
+//        g_viewModeText = "quality to wavelength";
         break;
 
       case 'R':
