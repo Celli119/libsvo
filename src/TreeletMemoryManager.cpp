@@ -383,7 +383,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 {
 
   // test if Treelet is allready in incore buffer
-  std::map<gloost::gloostId, gloost::gloostId>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
+  std::map<gloost::gloostId, unsigned>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
   if (pos != _treeletGidToSlotGidMap.end() &&  (*pos).second != 0)
   {
     std::cerr << std::endl << "insertTreeletIntoIncoreBuffer: " << treeletGid << " is allready in incoreBuffer !!!";
@@ -466,7 +466,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid)
 
   // mark incore slot of parent to be uploaded to device memory
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
-
 
   return true;
 }

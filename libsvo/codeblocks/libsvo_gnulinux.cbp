@@ -110,6 +110,8 @@
 		<Unit filename="../../src/attribute_generators/Ag_colorAndNormalsTriangles.h" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.cpp" />
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.h" />
+		<Unit filename="../../src/contrib/Timer.cpp" />
+		<Unit filename="../../src/contrib/Timer.h" />
 		<Unit filename="../../src/trinangleAABBIntersect.h" />
 		<Extensions>
 			<code_completion />

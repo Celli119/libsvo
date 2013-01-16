@@ -28,6 +28,7 @@
 #include <RenderPassAnalyse.h>
 #include <TreeletMemoryManagerCl.h>
 #include <Treelet.h>
+#include <contrib/Timer.h>
 
 // gloost system includes
 #include <gloost/TextureManager.h>
@@ -85,7 +86,7 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
   std::cerr << std::endl << "  height: " << _bufferHeight;
   std::cerr << std::endl;
 
-	_feedbackBufferGid = _memoryManager->getContext()->createClBuffer(CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR,
+	_feedbackBufferGid = _memoryManager->getContext()->createClBuffer(CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                                                    (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                     _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
@@ -128,6 +129,20 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   _visibleNewTreeletsGids.clear();
   _visibleOldTreeletsGids.clear();
 
+
+//#define SVO_TEST_TIMER
+
+
+
+#ifdef SVO_TEST_TIMER
+  // timer
+  static gloostTest::Timer timerAnalysePass;
+  static unsigned          stepCounterAnalysePass = 0;
+  ++stepCounterAnalysePass;
+  timerAnalysePass.start();
+#endif
+
+
   // start raycasting for analysis
   const gloost::Frustum& frustum = camera->getFrustum();
 
@@ -159,14 +174,44 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                            true,
                            gloost::Vector3(8, 8, 0));
 
+#ifdef SVO_TEST_TIMER
+  timerAnalysePass.stop();
+
+  if (stepCounterAnalysePass == 30)
+  {
+    std::cerr << std::endl << "timerAnalysePass: " << timerAnalysePass.getDurationInMicroseconds()/1000.0/((double)stepCounterAnalysePass) << " ms";
+    timerAnalysePass.reset();
+    stepCounterAnalysePass = 0;
+  }
+#endif
+
+
+
+
+
+#ifdef SVO_TEST_TIMER
+  // timer
+  static gloostTest::Timer timerReadback;
+  static unsigned          stepCounterReadback = 0;
+  ++stepCounterReadback;
+  timerReadback.start();
+#endif
 
   // read back the filled buffer
   _memoryManager->getContext()->readFromClBufferToCharPointerComplete(deviceGid,
                                                                       _feedbackBufferGid,
                                                                       (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                       true);
+#ifdef SVO_TEST_TIMER
+  timerReadback.stop();
 
-  clFinish(_memoryManager->getContext()->getClCommandQueue(deviceGid));
+  if (stepCounterReadback == 30)
+  {
+    std::cerr << std::endl << "timerReadback:    " << timerReadback.getDurationInMicroseconds()/1000.0/((double)stepCounterReadback) << " ms";
+    timerReadback.reset();
+    stepCounterReadback = 0;
+  }
+#endif
 
   // analyse buffer
   // use mapsd here to ensure unique treelt ids
@@ -281,7 +326,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 //  std::cerr << std::endl << "_visibleOldTreeletsGids:   " << _visibleOldTreeletsGids.size();
 
 
-  static const unsigned maxTreeletsToPropergate = 1024;
+  static const unsigned maxTreeletsToPropergate = 768;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
