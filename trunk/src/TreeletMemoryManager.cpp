@@ -128,9 +128,32 @@ TreeletMemoryManager::~TreeletMemoryManager()
 */
 
 Treelet*
-TreeletMemoryManager::getTreelet(gloost::gloostId id)
+TreeletMemoryManager::getTreelet(gloost::gloostId gid)
 {
-  return _treelets[id];
+  if (gid > 0 && gid < _treelets.size())
+  {
+    return _treelets[gid];
+  }
+  std::cerr << std::endl;
+  std::cerr << std::endl << "ERROR in TreeletMemoryManager::getTreelet(): ";
+  std::cerr << std::endl << "         Tried to access Treelet with Gid: " << gid;
+  return 0;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns a reference of a std::vector of Treelet*
+  \param   ...
+  \remarks ...
+*/
+
+std::vector<Treelet*>&
+TreeletMemoryManager::getTreelets()
+{
+  return _treelets;
 }
 
 

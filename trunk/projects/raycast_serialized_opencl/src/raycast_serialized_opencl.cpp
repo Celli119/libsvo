@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 8.0f;
+const float                  g_fbToAnalyseBufferDevide = 2.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -126,7 +126,7 @@ void idle(void);
 void init()
 {
 
-  const unsigned screenDivide           = 1u;
+  const unsigned screenDivide           = 4u;
   const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
@@ -136,8 +136,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "san-miguel";
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "bike";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
 //  const std::string svoBaseName  = "terrain_05";
@@ -151,8 +151,6 @@ void init()
 //  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
 //  const std::string svoBaseName  = "malaysia";
-
-
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");

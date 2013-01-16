@@ -75,7 +75,10 @@ class TreeletMemoryManager
 
 
     // returns a Treelet for a given Gid
-    Treelet* getTreelet(gloost::gloostId id);
+    Treelet* getTreelet(gloost::gloostId gid);
+
+    // returns a reference of a std::vector of Treelet*
+    std::vector<Treelet*>& getTreelets();
 
 
     // returns the Treelet size in bytes
