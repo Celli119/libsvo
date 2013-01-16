@@ -182,15 +182,6 @@ TreeletMemoryManagerCl::updateDeviceMemory()
                                                 destOffsetInByte,
                                                 getTreeletSizeInByte(),
                                                 (const char*)&(_incoreBuffer[srcIndex]));
-#if 0
-    std::cerr << std::endl;
-    std::cerr << std::endl << "  -> Uploading:        " << (*slotGidIt);
-    std::cerr << std::endl << "     srcIndex:         " << srcIndex;
-    std::cerr << std::endl << "     destOffsetInByte: " << destOffset;
-    std::cerr << std::endl << "     size:             " << getTreeletSizeInByte();
-
-    std::cerr << std::endl << "     status: " << status;
-#endif
 
 
     // attrib data

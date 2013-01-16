@@ -326,7 +326,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 //  std::cerr << std::endl << "_visibleOldTreeletsGids:   " << _visibleOldTreeletsGids.size();
 
 
-  static const unsigned maxTreeletsToPropergate = 768;
+  static const unsigned maxTreeletsToPropergate = 512;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
