@@ -5,8 +5,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        12
-#define MAX_SVO_RAYCAST_DEPTH 12
+#define MAX_STACK_SIZE        15
+#define MAX_SVO_RAYCAST_DEPTH 15
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ sample( __global const SvoNode* svo,
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
   const float minNormal  = 0.0001f;
-  const float epsilon    = 0.0001f;
+  const float epsilon    = 0.00001f;
 
   private StackElement stack[MAX_STACK_SIZE];
 
@@ -255,16 +255,12 @@ sample( __global const SvoNode* svo,
   StackElement* parent = 0;
 
   unsigned       whileCounter = 0;
-  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5;
+  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1);
 
 /////////////////// LOOP ///////////////////////////////XS
 
-  while (scale < scaleMax) {
-    ++whileCounter;
-
-    if (whileCounter == maxLoops) {
-      break;
-    }
+  while (scale < scaleMax)
+  {
 
 //    if (!parent)
     {
@@ -272,6 +268,20 @@ sample( __global const SvoNode* svo,
       scale_exp2       = pow(2.0f, scale - scaleMax);
       childSizeHalf    = scale_exp2*0.5f;
     }
+
+    ++whileCounter;
+    if (whileCounter == maxLoops)
+    {
+      result->hit           = true;
+      result->nodeIndex     = parent->parentNodeIndex;
+      result->depth         = scaleMax-scale;
+      result->t             = parent->parentTMin;
+      result->numWhileLoops = whileCounter;
+      result->nodeCenter    = parent->parentCenter;
+      result->quality       = scale_exp2-(tScaleRatio*parent->parentTMin);
+      return true;
+    }
+
 
     // ### POP if parent is behind the camera
     if ( parent->parentTMax < 0.0f) {
@@ -282,10 +292,10 @@ sample( __global const SvoNode* svo,
 
     if (fabs(parent->parentTMin - parent->parentTMax) > epsilon) {
       // childEntryPoint in parent voxel coordinates
-      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1f) * rayDirection) - parent->parentCenter;
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
-                                          + 2*(childEntryPoint.y > 0.0f)
-                                          +   (childEntryPoint.z > 0.0f));
+                                        + 2*(childEntryPoint.y > 0.0f)
+                                        +   (childEntryPoint.z > 0.0f));
 
       // childCenter in world coordinates
       float3 childCenter = (float3)(-0.5f + (bool)(childIdx & 4),

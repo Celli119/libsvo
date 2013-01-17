@@ -73,12 +73,13 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 4.0f;
+const float                  g_fbToAnalyseBufferDevide = 8.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
 
 #include <contrib/Timer.h>
+#include <contrib/TimerLog.h>
 
 // setup for rendering into frame buffer
 #include <gloost/TextureManager.h>
@@ -127,8 +128,8 @@ void idle(void);
 void init()
 {
 
-  const unsigned screenDivide           = 4u;
-  const unsigned incoreBufferSizeInByte = 368/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1u;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -138,23 +139,12 @@ void init()
 
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "Decimated_head_9";
-  const std::string svoBaseName  = "Decimated_head_11_4";
-//  const std::string svoBaseName  = "bike";
-//  const std::string svoBaseName  = "oil_rig";
-//  const std::string svoBaseName  = "crytek_sponza";
-//  const std::string svoBaseName  = "terrain_05";
-//  const std::string svoBaseName  = "sibenik";
-//  const std::string svoBaseName  = "venus_12";
-//  const std::string svoBaseName  = "xyzrgb_manuscript_12";
-//  const std::string svoBaseName  = "ĺucy_12";
-//  const std::string svoBaseName  = "xyzrgb_statuette_12";
-//  const std::string svoBaseName  = "david_2mm_12";
+//  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";
+//  const std::string svoBaseName  = "sibenik";
 //  const std::string svoBaseName  = "monster_12";
-//  const std::string svoBaseName  = "xyzrgb_dragon_12";
+//  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
-//  const std::string svoBaseName  = "malaysia";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -215,6 +205,12 @@ void init()
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
                                                    g_bufferWidth/g_fbToAnalyseBufferDevide,
                                                    g_bufferHeight/g_fbToAnalyseBufferDevide);
+
+
+  gloostTest::TimerLog::get()->addTimer("render.enqueueKernel");
+  gloostTest::TimerLog::get()->addTimer("memory_manager.updateDeviceMem");
+
+
 }
 
 
@@ -369,6 +365,10 @@ void frameStep()
   gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
   gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
 
+  // timer
+  gloostTest::Timer timerFillBuffer;
+  timerFillBuffer.start();
+
   g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
   g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
   g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
@@ -387,6 +387,9 @@ void frameStep()
   }
   g_context->releaseGlObjects(g_deviceGid);
 
+  // /timer
+  timerFillBuffer.stop();
+  gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
 
 
 #if 1
@@ -402,41 +405,19 @@ void frameStep()
                                             g_fbToAnalyseBufferDevide);
 
     g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
-
-
-
-//    g_enableDynamicLoading = false;
-
   }
 #endif
 
-
-#define SVO_TEST_TIMER;
-#ifdef SVO_TEST_TIMER
   // timer
-  static gloostTest::Timer timerupdateDeviceMemory;
-  static unsigned          stepCounterUpdateDeviceMemory = 0;
-  ++stepCounterUpdateDeviceMemory;
-  timerupdateDeviceMemory.start();
-#endif
-
+  gloostTest::Timer timerUpdateDevice;
+  timerUpdateDevice.start();
 
   // update incore buffer
   g_clMemoryManager->updateDeviceMemory();
 
-
-#ifdef SVO_TEST_TIMER
-  timerupdateDeviceMemory.stop();
-
-  if (stepCounterUpdateDeviceMemory == 30)
-  {
-    std::cerr << std::endl << "timerUpdateDeviceMem: " << timerupdateDeviceMemory.getDurationInMicroseconds()/1000.0/((double)stepCounterUpdateDeviceMemory) << " ms";
-    timerupdateDeviceMemory.reset();
-    stepCounterUpdateDeviceMemory = 0;
-  }
-#endif
-
-
+  // /timer
+  timerUpdateDevice.stop();
+  gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
 
 }
 
@@ -544,6 +525,48 @@ void draw2d()
           }
           g_texter->renderTextLine("free incore slots:  " + gloost::toString(g_clMemoryManager->getFreeIncoreSlotStack().size()));
           g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_renderPassAnalyse->getVisibleNewTreeletsGids().size()));
+
+
+
+
+          // timer names
+          glColor4f(0.9f, 0.9f, 0.0f, 1.0);
+          g_texter->setWritePosition(20, 200);
+          gloostTest::TimerLog::sampleMap::iterator timerIt    = gloostTest::TimerLog::get()->getTimes().begin();
+          gloostTest::TimerLog::sampleMap::iterator timerEndIt = gloostTest::TimerLog::get()->getTimes().end();
+
+          while (timerIt != timerEndIt)
+          {
+            g_texter->renderTextLine(timerIt->first + std::string(": "));
+            ++timerIt;
+          }
+          g_texter->renderTextLine("everything");
+
+          // timer current values
+          glColor4f(1.0f, 1.0f, 0.0f, 1.0);
+          g_texter->setWritePosition(300, 200);
+          timerIt = gloostTest::TimerLog::get()->getTimes().begin();
+          double sum = 0;
+          while (timerIt != timerEndIt)
+          {
+            g_texter->renderTextLine(gloost::toString(gloostTest::TimerLog::get()->getCurrentAverage(timerIt->first) ));
+            sum += gloostTest::TimerLog::get()->getCurrentAverage(timerIt->first);
+            ++timerIt;
+          }
+          g_texter->renderTextLine(gloost::toString(sum));
+
+          // timer current values
+          glColor4f(1.0f, 1.0f, 0.0f, 1.0);
+          g_texter->setWritePosition(400, 200);
+          timerIt = gloostTest::TimerLog::get()->getTimes().begin();
+          double sumLast = 0;
+          while (timerIt != timerEndIt)
+          {
+            g_texter->renderTextLine(gloost::toString(gloostTest::TimerLog::get()->getLastAverage(timerIt->first) ));
+            sumLast += gloostTest::TimerLog::get()->getLastAverage(timerIt->first);
+            ++timerIt;
+          }
+          g_texter->renderTextLine(gloost::toString(sumLast));
         }
         g_texter->end();
 

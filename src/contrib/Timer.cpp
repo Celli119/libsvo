@@ -303,6 +303,35 @@ Timer::operator= (const Timer& timer)
 ////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+  \brief   subtraction of Timer
+  \param   ...
+  \remarks ...
+*/
+
+/*extern*/
+Timer
+operator-(const Timer& timer2, const Timer& timer1)
+{
+  return Timer(timer2.getTimeSpec() - timer1.getTimeSpec());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   subtraction of Timer
+  \param   ...
+  \remarks ...
+*/
+
+/*extern*/
+Timer
+operator+(const Timer& timer1, const Timer& timer2)
+{
+  return Timer(timer1.getTimeSpec() + timer2.getTimeSpec());
+}
 
 
 
