@@ -29,6 +29,7 @@
 #include <TreeletMemoryManagerCl.h>
 #include <Treelet.h>
 #include <contrib/Timer.h>
+#include <contrib/TimerLog.h>
 
 // gloost system includes
 #include <gloost/TextureManager.h>
@@ -91,6 +92,11 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
                                                                     _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
 
+  gloostTest::TimerLog::get()->addTimer("analyse.1_enqueueKernel");
+  gloostTest::TimerLog::get()->addTimer("analyse.2_readbackBuffer");
+  gloostTest::TimerLog::get()->addTimer("analyse.3_processBuffer");
+
+
 }
 
 
@@ -130,17 +136,9 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   _visibleOldTreeletsGids.clear();
 
 
-//#define SVO_TEST_TIMER
-
-
-
-#ifdef SVO_TEST_TIMER
-  // timer
-  static gloostTest::Timer timerAnalysePass;
-  static unsigned          stepCounterAnalysePass = 0;
-  ++stepCounterAnalysePass;
+  // timer for kernel
+  gloostTest::Timer timerAnalysePass;
   timerAnalysePass.start();
-#endif
 
 
   // start raycasting for analysis
@@ -174,62 +172,42 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                            true,
                            gloost::Vector3(8, 8, 0));
 
-#ifdef SVO_TEST_TIMER
+
   timerAnalysePass.stop();
-
-  if (stepCounterAnalysePass == 30)
-  {
-    std::cerr << std::endl << "timerAnalysePass: " << timerAnalysePass.getDurationInMicroseconds()/1000.0/((double)stepCounterAnalysePass) << " ms";
-    timerAnalysePass.reset();
-    stepCounterAnalysePass = 0;
-  }
-#endif
+  gloostTest::TimerLog::get()->putSample("analyse.1_enqueueKernel", timerAnalysePass.getDurationInMicroseconds()/1000.0);
 
 
 
 
-
-#ifdef SVO_TEST_TIMER
   // timer
-  static gloostTest::Timer timerReadback;
-  static unsigned          stepCounterReadback = 0;
-  ++stepCounterReadback;
+  gloostTest::Timer timerReadback;
   timerReadback.start();
-#endif
 
   // read back the filled buffer
   _memoryManager->getContext()->readFromClBufferToCharPointerComplete(deviceGid,
                                                                       _feedbackBufferGid,
                                                                       (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                       true);
-#ifdef SVO_TEST_TIMER
+
   timerReadback.stop();
-
-  if (stepCounterReadback == 30)
-  {
-    std::cerr << std::endl << "timerReadback:    " << timerReadback.getDurationInMicroseconds()/1000.0/((double)stepCounterReadback) << " ms";
-    timerReadback.reset();
-    stepCounterReadback = 0;
-  }
-#endif
-
+  gloostTest::TimerLog::get()->putSample("analyse.2_readbackBuffer", timerReadback.getDurationInMicroseconds()/1000.0);
   // analyse buffer
   // use mapsd here to ensure unique treelt ids
+
+
+  // timer
+  gloostTest::Timer timerProcessBuffer;
+  timerProcessBuffer.start();
+
   std::map<gloost::gloostId, float> visibleNewTreeletGidsMap;
   std::map<gloost::gloostId, float> visibleOldTreeletGidsMap;
 
 
-  unsigned hitCounter = 0;
-
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
-
-
     // if there was a hit within the svo
     if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
     {
-      ++hitCounter;
-
       // if this hit was a leaf with assoziated subTreelet
       if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
       {
@@ -313,17 +291,10 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
   while (visibleOldIt != visibleOldEndIt)
   {
-//    _visibleOldTreeletsGids.insert((*visibleOldIt).first);
     _visibleOldTreeletsGids.insert(TreeletGidAndError((*visibleOldIt).first, (*visibleOldIt).second));
     ++visibleOldIt;
   }
 
-
-//  std::cerr << std::endl << "-----------------------------:";
-//  std::cerr << std::endl << "hitCounter:                " << hitCounter;
-//  std::cerr << std::endl << "uniqueTreeletCounter:      " << uniqueTreeletCounter.size();
-//  std::cerr << std::endl << "visibleTreeletGids:        " << visibleTreeletGids.size();
-//  std::cerr << std::endl << "_visibleOldTreeletsGids:   " << _visibleOldTreeletsGids.size();
 
 
   static const unsigned maxTreeletsToPropergate = 512;
@@ -343,6 +314,13 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
        _visibleNewTreeletsGids.erase(vtIt, _visibleNewTreeletsGids.end());
     }
   }
+
+
+  timerProcessBuffer.stop();
+  gloostTest::TimerLog::get()->putSample("analyse.3_processBuffer", timerProcessBuffer.getDurationInMicroseconds()/1000.0);
+
+
+
 }
 
 

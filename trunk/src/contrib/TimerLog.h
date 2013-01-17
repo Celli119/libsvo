@@ -33,13 +33,11 @@
 #include <gloost/gloostConfig.h>
 //#include <gloost/gloostMath.h>
 
-// gloostTest inclues
-#include <contrib/Timer.h>
-
 
 // cpp includes
 #include <string>
 #include <map>
+#include <vector>
 
 
 namespace gloostTest
@@ -52,11 +50,45 @@ class TimerLog
 {
 	public:
 
-    // class constructor
-    TimerLog();
+
+    typedef std::map<std::string, std::vector<double> > sampleMap;
+
 
     // class destructor
 	  virtual ~TimerLog();
+
+    // returns the instance
+	  static TimerLog* get();
+
+
+
+    // add a timer
+    void addTimer(const std::string& name);
+
+
+
+    // add a sample
+    void putSample(const std::string& name, double value);
+
+
+    // returns the average value by averaging all current samples
+    double getCurrentAverage(const std::string& name) const;
+
+    // returns the average value gained after % numSamples steps
+    double getLastAverage(const std::string& name) const;
+
+
+    // sets the number of samples to record
+    void setNumSamples(unsigned num);
+
+
+
+    // reset all timers
+    void resetAllTimers();
+
+    // returns a map with all timers
+    sampleMap& getTimes();
+
 
 
     // inits the TimerLog
@@ -65,13 +97,23 @@ class TimerLog
 
 	protected:
 
-   std::map<std::string, int>   _timersForName;
-   std::map<std::string, Timer> _sampleCountersForName;
+    unsigned _numSamples;
+
+   sampleMap                       _valuesForName;
+   std::map<std::string, unsigned> _insertPositions;
+   std::map<std::string, double>   _averageForName;
+
+
+    // creates average value for a timer name
+    double createAverage(const std::string& name) const;
 
 
 	private:
 
-   // ...
+	  static TimerLog* _instance;
+
+    // class constructor
+    TimerLog();
 
 };
 
