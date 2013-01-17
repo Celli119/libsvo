@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 8.0f;
+const float                  g_fbToAnalyseBufferDevide = 4.0f;
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -127,8 +127,8 @@ void idle(void);
 void init()
 {
 
-  const unsigned screenDivide           = 1u;
-  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 4u;
+  const unsigned incoreBufferSizeInByte = 368/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -138,6 +138,8 @@ void init()
 
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "Decimated_head_9";
+  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "bike";
 //  const std::string svoBaseName  = "oil_rig";
 //  const std::string svoBaseName  = "crytek_sponza";
@@ -151,7 +153,7 @@ void init()
 //  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12";
-  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
+//  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
 //  const std::string svoBaseName  = "malaysia";
 
 
