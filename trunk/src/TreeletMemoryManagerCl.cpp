@@ -101,11 +101,13 @@ TreeletMemoryManagerCl::~TreeletMemoryManagerCl()
 void
 TreeletMemoryManagerCl::initClBuffer()
 {
-	_svoClBufferGid = _clContext->createClBuffer(CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+//  CL_MEM_COPY_HOST_PTR | CL_MEM_ALLOC_HOST_PTR
+
+	_svoClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_ONLY,
                                               (unsigned char*)&getIncoreBuffer().front(),
                                               getIncoreBuffer().size()*sizeof(CpuSvoNode));
 
-	_attributeClBufferGid = _clContext->createClBuffer(CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+	_attributeClBufferGid = _clContext->createClBuffer(CL_MEM_COPY_HOST_PTR | CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_ONLY,
                                                     (unsigned char*)&getAttributeIncoreBuffer()->getVector().front(),
                                                     getAttributeIncoreBuffer()->getVector().size()*sizeof(float));
 }

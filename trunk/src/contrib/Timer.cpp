@@ -31,6 +31,7 @@
 
 /// cpp includes
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <time.h>
 
@@ -87,6 +88,23 @@ Timer::Timer(time_t seconds, long nanoseconds):
 
 
 /**
+  \brief   Class constructor
+  \remarks ...
+*/
+
+Timer::Timer(const timespec& tsp):
+  _time(tsp),
+  _lastStart()
+{
+  _lastStart.tv_sec  = 0;
+	_lastStart.tv_nsec = 0;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
   \brief   Class destructor
   \remarks ...
 */
@@ -107,7 +125,7 @@ Timer::~Timer()
 */
 
 timespec
-Timer::getDuration() const
+Timer::getTimeSpec() const
 {
   if (_lastStart.tv_sec == 0 &&_lastStart.tv_nsec == 0)
   {
@@ -134,7 +152,7 @@ Timer::getDuration() const
 long
 Timer::getDurationInMilliseconds() const
 {
-  timespec tmp = getDuration();
+  timespec tmp = getTimeSpec();
 	return (long)tmp.tv_sec*1000 + tmp.tv_nsec/1000000.0;
 }
 
@@ -151,7 +169,7 @@ Timer::getDurationInMilliseconds() const
 long
 Timer::getDurationInMicroseconds() const
 {
-  timespec tmp = getDuration();
+  timespec tmp = getTimeSpec();
 	return (long)tmp.tv_sec*1000000 + tmp.tv_nsec/1000.0;
 }
 
@@ -168,7 +186,7 @@ Timer::getDurationInMicroseconds() const
 long
 Timer::getSeconds() const
 {
-	return getDuration().tv_sec;
+	return getTimeSpec().tv_sec;
 }
 
 
@@ -184,7 +202,7 @@ Timer::getSeconds() const
 long
 Timer::getNanoseconds() const
 {
-	return getDuration().tv_nsec;
+	return getTimeSpec().tv_nsec;
 }
 
 
@@ -242,6 +260,8 @@ Timer::reset()
 	_time.tv_sec  = 0;
 	_lastStart.tv_nsec = 0;
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -260,6 +280,23 @@ Timer::normalize()
     _time.tv_nsec -= sec*1000000000;
     _time.tv_sec += sec;
   }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+  \brief   normalizes the timespec value
+  \param   ...
+  \remarks ...
+*/
+
+const Timer&
+Timer::operator= (const Timer& timer)
+{
+  memcpy(&_time, &timer, sizeof(timer));
+  return (*this);
 }
 
 

@@ -282,7 +282,7 @@ sample( __global const SvoNode* svo,
 
     if (fabs(parent->parentTMin - parent->parentTMax) > epsilon) {
       // childEntryPoint in parent voxel coordinates
-      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1f) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
                                           + 2*(childEntryPoint.y > 0.0f)
                                           +   (childEntryPoint.z > 0.0f));
@@ -354,7 +354,7 @@ sample( __global const SvoNode* svo,
             result->t             = parent->parentTMin;
             result->numWhileLoops = whileCounter;
             result->nodeCenter    = childCenter;
-            result->quality       = 0.0;
+            result->quality       = 0.0f;
             return true;
           }
 
@@ -575,7 +575,7 @@ shade_diffuse_color_shadow(const SampleResult* result,
 unsigned
 Adjust(const float Color, const float Factor)
 {
-  if (Color == 0.0) {
+  if (Color == 0.0f) {
     return 0;
   } else {
     int res = round(IntensityMax * pow(Color * Factor, Gamma));
@@ -593,43 +593,43 @@ WavelengthToRGB(const float Wavelength)
   float Green;
   float Red;
 
-  if(380 <= Wavelength && Wavelength <= 440) {
-    Red   = -(Wavelength - 440) / (440 - 380);
-    Green = 0.0;
-    Blue  = 1.0;
-  } else if(440 < Wavelength && Wavelength <= 490) {
-    Red   = 0.0;
-    Green = (Wavelength - 440) / (490 - 440);
-    Blue  = 1.0;
-  } else if(490 < Wavelength && Wavelength <= 510) {
-    Red   = 0.0;
-    Green = 1.0;
-    Blue  = -(Wavelength - 510) / (510 - 490);
-  } else if(510 < Wavelength && Wavelength <= 580) {
-    Red   = (Wavelength - 510) / (580 - 510);
-    Green = 1.0;
+  if(380.0f <= Wavelength && Wavelength <= 440.0f) {
+    Red   = -(Wavelength - 440.0f) / (440.0f - 380.0f);
+    Green = 0.0f;
+    Blue  = 1.0f;
+  } else if(440.0f < Wavelength && Wavelength <= 490.0f) {
+    Red   = 0.0f;
+    Green = (Wavelength - 440.0f) / (490.0f - 440.0f);
+    Blue  = 1.0f;
+  } else if(490.0f < Wavelength && Wavelength <= 510.0f) {
+    Red   = 0.0f;
+    Green = 1.0f;
+    Blue  = -(Wavelength - 510.0f) / (510.0f - 490.0f);
+  } else if(510.0f < Wavelength && Wavelength <= 580.0f) {
+    Red   = (Wavelength - 510.0f) / (580.0f - 510.0f);
+    Green = 1.0f;
+    Blue  = 0.0f;
+  } else if(580.0f < Wavelength && Wavelength <= 645.0f) {
+    Red   = 1.0f;
+    Green = -(Wavelength - 645.0f) / (645.0f - 580.0f);
     Blue  = 0.0;
-  } else if(580 < Wavelength && Wavelength <= 645) {
-    Red   = 1.0;
-    Green = -(Wavelength - 645) / (645 - 580);
-    Blue  = 0.0;
-  } else if(645 < Wavelength && Wavelength <= 780) {
-    Red   = 1.0;
-    Green = 0.0;
-    Blue  = 0.0;
+  } else if(645.0f < Wavelength && Wavelength <= 780.0f) {
+    Red   = 1.0f;
+    Green = 0.0f;
+    Blue  = 0.0f;
   } else {
-    Red   = 0.0;
-    Green = 0.0;
-    Blue  = 0.0;
+    Red   = 0.0f;
+    Green = 0.0f;
+    Blue  = 0.0f;
   }
-  if(380 <= Wavelength && Wavelength <= 420) {
-    factor = 0.3 + 0.7*(Wavelength - 380) / (420 - 380);
-  } else if(420 < Wavelength && Wavelength <= 701) {
-    factor = 1.0;
-  } else if(701 < Wavelength && Wavelength <= 780) {
-    factor = 0.3 + 0.7*(780 - Wavelength) / (780 - 701);
+  if(380.0f <= Wavelength && Wavelength <= 420.0f) {
+    factor = 0.3f + 0.7f*(Wavelength - 380.0f) / (420.0f - 380.0f);
+  } else if(420.0f < Wavelength && Wavelength <= 701.0f) {
+    factor = 1.0f;
+  } else if(701.0f < Wavelength && Wavelength <= 780.0f) {
+    factor = 0.3f + 0.7f*(780.0f - Wavelength) / (780.0f - 701.0f);
   } else {
-    factor = 0.0;
+    factor = 0.0f;
   }
 
   return (float3)(Adjust(Red,   factor), Adjust(Green, factor), Adjust(Blue,  factor));
@@ -640,8 +640,8 @@ WavelengthToRGB(const float Wavelength)
 
 float GetWaveLengthFromDataPoint(float Value, float MinValue, float MaxValue)
 {
-  const float MinVisibleWavelength = 380.0;//350.0;
-  const float MaxVisibleWavelength = 780.0;//650.0;
+  const float MinVisibleWavelength = 380.0f;//350.0;
+  const float MaxVisibleWavelength = 780.0f;//650.0;
   //Convert data value in the range of MinValues..MaxValues to the
   //range 350..650
   return (Value - MinValue) / (MaxValue-MinValue) * (MaxVisibleWavelength - MinVisibleWavelength) + MinVisibleWavelength;
@@ -654,7 +654,7 @@ DataPointToColor(float Value, float MinValue, float MaxValue)
   float Wavelength = GetWaveLengthFromDataPoint(Value, MinValue, MaxValue);
   float3 rgb       = WavelengthToRGB(Wavelength);
 
-  const float fac = 1.0/255.0;
+  const float fac = 1.0f/255.0f;
   return (float3)(rgb.x * fac, rgb.y * fac, rgb.z * fac);
 }
 
@@ -689,7 +689,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
   rayDirection        = normalize(rayDirection);
 
   SampleResult result;
-  result.quality = 0;
+  result.quality = 0.0f;
 
   // primary ray
   sample( svo,
@@ -716,7 +716,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
           {
             write_imagef ( renderbuffer,
                           (int2)(x,y),
-                          (float4)(getNormal(result.nodeIndex, attribs), 1.0));
+                          (float4)(getNormal(result.nodeIndex, attribs), 1.0f));
             return;
           }
 
@@ -788,7 +788,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
       {
         write_imagef ( renderbuffer,
                  (int2)(x,y),
-                 (float4)(0.6,0.3,0.3, 1.0f));
+                 (float4)(0.6f,0.3f,0.3f, 1.0f));
       }
     }
     break;
@@ -921,11 +921,11 @@ sampleAnalyse( __global const SvoNode* svo,
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1)
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1f)
     {
       // childEntryPoint in parent voxel coordinates
-      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1) * rayDirection) - parent->parentCenter;
-      int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1f) * rayDirection) - parent->parentCenter;
+      int childIdx           =  (int) (     4*(childEntryPoint.x > 0.0f)
                                           + 2*(childEntryPoint.y > 0.0f)
                                           +   (childEntryPoint.z > 0.0f));
 

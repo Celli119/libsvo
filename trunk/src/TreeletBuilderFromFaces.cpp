@@ -113,8 +113,9 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
   std::cerr << std::endl << "             Building Octree from triangle faces:";
-  std::cerr << std::endl << "               max size           " << _treelet->getMemSize() << " byte";
-  std::cerr << std::endl << "               triangles.size():  " << triangles.size();
+  std::cerr << std::endl << "               treelet size       " << _treelet->getMemSize() << " byte";
+  std::cerr << std::endl << "               nodes per treelet: " << _treelet->getMemSize()/sizeof(CpuSvoNode);
+  std::cerr << std::endl << "               num triangles:     " << triangles.size();
   std::cerr << std::endl;
 
   // choose all primitives as relevant

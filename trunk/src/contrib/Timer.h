@@ -53,13 +53,14 @@ class Timer
     // class constructor
     Timer();
     Timer(time_t seconds, long nanoseconds);
+    Timer(const timespec& tsp);
 
     // class destructor
 	  virtual ~Timer();
 
 
     // returns the messured duration
-    timespec getDuration() const;
+    timespec getTimeSpec() const;
 
     // returns the messured duration in milliseconds
     long getDurationInMilliseconds() const;
@@ -87,6 +88,9 @@ class Timer
 	  // normalizes the timespec value
 	  void normalize();
 
+    /// assignment
+    const Timer& operator= (const Timer&);
+
 
 
 	protected:
@@ -101,7 +105,9 @@ class Timer
 
 };
 
-// subtraction
+
+
+// subtraction of timespec
 inline timespec operator-(const timespec& time2, const timespec& time1)
 {
 	timespec temp;
@@ -118,7 +124,7 @@ inline timespec operator-(const timespec& time2, const timespec& time1)
 	return temp;
 }
 
-// addition
+// addition of timespec
 inline timespec operator+(const timespec& time1, const timespec& time2)
 {
 	timespec temp;
@@ -133,6 +139,20 @@ inline timespec operator+(const timespec& time1, const timespec& time2)
     temp.tv_sec += sec;
   }
   return temp;
+}
+
+
+
+// subtraction of Timer
+extern Timer operator-(const Timer& timer2, const Timer& timer1)
+{
+  return Timer(timer2.getTimeSpec() - timer1.getTimeSpec());
+}
+
+// subtraction of Timer
+extern Timer operator+(const Timer& timer1, const Timer& timer2)
+{
+  return Timer(timer1.getTimeSpec() + timer2.getTimeSpec());
 }
 
 
