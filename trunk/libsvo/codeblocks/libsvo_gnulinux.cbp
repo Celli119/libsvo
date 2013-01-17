@@ -8,7 +8,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output="../lib/svo" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/libsvo" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/release" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -32,7 +32,7 @@
 				</Linker>
 			</Target>
 			<Target title="Debug">
-				<Option output="../lib/svo_db" prefix_auto="1" extension_auto="1" />
+				<Option output="../lib/libsvo_db" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="../o_files/debug" />
 				<Option external_deps="../../../gloost/gnulinux/bin/libgloost.a;../../../gloost/gnulinux/bin/libtinyxml.a;" />
@@ -112,6 +112,8 @@
 		<Unit filename="../../src/attribute_generators/AttributeGenerator.h" />
 		<Unit filename="../../src/contrib/Timer.cpp" />
 		<Unit filename="../../src/contrib/Timer.h" />
+		<Unit filename="../../src/contrib/TimerLog.cpp" />
+		<Unit filename="../../src/contrib/TimerLog.h" />
 		<Unit filename="../../src/trinangleAABBIntersect.h" />
 		<Extensions>
 			<code_completion />

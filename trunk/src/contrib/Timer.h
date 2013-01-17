@@ -134,9 +134,9 @@ inline timespec operator+(const timespec& time1, const timespec& time2)
 
   if (temp.tv_nsec > 1000000000)
   {
-    long sec = temp.tv_nsec/1000000000;
+    long sec      = temp.tv_nsec/1000000000;
     temp.tv_nsec -= sec*1000000000;
-    temp.tv_sec += sec;
+    temp.tv_sec  += sec;
   }
   return temp;
 }
