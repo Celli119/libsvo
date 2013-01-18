@@ -230,13 +230,38 @@ TimerLog::getLastAverage(const std::string& name) const
 void
 TimerLog::resetAllTimers()
 {
-  std::map<std::string, std::vector<double> >::iterator it    = _valuesForName.begin();
-  std::map<std::string, std::vector<double> >::iterator endIt = _valuesForName.end();
 
-  while (it != endIt)
+  std::map<std::string, std::vector<double> >::iterator vIt    = _valuesForName.begin();
+  std::map<std::string, std::vector<double> >::iterator vEndIt = _valuesForName.end();
+
+  while (vIt != vEndIt)
   {
-    it->second = std::vector<double>(_numSamples, 0.0);
+    vIt->second = std::vector<double>(_numSamples, 0.0);
+    ++vIt;
   }
+
+
+  std::map<std::string, unsigned >::iterator iIt    = _insertPositions.begin();
+  std::map<std::string, unsigned >::iterator iEndIt = _insertPositions.end();
+
+  while (iIt != iEndIt)
+  {
+    iIt->second = 0u;
+    ++iIt;
+  }
+
+  std::map<std::string, double>::iterator aIt    = _averageForName.begin();
+  std::map<std::string, double>::iterator aEndIt = _averageForName.end();
+
+  while (aIt != aEndIt)
+  {
+    aIt->second = 0.0;
+    ++aIt;
+  }
+
+
+
+
 }
 
 

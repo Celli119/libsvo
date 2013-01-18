@@ -168,12 +168,15 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     return;
   }
 
-//  static const unsigned maxUploadAmount = 1024u*1204u;
-//  unsigned numBytesUploaded             = 0u;
+//  unsigned oldSlodGid = (*slotGidIt);
+//  unsigned counter    = 0;
 
-
-  while (/*numBytesUploaded < maxUploadAmount &&*/ slotGidIt!=slotGidEndIt)
+  while (slotGidIt!=slotGidEndIt)
   {
+//    if (gloost::abs((int)oldSlodGid - (int)(*slotGidIt)) < 16 )
+//    {
+//      ++counter;
+//    }
 
     // svo data
     unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
@@ -202,7 +205,11 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   }
   clFinish( device->getClCommandQueue() );
 
-  _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), slotGidIt);
+  _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
+
+//  std::cerr << std::endl << "counter: " << counter;
+
+
 }
 
 

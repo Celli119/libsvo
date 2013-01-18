@@ -5,8 +5,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        15
-#define MAX_SVO_RAYCAST_DEPTH 15
+#define MAX_STACK_SIZE        12
+#define MAX_SVO_RAYCAST_DEPTH 12
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -255,14 +255,13 @@ sample( __global const SvoNode* svo,
   StackElement* parent = 0;
 
   unsigned       whileCounter = 0;
-  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1);
+  const unsigned maxLoops     = (scaleMax)*(scaleMax)*(scaleMax);
 
 /////////////////// LOOP ///////////////////////////////XS
 
   while (scale < scaleMax)
   {
 
-//    if (!parent)
     {
       parent = &stack[scale];
       scale_exp2       = pow(2.0f, scale - scaleMax);
@@ -286,7 +285,6 @@ sample( __global const SvoNode* svo,
     // ### POP if parent is behind the camera
     if ( parent->parentTMax < 0.0f) {
       ++scale;
-      parent = 0;
       continue;
     }
 
@@ -379,8 +377,6 @@ sample( __global const SvoNode* svo,
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
           stack[scale].parentCenter    = childCenter;
-
-          parent = 0;
           continue;
         }
       } else {
@@ -390,7 +386,6 @@ sample( __global const SvoNode* svo,
     } else {
       // POP
       ++scale;
-      parent = 0;
       continue;
     }
 

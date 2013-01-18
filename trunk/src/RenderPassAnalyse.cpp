@@ -255,7 +255,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
         }
 
 
-        unsigned treeletGid = _memoryManager->getSlots()[slotId];
+        unsigned treeletGid = _memoryManager->getSlots()[slotId]._treeletGid;
 
         if (treeletGid < 0 || treeletGid > _memoryManager->getTreelets().size())
         {

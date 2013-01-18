@@ -67,6 +67,28 @@ class TreeletMemoryManager
 {
 	public:
 
+    // stores visibility and error of a slot
+	  struct VisibilityAndError
+	  {
+      VisibilityAndError():
+        _treeletGid(0),
+        _visibility(0),
+        _error(100000)
+      {}
+
+      VisibilityAndError(gloost::gloostId treeletGid, unsigned visibility, float error):
+        _treeletGid(treeletGid),
+        _visibility(visibility),
+        _error(error)
+      {}
+
+      gloost::gloostId _treeletGid;
+	    unsigned         _visibility;
+	    float            _error;
+	  };
+
+
+
     // class constructor
     TreeletMemoryManager(const std::string& svoFilePath, unsigned incoreBufferSizeInByte);
 
@@ -100,7 +122,7 @@ class TreeletMemoryManager
     void updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse);
 
     // inserts a Treelet into the gpu buffer
-    bool insertTreeletIntoIncoreBuffer(gloost::gloostId treeletGid);
+    bool insertTreeletIntoIncoreBuffer(const VisibilityAndError& tve);
 
     // updates device memory by uploading incore buffer slots
     virtual void updateDeviceMemory();
@@ -120,7 +142,7 @@ class TreeletMemoryManager
 
 
     // rettuns a vector containing a Treelet Gid for each slot
-    std::vector<unsigned>& getSlots();
+    std::vector<VisibilityAndError>& getSlots();
 
 
 	protected:
@@ -136,8 +158,10 @@ class TreeletMemoryManager
     std::vector<CpuSvoNode>                      _incoreBuffer;
     gloost::InterleavedAttributes*               _incoreAttributeBuffer;
     unsigned                                     _incoreBufferSizeInByte;
+
     std::map<gloost::gloostId, unsigned>         _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
-    std::vector<unsigned>                        _slots;                  // << assoziation from slot id to Treelet Gid
+    std::vector<VisibilityAndError>              _slots;                  // << assoziation from slot id to Treelet Gid
+
     std::stack<unsigned>                         _freeIncoreSlots;
 
     std::set<gloost::gloostId>                   _incoreSlotsToUpload;

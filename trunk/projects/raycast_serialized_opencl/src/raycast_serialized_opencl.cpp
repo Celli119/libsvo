@@ -96,6 +96,7 @@ unsigned    g_viewMode             = 0u;
 bool        g_frameDirty           = true;
 bool        g_raycastEveryFrame    = true;
 bool        g_enableDynamicLoading = false;
+bool        g_interaction          = false;
 
 
 //bencl stuff
@@ -138,10 +139,10 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";
-//  const std::string svoBaseName  = "sibenik";
+//  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "monster_12";
 //  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
@@ -207,6 +208,7 @@ void init()
                                                    g_bufferHeight/g_fbToAnalyseBufferDevide);
 
 
+  gloostTest::TimerLog::get()->setNumSamples(16);
   gloostTest::TimerLog::get()->addTimer("render.enqueueKernel");
   gloostTest::TimerLog::get()->addTimer("memory_manager.updateDeviceMem");
 
@@ -281,6 +283,8 @@ void frameStep()
     g_cameraRotateX = gloost::clamp(g_cameraRotateX, -3.0f, 3.0f);
 
     g_frameDirty = true;
+
+
   }
 
 
@@ -308,6 +312,11 @@ void frameStep()
   {
     speedAdd *= 3.0f;
   }
+  else if(glfwGetKey(GLFW_KEY_LCTRL ))
+  {
+    speedAdd *= 0.25;
+  }
+
   if (glfwGetKey('W' ))
   {
     camSpaceSpeed +=  frontVector * speedAdd;
@@ -326,6 +335,7 @@ void frameStep()
     camSpaceSpeed +=  strafeVector * speedAdd;
   }
 
+  // up and down
   if (glfwGetKey(' ' ))
   {
     camSpeed +=  upVector * speedAdd;
