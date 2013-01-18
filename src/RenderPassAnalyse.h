@@ -96,6 +96,7 @@ class RenderPassAnalyse
 
 	protected:
 
+
    TreeletMemoryManagerCl* _memoryManager;
    unsigned                _bufferWidth;
    unsigned                _bufferHeight;
@@ -103,8 +104,10 @@ class RenderPassAnalyse
    std::vector<FeedBackDataElement> _hostSideFeedbackBuffer;
    gloost::gloostId                 _feedbackBufferGid;
 
-   std::multiset<TreeletGidAndError>     _visibleNewTreeletsGids;
-   std::multiset<TreeletGidAndError>     _visibleOldTreeletsGids;
+   std::multiset<TreeletGidAndError> _visibleNewTreeletsGids;
+   std::multiset<TreeletGidAndError> _visibleOldTreeletsGids;
+
+
 
    // adds all parent Treelet Gids to the container, replaces error values with bigger ones
    void addParentTreeletsToVisibleTreelets(unsigned feedbackBufferIndex,
