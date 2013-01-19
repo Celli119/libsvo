@@ -20,7 +20,7 @@ typedef struct {
 } __attribute__ ( ( aligned ( 8 ) ) ) SvoNode;
 
 
-//
+//Ŕ
 typedef struct {
   unsigned _packed_normal;
   unsigned _packed_color;
@@ -219,7 +219,7 @@ sample( __global const SvoNode* svo,
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
   const float minNormal  = 0.0001f;
-  const float epsilon    = 0.00001f;
+  const float epsilon    = 0.0001f;
 
   private StackElement stack[MAX_STACK_SIZE];
 
@@ -262,11 +262,9 @@ sample( __global const SvoNode* svo,
   while (scale < scaleMax)
   {
 
-    {
-      parent = &stack[scale];
-      scale_exp2       = pow(2.0f, scale - scaleMax);
-      childSizeHalf    = scale_exp2*0.5f;
-    }
+    parent           = &stack[scale];
+    scale_exp2       = pow(2.0f, scale - scaleMax);
+    childSizeHalf    = scale_exp2*0.5f;
 
     ++whileCounter;
     if (whileCounter == maxLoops)
@@ -471,17 +469,27 @@ shade_svoDepth(const SampleResult* result)
 
 
 inline float4
-shade_diffuse_color_shadow(const SampleResult* result,
-                           __global const SvoNode* svo,
-                           __global Attribs* attribs)
+shade_phong(const SampleResult* result,
+            float3              rayDirection,
+            __global const SvoNode* svo,
+            __global Attribs* attribs)
 {
   if (result->hit) {
     float3 normal = getNormal(result->nodeIndex, attribs);
     float4 color = getColor(result->nodeIndex, attribs);
 
+    // light
+    const float3 lightDirection = normalize((float3)(25.5f, 55.0f, 25.0f) - result->nodeCenter);
 
-    const float3 lightDirection = normalize((float3)(0.5f, 1.0f, 0.75f));
+    // diffuse
     float nDotL = max(0.0f, dot(normal, lightDirection));
+
+    // specular
+    float3 reflectionDir = normalize( ( ( 2.0 * normal ) * nDotL ) - lightDirection );
+    float reflectDotView = max( 0.0, dot( reflectionDir,  -rayDirection) );
+    float specular = max(0.0f, pow(reflectDotView, 100.0f));
+
+
 
 #if 0
     SampleResult resultShadow;
@@ -494,7 +502,10 @@ shade_diffuse_color_shadow(const SampleResult* result,
     float shadow = 0.0f;
 #endif
 
-    color = color*nDotL*(1.0f-shadow)+color*0.2f;
+    color =   color*0.2
+            + color*nDotL*(1.0f-shadow)
+            + color*specular;
+
     color.w = 1.0f;
 
     return color;
@@ -760,9 +771,10 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
   case 6:
     write_imagef ( renderbuffer,
                    (int2)(x,y),
-                   shade_diffuse_color_shadow(&result,
-                       svo,
-                       attribs));
+                   shade_phong(&result,
+                               rayDirection.xyz,
+                               svo,
+                               attribs));
     break;
 
   case 7:
@@ -863,6 +875,7 @@ sampleAnalyse( __global const SvoNode* svo,
   const int   scaleMax   = MAX_STACK_SIZE;
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
+  const float minNormal  = 0.0001f;
   const float epsilon    = 0.0001f;
 
   private StackElement stack[MAX_STACK_SIZE];
@@ -873,14 +886,14 @@ sampleAnalyse( __global const SvoNode* svo,
   stack[scale].parentTMax      = tMax;
   stack[scale].parentCenter    = (float3)(0.0f,0.0f,0.0f);
 
-  if ( fabs(rayDirection.x) < epsilon) {
-    rayDirection.x = epsilon * sign(rayDirection.x)*100.0f;
+  if ( fabs(rayDirection.x) < minNormal) {
+    rayDirection.x = minNormal * sign(rayDirection.x);
   }
-  if ( fabs(rayDirection.y) < epsilon) {
-    rayDirection.y = epsilon * sign(rayDirection.y)*100.0f;
+  if ( fabs(rayDirection.y) < minNormal) {
+    rayDirection.y = minNormal * sign(rayDirection.y);
   }
-  if ( fabs(rayDirection.z) < epsilon) {
-    rayDirection.z = epsilon * sign(rayDirection.z)*100.0f;
+  if ( fabs(rayDirection.z) < minNormal) {
+    rayDirection.z = minNormal * sign(rayDirection.z);
   }
 //  rayDirection = (fabs(rayDirection.x) < epsilon) ? epsilon * sign(rayDirection.x) : rayDirection.x;
 
@@ -926,10 +939,11 @@ sampleAnalyse( __global const SvoNode* svo,
       continue;
     }
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon*0.1f)
+
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon)
     {
       // childEntryPoint in parent voxel coordinates
-      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon*0.1f) * rayDirection) - parent->parentCenter;
+      float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (     4*(childEntryPoint.x > 0.0f)
                                           + 2*(childEntryPoint.y > 0.0f)
                                           +   (childEntryPoint.z > 0.0f));

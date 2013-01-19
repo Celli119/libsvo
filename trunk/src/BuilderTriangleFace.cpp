@@ -88,6 +88,17 @@ BuilderTriangleFace::BuilderTriangleFace(gloost::Mesh* mesh, unsigned triangleIn
     _normal0 = mesh->getNormals()[triangle.vertexIndices[0]];
     _normal1 = mesh->getNormals()[triangle.vertexIndices[1]];
     _normal2 = mesh->getNormals()[triangle.vertexIndices[2]];
+
+
+#if 0 // <-flat faces
+    gloost::Vector3 flatNormal((_normal0+_normal1+_normal1)*0.3333333333);
+//    flatNormal.normalize();
+    _normal0 = flatNormal;
+    _normal1 = flatNormal;
+    _normal2 = flatNormal;
+    _normal2.normalize();
+#endif
+
   }
 
   if (mesh->getColors().size())

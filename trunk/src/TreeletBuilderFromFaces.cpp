@@ -289,7 +289,8 @@ TreeletBuilderFromFaces::buildFromQueue()
         if (isFirstValidChild)
         {
           // set first child index of the parent, this is the relative distance within this Treelet
-          _treelet->getNodes()[parentQueuedElement._localLeafIndex].setFirstChildIndex((int)currentNodeIndex-(int)parentQueuedElement._localLeafIndex);
+          _treelet->getNodes()[parentQueuedElement._localLeafIndex].setFirstChildIndex((int)currentNodeIndex
+                                                                                       -(int)parentQueuedElement._localLeafIndex);
           isFirstValidChild = false;
         }
 
@@ -302,9 +303,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-        // queue children
+        if (childQueueElements[childIdx]._depth < _maxDepth)
         {
           _queue.push(childQueueElements[childIdx]);
+        }
+        else
+        {
+          // set the leaf flag within leafes parent node
+          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
+                                                                                                   true);
+
+          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
         }
 
         ++currentNodeIndex;
