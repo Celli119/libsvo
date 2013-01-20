@@ -128,7 +128,7 @@ void idle(void);
 
 void init()
 {
-  const unsigned screenDivide           = 4u;
+  const unsigned screenDivide           = 2;
   const unsigned incoreBufferSizeInByte = 400/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;

@@ -212,7 +212,7 @@ BuilderTriangleFace::calculateUAndV(const gloost::Point3& point,
                                     float& u,
                                     float& v) const
 {
-  gloost::Vector3 avNormal = (_normal0 + _normal1 + _normal2)/3.0;
+  gloost::Vector3 avNormal = (_normal0 + _normal1 + _normal2)/3.0f;
   avNormal.normalize();
 
   // test center
@@ -229,7 +229,7 @@ BuilderTriangleFace::intersectRay( const gloost::Ray& ray,
                                    float& u,
                                    float& v) const
 {
-  gloost::mathType EPSILON = 0.000000000001;
+  gloost::mathType EPSILON = 0.0001;
 
   gloost::Vector3 edge1, edge2, tvec, pvec, qvec;
   gloost::mathType det, invDet, t;
