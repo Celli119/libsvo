@@ -476,7 +476,8 @@ shade_phong(const SampleResult* result,
 {
   if (result->hit) {
     float3 normal = getNormal(result->nodeIndex, attribs);
-    float4 color = getColor(result->nodeIndex, attribs);
+    normal = normalize(normal);
+    float4 color  = getColor(result->nodeIndex, attribs);
 
     // light
     const float3 lightDirection = normalize((float3)(25.5f, 55.0f, 25.0f) - result->nodeCenter);
@@ -502,7 +503,7 @@ shade_phong(const SampleResult* result,
     float shadow = 0.0f;
 #endif
 
-    color =   color*0.2
+    color =   color*0.1
             + color*nDotL*(1.0f-shadow)
             + color*specular;
 
