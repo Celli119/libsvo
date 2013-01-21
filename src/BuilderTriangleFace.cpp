@@ -229,7 +229,7 @@ BuilderTriangleFace::intersectRay( const gloost::Ray& ray,
                                    float& u,
                                    float& v) const
 {
-  gloost::mathType EPSILON = 0.0001;
+  gloost::mathType EPSILON = 0.00000001;
 
   gloost::Vector3 edge1, edge2, tvec, pvec, qvec;
   gloost::mathType det, invDet, t;

@@ -307,12 +307,11 @@ TreeletBuilderFromFaces::buildFromQueue()
         {
           _queue.push(childQueueElements[childIdx]);
         }
-        else
+        else/* if ()*/
         {
           // set the leaf flag within leafes parent node
           _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
                                                                                                    true);
-
           _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
         }
 

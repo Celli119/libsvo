@@ -83,7 +83,7 @@ class TreeletMemoryManager
       {}
 
       gloost::gloostId _treeletGid;
-	    unsigned         _visibility;
+	    int              _visibility;
 	    float            _error;
 	  };
 
@@ -123,6 +123,11 @@ class TreeletMemoryManager
 
     // inserts a Treelet into the gpu buffer
     bool insertTreeletIntoIncoreBuffer(const VisibilityAndError& tve);
+
+    // removes a Treelet from the gpu buffer
+    bool removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid);
+
+
 
     // updates device memory by uploading incore buffer slots
     virtual void updateDeviceMemory();
