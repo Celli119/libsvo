@@ -83,6 +83,7 @@ Ag_colorAndNormalsTriangles::Ag_colorAndNormalsTriangles():
 
 Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
 {
+
 }
 
 
