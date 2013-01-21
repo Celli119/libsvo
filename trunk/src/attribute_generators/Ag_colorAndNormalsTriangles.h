@@ -82,7 +82,7 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
 
 //
 //
-//    //
+//
 //	  void generate(std::vector<Treelet*>& treeletVector,
 //                  gloost::Mesh* mesh,
 //                  gloost::ObjMatFile* materials,
