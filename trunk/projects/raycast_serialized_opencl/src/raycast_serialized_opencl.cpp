@@ -128,8 +128,8 @@ void idle(void);
 
 void init()
 {
-  const unsigned screenDivide           = 2;
-  const unsigned incoreBufferSizeInByte = 400/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -139,7 +139,7 @@ void init()
 
 
   const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "ring_11_4";
+//  const std::string svoBaseName  = "ring_11_4";w
 //  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "Decimated_head_9";
@@ -283,8 +283,6 @@ void frameStep()
     g_cameraRotateX = gloost::clamp(g_cameraRotateX, -3.0f, 3.0f);
 
     g_frameDirty = true;
-
-
   }
 
 
@@ -400,6 +398,15 @@ void frameStep()
   // /timer
   timerFillBuffer.stop();
   gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
+
+
+//  if (glfwGetKey('M' ))
+//  {
+//
+//    g_clMemoryManager->getSlots()
+//
+//  }
+
 
 
 #if 1

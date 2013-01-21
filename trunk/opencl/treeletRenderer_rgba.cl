@@ -219,7 +219,7 @@ sample( __global const SvoNode* svo,
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
   const float minNormal  = 0.0001f;
-  const float epsilon    = 0.0001f;
+  const float epsilon    = 0.00001f;
 
   private StackElement stack[MAX_STACK_SIZE];
 
