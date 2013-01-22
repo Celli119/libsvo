@@ -168,15 +168,9 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     return;
   }
 
-//  unsigned oldSlodGid = (*slotGidIt);
-//  unsigned counter    = 0;
 
   while (slotGidIt!=slotGidEndIt)
   {
-//    if (gloost::abs((int)oldSlodGid - (int)(*slotGidIt)) < 16 )
-//    {
-//      ++counter;
-//    }
 
     // svo data
     unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
@@ -206,9 +200,6 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   clFinish( device->getClCommandQueue() );
 
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
-
-//  std::cerr << std::endl << "counter: " << counter;
-
 
 }
 

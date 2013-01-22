@@ -396,7 +396,7 @@ Treelet::writeToFile(gloost::BinaryFile& outFileToAppend)
   outFileToAppend.writeUInt32(_parentTreeletLeafsParentPosition);           // write position of the leafs parent within the parent Treelet
 
   outFileToAppend.writeBuffer((unsigned char*)&_serializedNodes.front(),    // write Nodes
-                              _serializedNodes.size()*sizeof(CpuSvoNode));
+                              _numNodes*sizeof(CpuSvoNode));
 }
 
 
@@ -450,8 +450,8 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
   _parentTreeletLeafIdx             = inFile.readUInt32();
   _parentTreeletLeafsParentPosition = inFile.readUInt32();
 
-  _serializedNodes.resize(_memSize/sizeof(CpuSvoNode));
-  gloost::unserialize((unsigned char*)&_serializedNodes.front(), _memSize, inFile);
+  _serializedNodes.resize(_memSize/sizeof(CpuSvoNode), CpuSvoNode());
+  gloost::unserialize((unsigned char*)&_serializedNodes.front(), _numNodes*sizeof(CpuSvoNode), inFile);
 }
 
 

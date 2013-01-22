@@ -340,7 +340,7 @@ TreeletBuilderFromFaces::buildFromQueue()
   std::cerr << std::endl << "  -> Finishing Treelet with leaf count: " << _queue.size();
 #endif
 
-  _treelet->setNumNodes((int)currentNodeIndex-1);
+  _treelet->setNumNodes((int)currentNodeIndex);
   _treelet->setNumLeaves(_queue.size());
 
 

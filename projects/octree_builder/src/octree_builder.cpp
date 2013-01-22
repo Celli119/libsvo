@@ -82,6 +82,7 @@ void init()
   std::cerr << std::endl << "Loading geometry: " << g_inputPath;
   gloost::PlyLoader ply(g_inputPath);
   g_mesh = ply.getMesh();
+  g_mesh->takeReference();
   std::cerr << std::endl << " Mesh memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
 
 

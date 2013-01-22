@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 8.0f; // <---
+const float                  g_fbToAnalyseBufferDevide = 1.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -128,8 +128,8 @@ void idle(void);
 
 void init()
 {
-  const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 4;
+  const unsigned incoreBufferSizeInByte = 64/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -306,7 +306,7 @@ void frameStep()
   gloost::Vector3 camSpaceSpeed(0.0f, 0.0f, 0.0f);
   float speedAdd = 0.03f*g_timePerFrame;
 
-  if (glfwGetKey('V' ))
+  if (glfwGetKey('V'))
   {
     speedAdd *= 3.0f;
   }
@@ -398,14 +398,6 @@ void frameStep()
   // /timer
   timerFillBuffer.stop();
   gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
-
-
-//  if (glfwGetKey('M' ))
-//  {
-//
-//    g_clMemoryManager->getSlots()
-//
-//  }
 
 
 
@@ -651,6 +643,14 @@ void key(int key, int state)
         cleanup();
         exit(0);
         break;
+
+      case 'M':
+        {
+          std::cerr << std::endl << "g_clMemoryManager: ";
+          g_clMemoryManager->removeTreeletFromIncoreBuffer(1);
+        }
+        break;
+
 
       case 'B':
         {
