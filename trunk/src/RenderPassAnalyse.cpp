@@ -76,8 +76,6 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _visibleOldTreeletsGids()
 {
 
-
-
   // setting up feedback buffer
   _hostSideFeedbackBuffer.resize(_bufferWidth*_bufferHeight, FeedBackDataElement());
 
@@ -162,7 +160,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
-  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustumFarLowerLeftPlusOffset /*frustum.far_lower_left*/);
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, /*frustumFarLowerLeftPlusOffset*/ frustum.far_lower_left);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix * camera->getPosition());
 
   clContext->enqueueKernel(deviceGid,
@@ -221,6 +219,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
           return;
         }
 
+        // check if treeletGid was already noted and update error if necessary
         std::map<gloost::gloostId, float>::iterator pos = visibleNewTreeletGidsMap.find(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
 
         if (pos == visibleNewTreeletGidsMap.end())
@@ -235,10 +234,9 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
           }
         }
 
-        addParentTreeletsToVisibleTreelets( i,
-                                            _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid,
-                                            _hostSideFeedbackBuffer[i]._errorIfLeafe,
-                                            visibleOldTreeletGidsMap);
+        addNodeAndItsParentTreeletsToVisibleTreelets( _memoryManager->getTreelet(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)->getParentTreeletGid(),
+                                                      _hostSideFeedbackBuffer[i]._errorIfLeafe,
+                                                      visibleOldTreeletGidsMap);
       }
       // if this hit was an inner node or a final leaf
       else
@@ -266,10 +264,9 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
           return;
         }
 
-        addParentTreeletsToVisibleTreelets( i,
-                                            treeletGid,
-                                            _hostSideFeedbackBuffer[i]._errorIfLeafe,
-                                            visibleOldTreeletGidsMap);
+        addNodeAndItsParentTreeletsToVisibleTreelets( treeletGid,
+                                                      _hostSideFeedbackBuffer[i]._errorIfLeafe,
+                                                      visibleOldTreeletGidsMap);
       }
     }
   }
@@ -334,11 +331,11 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 */
 
 void
-RenderPassAnalyse::addParentTreeletsToVisibleTreelets( unsigned feedbackBufferIndex,
-                                                       gloost::gloostId treeletGid,
-                                                       float error,
-                                                       std::map<gloost::gloostId, float>& treeletGidContainer)
+RenderPassAnalyse::addNodeAndItsParentTreeletsToVisibleTreelets( gloost::gloostId treeletGid,
+                                                                 float error,
+                                                                 std::map<gloost::gloostId, float>& treeletGidContainer)
 {
+
   while (treeletGid != 0)
   {
     std::map<gloost::gloostId, float>::iterator pos = treeletGidContainer.find(treeletGid);
@@ -347,15 +344,15 @@ RenderPassAnalyse::addParentTreeletsToVisibleTreelets( unsigned feedbackBufferIn
     if (pos == treeletGidContainer.end())
     {
       // add to countainer
-      treeletGidContainer[treeletGid] = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
+      treeletGidContainer[treeletGid] = error;
     }
     else
     {
       // if the error is bigger
-      if (_hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe > (*pos).second)
+      if (error > (*pos).second)
       {
         // replace error value to the bigger one
-        (*pos).second = _hostSideFeedbackBuffer[feedbackBufferIndex]._errorIfLeafe;
+        (*pos).second = error;
       }
     }
 

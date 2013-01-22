@@ -89,6 +89,9 @@ class TreeletMemoryManager
 
 
 
+
+
+
     // class constructor
     TreeletMemoryManager(const std::string& svoFilePath, unsigned incoreBufferSizeInByte);
 
@@ -126,6 +129,9 @@ class TreeletMemoryManager
 
     // removes a Treelet from the gpu buffer
     bool removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid);
+
+    // frees one or more slots
+    bool freeIncorePosition(const VisibilityAndError& tve);
 
 
 
@@ -166,6 +172,8 @@ class TreeletMemoryManager
 
     std::map<gloost::gloostId, unsigned>         _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
     std::vector<VisibilityAndError>              _slots;                  // << assoziation from slot id to Treelet Gid
+
+    std::vector< std::vector<unsigned> >         _childTreeletsInIncoreBuffer;
 
     std::stack<unsigned>                         _freeIncoreSlots;
 

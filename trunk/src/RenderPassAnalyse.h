@@ -110,10 +110,9 @@ class RenderPassAnalyse
 
 
    // adds all parent Treelet Gids to the container, replaces error values with bigger ones
-   void addParentTreeletsToVisibleTreelets(unsigned feedbackBufferIndex,
-                                           gloost::gloostId childTreeletId,
-                                           float error,
-                                           std::map<gloost::gloostId, float>& treeletGidContainer);
+   void addNodeAndItsParentTreeletsToVisibleTreelets(gloost::gloostId treeletId,
+                                                     float error,
+                                                     std::map<gloost::gloostId, float>& treeletGidContainer);
 
 
 	private:
