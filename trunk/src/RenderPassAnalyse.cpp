@@ -241,7 +241,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
       // if this hit was an inner node or a final leaf
       else
       {
-        unsigned slotId     = _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid / _memoryManager->getNumNodesPerTreelet();
+        unsigned slotId = _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid / _memoryManager->getNumNodesPerTreelet();
 
         if (slotId < 0 || slotId > _memoryManager->getTreelets().size())
         {
@@ -294,7 +294,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
 
-  static const unsigned maxTreeletsToPropergate = 512;
+  static const unsigned maxTreeletsToPropergate = 256;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
