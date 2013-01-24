@@ -317,7 +317,6 @@ TreeletMemoryManager::resetIncoreBuffer()
   _childTreeletsInIncoreBuffer.resize(_treelets.size(), std::vector<unsigned>());
 
 
-
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
 
@@ -385,6 +384,7 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
     }
   }
 
+
   std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = renderPassAnalyse->getVisibleNewTreeletsGids();
 
   std::multiset<RenderPassAnalyse::TreeletGidAndError>::iterator treeletGidIt    = visibleTreelets.begin();
@@ -425,7 +425,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
     {
       return false;
     }
-
   }
 
   unsigned freeSlotGid = _freeIncoreSlots.top();
@@ -493,6 +492,96 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
   // note treeletGid to parent position within the _childTreeletsInIncoreBuffer
   _childTreeletsInIncoreBuffer[parentTreeletGid].push_back(tve._treeletGid);
 
+
+  return true;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   frees one or more slots
+  \param   ...
+  \remarks ...
+*/
+
+bool
+TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
+{
+  RenderPassAnalyse::TreeletGidAndError freeableTreeletGid(0,0);
+
+  for (unsigned i=1u; i!=_slots.size(); ++i)
+  {
+    if (_slots[i]._visibility < 0 && _slots[i]._treeletGid)
+    {
+      freeableTreeletGid = RenderPassAnalyse::TreeletGidAndError(_slots[i]._treeletGid, _slots[i]._error);
+      break;
+    }
+  }
+
+  // no slot to free found
+  if (freeableTreeletGid._treeletGid == 0)
+  {
+    return false;
+  }
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "found freeable gid: " << freeableTreeletGid._treeletGid;
+  std::cerr << std::endl << "    child treelets: " << _childTreeletsInIncoreBuffer[freeableTreeletGid._treeletGid].size();
+
+
+  // collect all child treelets of this freeable treelet and free the slots
+  std::queue<gloost::gloostId> childTreeletsQueue;
+  childTreeletsQueue.push(freeableTreeletGid._treeletGid);
+
+
+  // gather all treeletGids attached below this treelet in the incore buffer
+  unsigned freeCounter = 0;
+  std::vector<unsigned> childTreeletsTreeletsToClear;
+  while (childTreeletsQueue.size())
+  {
+    gloost::gloostId parentTreeletGid = childTreeletsQueue.front();
+    childTreeletsQueue.pop();
+
+    // for all child treelets also in the incore buffer
+    for (unsigned i=0; i!=_childTreeletsInIncoreBuffer[parentTreeletGid].size(); ++i)
+    {
+      gloost::gloostId childTreeletGid = _childTreeletsInIncoreBuffer[parentTreeletGid][i];
+      childTreeletsQueue.push(childTreeletGid);
+      childTreeletsTreeletsToClear.push_back(childTreeletGid);
+    }
+    // clear child treelet ids
+    std::vector<unsigned>().swap(_childTreeletsInIncoreBuffer[parentTreeletGid]);
+  }
+
+
+  // free slots of child treelets
+  for (unsigned i=0; i!=childTreeletsTreeletsToClear.size(); ++i)
+  {
+    unsigned childTreeletGid = childTreeletsTreeletsToClear[i];
+
+//    std::map<gloost::gloostId, unsigned>::iterator posIt = _treeletGidToSlotGidMap.find(childTreeletGid);
+//
+//    if (posIt == _treeletGidToSlotGidMap.end())
+//    {
+//      std::cerr << std::endl << "ERROR in TreeletMemoryManager::freeIncorePosition: ";
+//      std::cerr << std::endl << "          Assoziation NOT found: ";
+//    }
+//
+//    unsigned slotId = posIt->second;
+
+    unsigned slotId = _treeletGidToSlotGidMap[childTreeletGid];
+    _treeletGidToSlotGidMap.erase(childTreeletGid);
+    _slots[childTreeletGid] = VisibilityAndError();
+    _freeIncoreSlots.push(slotId);
+    ++freeCounter;
+  }
+
+  std::cerr << std::endl << "freeCounter:                  " << freeCounter;
+
+  removeTreeletFromIncoreBuffer(freeableTreeletGid._treeletGid);
+
   return true;
 }
 
@@ -527,90 +616,20 @@ TreeletMemoryManager::removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid)
   // copy original node/leaf to incore leaf position
   _incoreBuffer[leafPositionInIncoreBuffer] = getTreelet(parentTreeletGid)->getNodeForIndex(parentTreeletLeafPosition);
 
-  // update leaf mask of leafs parent so that the leaf is no leaf anymore
+  // update leaf mask of leafs parent so that the leaf is a leaf again
   _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, true);
 
   // mark incore slot of parent to be uploaded to device memory
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
 
 
-
-
-  //! add slots to available/free slots
+  // add slots to available/free slots
   _freeIncoreSlots.push(_treeletGidToSlotGidMap[treeletGid]);
 
   //! remove assoziation from treelet gid to slot
   _treeletGidToSlotGidMap.erase(treeletGid);
 
 
-
-  return true;
-}
-
-
-//////////////////////////////////////////////////////
-
-
-/**
-  \brief   frees one or more slots
-  \param   ...
-  \remarks ...
-*/
-
-bool
-TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
-{
-  RenderPassAnalyse::TreeletGidAndError freeableTreeletGid(0,0);
-
-  for (int i=_slots.size()-1; i!=0 && freeableTreeletGid._treeletGid == 0; --i)
-  {
-    if (_slots[i]._visibility < 0)
-    {
-      freeableTreeletGid = RenderPassAnalyse::TreeletGidAndError(_slots[i]._treeletGid, _slots[i]._error);
-    }
-  }
-
-  // no slot to free found
-  if (freeableTreeletGid._treeletGid == 0)
-  {
-    return false;
-  }
-
-  // collect all child treelets of this freeable treelet and free the slots
-  std::queue<gloost::gloostId> childTreeletsQueue;
-  childTreeletsQueue.push(freeableTreeletGid._treeletGid);
-
-  unsigned freeCounter = 0;
-
-  while (childTreeletsQueue.size())
-  {
-    gloost::gloostId parentTreeletGid = childTreeletsQueue.front();
-    childTreeletsQueue.pop();
-
-    // for all child treelets also in the incore buffer
-    for (unsigned i=0; i!=_childTreeletsInIncoreBuffer[parentTreeletGid].size(); ++i)
-    {
-      gloost::gloostId childTreeletGid = _childTreeletsInIncoreBuffer[parentTreeletGid][i];
-      childTreeletsQueue.push(childTreeletGid);
-
-      // just free the slot at this position
-      std::map<gloost::gloostId, unsigned>::iterator pos = _treeletGidToSlotGidMap.find(childTreeletGid);
-
-      if (pos != _treeletGidToSlotGidMap.end())
-      {
-        _treeletGidToSlotGidMap.erase((int)childTreeletGid);
-        _freeIncoreSlots.push(pos->second);
-        ++freeCounter;
-      }
-    }
-
-    // clear child treelet ids
-    std::vector<unsigned>().swap(_childTreeletsInIncoreBuffer[parentTreeletGid]);
-  }
-
-  removeTreeletFromIncoreBuffer(freeableTreeletGid._treeletGid);
-
-  std::cerr << std::endl << "freeCounter: " << freeCounter;
 
   return true;
 }

@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 1.0f; // <---
+const float                  g_fbToAnalyseBufferDevide = 8.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -128,7 +128,7 @@ void idle(void);
 
 void init()
 {
-  const unsigned screenDivide           = 4;
+  const unsigned screenDivide           = 1;
   const unsigned incoreBufferSizeInByte = 64/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
