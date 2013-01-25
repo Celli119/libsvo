@@ -421,7 +421,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
 
   if (!_freeIncoreSlots.size() || tve._treeletGid >= _treelets.size())
   {
-    if (!freeIncorePosition(tve))
+//    if (!freeIncorePosition(tve))
     {
       return false;
     }
@@ -628,7 +628,6 @@ TreeletMemoryManager::removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid)
 
   //! remove assoziation from treelet gid to slot
   _treeletGidToSlotGidMap.erase(treeletGid);
-
 
 
   return true;
