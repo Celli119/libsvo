@@ -129,7 +129,7 @@ void idle(void);
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 64/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -139,6 +139,7 @@ void init()
 
 
   const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "frog2_seperated_ao_7_d8";
 //  const std::string svoBaseName  = "ring_11_4";w
 //  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";

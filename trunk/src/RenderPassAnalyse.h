@@ -94,6 +94,11 @@ class RenderPassAnalyse
     std::multiset<TreeletGidAndError>& getVisibleOldTreeletsGids();
 
 
+    void setEnableRumble(bool onOrOff);
+
+    bool getEnableRumble();
+
+
 	protected:
 
 
@@ -117,7 +122,7 @@ class RenderPassAnalyse
 
 	private:
 
-   //
+   bool _rumble;
 
 };
 

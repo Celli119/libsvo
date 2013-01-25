@@ -73,7 +73,8 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _hostSideFeedbackBuffer(),
     _feedbackBufferGid(0),
     _visibleNewTreeletsGids(),
-    _visibleOldTreeletsGids()
+    _visibleOldTreeletsGids(),
+    _rumble(true)
 {
 
   // setting up feedback buffer
@@ -89,12 +90,9 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
                                                                    (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                     _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
-
   gloostTest::TimerLog::get()->addTimer("analyse.1_enqueueKernel");
   gloostTest::TimerLog::get()->addTimer("analyse.2_readbackBuffer");
   gloostTest::TimerLog::get()->addTimer("analyse.3_processBuffer");
-
-
 }
 
 
@@ -149,10 +147,14 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
   // adding a random offset to the frustum.far_lower_left
-  gloost::Vector3 frustumFarLowerLeftPlusOffset = frustum.far_lower_left
-                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
-                                                + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+  gloost::Vector3 frustumFarLowerLeftPlusOffset = frustum.far_lower_left;
 
+  if (_rumble)
+  {
+    frustumFarLowerLeftPlusOffset = frustum.far_lower_left
+                                    + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
+                                    + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+  }
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
   clContext->setKernelArgBuffer("renderToFeedbackBuffer", 0, _feedbackBufferGid);
@@ -160,7 +162,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 2, gloost::Vector3(_bufferWidth, _bufferHeight, tScaleRatio));
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 3, frustumOnePixelWidth);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 4, frustumOnePixelHeight);
-  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, /*frustumFarLowerLeftPlusOffset*/ frustum.far_lower_left);
+  clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustumFarLowerLeftPlusOffset /*frustum.far_lower_left*/);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix * camera->getPosition());
 
   clContext->enqueueKernel(deviceGid,
@@ -294,7 +296,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
 
-  static const unsigned maxTreeletsToPropergate = 256;
+  static const unsigned maxTreeletsToPropergate = 1024;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
@@ -391,6 +393,40 @@ std::multiset<RenderPassAnalyse::TreeletGidAndError>&
 RenderPassAnalyse::getVisibleOldTreeletsGids()
 {
   return _visibleOldTreeletsGids;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   ...
+  \param   ...
+  \remarks ...
+*/
+
+void
+RenderPassAnalyse::setEnableRumble(bool onOrOff)
+{
+  std::cerr << std::endl << "setEnableRumble: " << onOrOff;
+
+  _rumble = onOrOff;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   ...
+  \param   ...
+  \remarks ...
+*/
+
+bool
+RenderPassAnalyse::getEnableRumble()
+{
+  return _rumble;
 }
 
 
