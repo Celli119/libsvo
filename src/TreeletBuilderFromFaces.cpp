@@ -203,7 +203,8 @@ TreeletBuilderFromFaces::buildFromQueue()
     if (whileCounter % 100000 == 0)
     {
       std::cerr << std::endl << "  Build progress: " << (unsigned) (((float)currentNodeIndex/_treelet->getNodes().size())*100) << " %"
-                             << " ( leaf count: " << _queue.size()  << " )";
+                             << " ( leaf count: " << _queue.size()  << ", "
+                             << "max depth: " << (_queue.back())._depth  << " )";
     }
 //#endif
 

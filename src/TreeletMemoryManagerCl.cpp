@@ -177,7 +177,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     unsigned destOffsetInByte = (*slotGidIt)*getTreeletSizeInByte();
 
     int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
-                                                false,
+                                                true,
                                                 destOffsetInByte,
                                                 getTreeletSizeInByte(),
                                                 (const char*)&(_incoreBuffer[srcIndex]));
@@ -190,14 +190,14 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     gloost::bencl::ClBuffer* incoreAttributeClBuffer = _clContext->getClBuffer(_attributeClBufferGid);
 
     status = incoreAttributeClBuffer->enqueueWrite(device->getClCommandQueue(),
-                                                   false,
+                                                   true,
                                                    attribDestOffsetInByte,
                                                    _attributeBuffers[0]->getVector().size()*sizeof(float),
                                                    (const char*)&(_incoreAttributeBuffer->getVector()[attribSrcIndex]));
 
     ++slotGidIt;
   }
-  clFinish( device->getClCommandQueue() );
+//  clFinish( device->getClCommandQueue() );
 
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
 

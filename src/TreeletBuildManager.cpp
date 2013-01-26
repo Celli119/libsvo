@@ -165,8 +165,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
 #if 1
 
-  unsigned treeletId                = 1u;
-  unsigned queueItemCount           = _treelets[0]->getIncompleteLeafQueueElements().size();
+  unsigned treeletId      = 1u;
+  unsigned queueItemCount = _treelets[0]->getIncompleteLeafQueueElements().size();
 
 
   while(treeletsWithSubTreeletsQueue.size())
@@ -244,9 +244,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                                                  treeletId,
                                                                  mesh);
       }
-
-      // clear primitive ids since we need them anymore
-//      parentIncompleteQueueElements[i].clearPrimitiveIds();
 
       ++treeletId;
 

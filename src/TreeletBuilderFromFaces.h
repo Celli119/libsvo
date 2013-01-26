@@ -86,7 +86,7 @@ class TreeletBuilderFromFaces
     Treelet*          _treelet;
     gloost::Mesh*     _mesh;
 
-    unsigned     _numBuildThreads;
+    unsigned          _numBuildThreads;
 
     std::queue<Treelet::QueueElement> _queue;
 

@@ -99,6 +99,10 @@ class RenderPassAnalyse
     bool getEnableRumble();
 
 
+    // returns the test framebuffer gid
+    gloost::gloostId getTestFrameBufferGid() const;
+
+
 	protected:
 
 
@@ -120,9 +124,14 @@ class RenderPassAnalyse
                                                      std::map<gloost::gloostId, float>& treeletGidContainer);
 
 
+
+
 	private:
 
    bool _rumble;
+
+   gloost::gloostId _testFramebufferTextureId;
+   gloost::gloostId _clRenderbufferGid;
 
 };
 

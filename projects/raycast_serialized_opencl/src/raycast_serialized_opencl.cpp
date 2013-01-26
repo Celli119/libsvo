@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDevide = 8.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 1.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -116,7 +116,7 @@ void mouseFunc(int button, int state, int mouse_h, int mouse_v);
 void reloadShaders();
 bool raycastIntoFrameBuffer(unsigned threadId);
 void resize(int width, int height);
-void key(unsigned char key, int x, int y);
+void key(int key, int state);
 void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
 
@@ -129,7 +129,7 @@ void idle(void);
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 32/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -138,14 +138,18 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "frog2_seperated_ao_7_d8";
+  SIND DIE HOCHGELADENEN AUCH VISIBLE?
+
+
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "venus_s4_d7";
+//  const std::string svoBaseName  = "frog2_seperated_s8_d7";
 //  const std::string svoBaseName  = "ring_11_4";w
 //  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "Decimated_head_9";
 //  const std::string svoBaseName  = "monster_12";
-//  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
+  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
 
 
@@ -205,8 +209,8 @@ void init()
 
   // analyse pass init
   g_renderPassAnalyse = new svo::RenderPassAnalyse(g_clMemoryManager,
-                                                   g_bufferWidth/g_fbToAnalyseBufferDevide,
-                                                   g_bufferHeight/g_fbToAnalyseBufferDevide);
+                                                   g_bufferWidth/g_fbToAnalyseBufferDivide,
+                                                   g_bufferHeight/g_fbToAnalyseBufferDivide);
 
 
   gloostTest::TimerLog::get()->setNumSamples(16);
@@ -366,6 +370,7 @@ void frameStep()
   gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
 
 
+
   // start raycasting
   const gloost::Frustum& frustum = g_camera->getFrustum();
 
@@ -373,6 +378,53 @@ void frameStep()
   gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/g_bufferWidth;
   gloost::Vector3 frustumV_vec          = frustum.far_upper_left - frustum.far_lower_left;
   gloost::Vector3 frustumOnePixelHeight = frustumV_vec/g_bufferHeight;
+
+
+
+
+#if 1
+
+    // run analyse render pass
+    g_renderPassAnalyse->performAnalysePass(g_deviceGid,
+                                            g_camera,
+                                            modelMatrix,
+                                            g_tScaleRatio,
+                                            frustumOnePixelWidth,
+                                            frustumOnePixelHeight,
+                                            g_fbToAnalyseBufferDivide);
+  if (g_enableDynamicLoading)
+  {
+    g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
+
+//    key('B', true);
+  }
+#endif
+
+  // timer
+  gloostTest::Timer timerUpdateDevice;
+  timerUpdateDevice.start();
+
+  // update incore buffer
+  g_clMemoryManager->updateDeviceMemory();
+
+  // /timer
+  timerUpdateDevice.stop();
+  gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // timer
   gloostTest::Timer timerFillBuffer;
@@ -400,34 +452,6 @@ void frameStep()
   timerFillBuffer.stop();
   gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
 
-
-
-#if 1
-  if (g_enableDynamicLoading)
-  {
-    // run analyse render pass
-    g_renderPassAnalyse->performAnalysePass(g_deviceGid,
-                                            g_camera,
-                                            modelMatrix,
-                                            g_tScaleRatio,
-                                            frustumOnePixelWidth,
-                                            frustumOnePixelHeight,
-                                            g_fbToAnalyseBufferDevide);
-
-    g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
-  }
-#endif
-
-  // timer
-  gloostTest::Timer timerUpdateDevice;
-  timerUpdateDevice.start();
-
-  // update incore buffer
-  g_clMemoryManager->updateDeviceMemory();
-
-  // /timer
-  timerUpdateDevice.stop();
-  gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
 
 }
 
@@ -475,10 +499,27 @@ void draw2d()
 
       if (g_showRayCastImage)
       {
+
         gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
         glDisable(GL_CULL_FACE);
         frameBufferTexture->bind();
 
+
+        glPushMatrix();
+        {
+          glTranslated(0.0, g_screenHeight, 0.0);
+          glScaled(g_screenWidth, -(int)g_screenHeight, 1.0);
+          gloost::drawQuad();
+        }
+        glPopMatrix();
+        frameBufferTexture->unbind();
+
+      }
+      else
+      {
+        gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_renderPassAnalyse->getTestFrameBufferGid());
+        glDisable(GL_CULL_FACE);
+        frameBufferTexture->bind();
 
         glPushMatrix();
         {

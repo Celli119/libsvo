@@ -41,6 +41,7 @@
 // cpp includes
 #include <string>
 #include <iostream>
+#include <omp.h>
 
 
 
@@ -108,7 +109,9 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
 //  std::cerr << std::endl << "             creating Attributes for " << treelet->getFinalLeafQueueElements().size() << " final leafes";
 
   // for all samples
-  for (unsigned i=0; i!=treelet->getFinalLeafQueueElements().size(); ++i)
+  omp_set_num_threads(4);
+  #pragma omp parallel for
+  for (unsigned i=0; i<treelet->getFinalLeafQueueElements().size(); ++i)
   {
 
     Treelet::QueueElement& queueElement = treelet->getFinalLeafQueueElements()[i];
@@ -137,8 +140,6 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
 
     normal.normalize();
 
-
-
     color[0] = gloost::clamp(color[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
     color[1] = gloost::clamp(color[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
     color[2] = gloost::clamp(color[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
@@ -152,19 +153,6 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
     unsigned nodeAttributePosition = buildManager->getAttributeBuffer(treeletGid)->getPackageIndex(queueElement._localLeafIndex);
     buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition++] = gloost::unsigned_as_float(compressedNormal);
     buildManager->getAttributeBuffer(treeletGid)->getVector()[nodeAttributePosition]   = gloost::unsigned_as_float(compressedColor);
-//
-////
-//    std::cerr << std::endl << "";
-//    std::cerr << std::endl << "createFinalLeafesAttributes ---------------------------------------------------------------------";
-//    std::cerr << std::endl << "normal          : " << normal;
-//    std::cerr << std::endl << "compressedNormal: " << gloost::Vector3::uncompressAsNormal(compressedNormal);
-//    std::cerr << std::endl << "compressedNormal: " << compressedNormal;
-////    std::cerr << std::endl;
-//    std::cerr << std::endl << "           Color: " << color;
-//    std::cerr << std::endl << "compressedColor: " << gloost::Vector3::uncompressAsColor(compressedColor);
-//    std::cerr << std::endl << "compressedColor: " << compressedColor;
-//
-
   }
 
   // clear all final leafes

@@ -74,7 +74,8 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _feedbackBufferGid(0),
     _visibleNewTreeletsGids(),
     _visibleOldTreeletsGids(),
-    _rumble(true)
+    _rumble(false),
+    _testFramebufferTextureId(0)
 {
 
   // setting up feedback buffer
@@ -93,6 +94,36 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
   gloostTest::TimerLog::get()->addTimer("analyse.1_enqueueKernel");
   gloostTest::TimerLog::get()->addTimer("analyse.2_readbackBuffer");
   gloostTest::TimerLog::get()->addTimer("analyse.3_processBuffer");
+
+
+  // test texture, see what the analyser sees
+  gloost::Texture* texture = new gloost::Texture( _bufferWidth,
+                                                  _bufferHeight,
+                                                  1,
+                                                  0,//(unsigned char*)&pixelData->getVector().front(),
+                                                  16,
+                                                  GL_TEXTURE_2D,
+                                                  GL_RGBA16F,
+                                                  GL_RGBA,
+                                                  GL_FLOAT);
+
+  _testFramebufferTextureId = gloost::TextureManager::get()->addTexture(texture);
+
+  texture->setTexParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  texture->setTexParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  texture->setTexParameter(GL_TEXTURE_BASE_LEVEL, 0);
+  texture->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
+  texture->initInContext();
+
+  gloost::gloostId  _clRenderbufferGid = _memoryManager->getContext()->createClImage( CL_MEM_WRITE_ONLY,
+                                                                                      texture->getTarget(),
+                                                                                      texture->getTextureHandle());
+
+
+  _memoryManager->getContext()->setKernelArgBuffer("renderToFeedbackBuffer", 7, _clRenderbufferGid);
+
+
+
 }
 
 
@@ -165,12 +196,16 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 5, frustumFarLowerLeftPlusOffset /*frustum.far_lower_left*/);
   clContext->setKernelArgFloat4("renderToFeedbackBuffer", 6, modelMatrix * camera->getPosition());
 
-  clContext->enqueueKernel(deviceGid,
-                           "renderToFeedbackBuffer",
-                           2u,
-                           gloost::Vector3(_bufferWidth, _bufferHeight, 1),
-                           true,
-                           gloost::Vector3(8, 8, 0));
+  _memoryManager->getContext()->acquireGlObjects(deviceGid, "renderToFeedbackBuffer");
+  {
+    clContext->enqueueKernel(deviceGid,
+                             "renderToFeedbackBuffer",
+                             2u,
+                             gloost::Vector3(_bufferWidth, _bufferHeight, 1),
+                             true,
+                             gloost::Vector3(8, 8, 0));
+  }
+  _memoryManager->getContext()->releaseGlObjects(deviceGid);
 
 
   timerAnalysePass.stop();
@@ -257,7 +292,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
         unsigned treeletGid = _memoryManager->getSlots()[slotId]._treeletGid;
 
-        if (treeletGid < 0 || treeletGid > _memoryManager->getTreelets().size())
+
+        if (treeletGid < 1 || treeletGid > _memoryManager->getTreelets().size())
         {
           std::cerr << std::endl;
           std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
@@ -295,8 +331,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   }
 
 
-
-  static const unsigned maxTreeletsToPropergate = 1024;
+  static const unsigned maxTreeletsToPropergate = 768;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
@@ -427,6 +462,22 @@ bool
 RenderPassAnalyse::getEnableRumble()
 {
   return _rumble;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
+  \brief   returns the test framebuffer gid
+  \param   ...
+  \remarks ...
+*/
+
+gloost::gloostId
+RenderPassAnalyse::getTestFrameBufferGid() const
+{
+  return _testFramebufferTextureId;
 }
 
 
