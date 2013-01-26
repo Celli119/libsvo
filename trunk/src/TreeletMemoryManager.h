@@ -71,7 +71,7 @@ class TreeletMemoryManager
 	  struct VisibilityAndError
 	  {
       VisibilityAndError():
-        _treeletGid(0),
+        _treeletGid(-1),
         _visibility(0),
         _error(100000)
       {}

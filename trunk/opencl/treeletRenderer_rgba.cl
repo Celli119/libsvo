@@ -480,7 +480,7 @@ shade_phong(const SampleResult* result,
     float4 color  = getColor(result->nodeIndex, attribs);
 
     // light
-    const float3 lightDirection = normalize((float3)(25.5f, 55.0f, 25.0f) - result->nodeCenter);
+    const float3 lightDirection = normalize((float3)(25.5f, 55.0f, 55.0f) - result->nodeCenter);
 
     // diffuse
     float nDotL = max(0.0f, dot(normal, lightDirection));
@@ -503,9 +503,11 @@ shade_phong(const SampleResult* result,
     float shadow = 0.0f;
 #endif
 
-    color =   color*0.1
-            + color*nDotL*(1.0f-shadow)
-            + color*specular;
+    shadow = (1.0f-shadow);
+
+    color =   color*0.5
+            + color*nDotL*shadow
+            + color*specular*shadow;
 
     color.w = 1.0f;
 
@@ -1061,7 +1063,8 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
                          const float4          pixelFarVectorH,
                          const float4          pixelFarVectorV,
                          const float4          far_lower_left,
-                         const float4          cameraPosition)
+                         const float4          cameraPosition,
+                         __write_only image2d_t renderbuffer)
 {
   const unsigned x = get_global_id(0);
   const unsigned y = get_global_id(1);
@@ -1085,7 +1088,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   // primary ray
   sampleAnalyse(  svo,
                   cameraPosition.xyz, rayDirection.xyz,
-                  frameBufferSize.z,
+                  frameBufferSize.z,     // <- scaleRatio
                   &result);
 
   FeedBackDataElement feedBackElemet;
@@ -1093,6 +1096,22 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   feedBackElemet._isLeafeWithSubtreelet  = result._isLeafeWithSubtreelet;
   feedBackElemet._errorIfLeafe           = result._errorIfLeafe;
   feedBackElemet._quality2               = 1.0f;
+
+
+    if ((bool)result._nodePosOrTreeletGid)
+    {
+      write_imagef ( renderbuffer,
+                     (int2)(x,y),
+                     (float4)(result._isLeafeWithSubtreelet, 0.0, result._errorIfLeafe, 1.0f));
+    }
+    else
+    {
+      write_imagef (renderbuffer,
+                    (int2)(x,y),
+                    (float4)(0.2f,0.3f,0.2f,1.0f));
+    }
+
+
 
   const unsigned frameBufferPosition = (unsigned)(x + frameBufferSize.x*y);
   feedbackBuffer[frameBufferPosition] = feedBackElemet;
