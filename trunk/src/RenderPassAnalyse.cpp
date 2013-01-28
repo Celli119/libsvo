@@ -74,7 +74,7 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
     _feedbackBufferGid(0),
     _visibleNewTreeletsGids(),
     _visibleOldTreeletsGids(),
-    _rumble(false),
+    _rumble(true),
     _testFramebufferTextureId(0)
 {
 
@@ -241,71 +241,65 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   for (unsigned i=0; i!=_hostSideFeedbackBuffer.size(); ++i)
   {
     // if there was a hit within the svo
-    if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)
+    if (_hostSideFeedbackBuffer[i]._nodeId)
     {
       // if this hit was a leaf with assoziated subTreelet
-      if (_hostSideFeedbackBuffer[i]._isLeafeWithSubtreelet)
+      if (_hostSideFeedbackBuffer[i]._subTreeletGid)
       {
 
-        if (_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid < 0 || _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid > _memoryManager->getTreelets().size())
+        if (_hostSideFeedbackBuffer[i]._nodeId < 0 || _hostSideFeedbackBuffer[i]._subTreeletGid > _memoryManager->getTreelets().size())
         {
           std::cerr << std::endl;
           std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
-          std::cerr << std::endl << "         Tried to access Treelet with Gid: " << _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid;
+          std::cerr << std::endl << "         Tried to access Treelet with Gid: " << _hostSideFeedbackBuffer[i]._subTreeletGid;
           std::cerr << std::endl << "         (For an leafe with sub treelet): ";
           return;
         }
 
         // check if treeletGid was already noted and update error if necessary
-        std::map<gloost::gloostId, float>::iterator pos = visibleNewTreeletGidsMap.find(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid);
+        std::map<gloost::gloostId, float>::iterator pos = visibleNewTreeletGidsMap.find(_hostSideFeedbackBuffer[i]._subTreeletGid);
 
         if (pos == visibleNewTreeletGidsMap.end())
         {
-          visibleNewTreeletGidsMap[_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid] = _hostSideFeedbackBuffer[i]._errorIfLeafe;
+          visibleNewTreeletGidsMap[_hostSideFeedbackBuffer[i]._subTreeletGid] = _hostSideFeedbackBuffer[i]._error;
         }
         else
         {
-          if (_hostSideFeedbackBuffer[i]._errorIfLeafe > pos->second)
+          if (_hostSideFeedbackBuffer[i]._error > pos->second)
           {
-            pos->second = _hostSideFeedbackBuffer[i]._errorIfLeafe;
+            pos->second = _hostSideFeedbackBuffer[i]._error;
           }
         }
 
-        addNodeAndItsParentTreeletsToVisibleTreelets( _memoryManager->getTreelet(_hostSideFeedbackBuffer[i]._nodePosOrTreeletGid)->getParentTreeletGid(),
-                                                      _hostSideFeedbackBuffer[i]._errorIfLeafe,
-                                                      visibleOldTreeletGidsMap);
       }
-      // if this hit was an inner node or a final leaf
-      else
+
+
+      unsigned slotId = _hostSideFeedbackBuffer[i]._nodeId / _memoryManager->getNumNodesPerTreelet();
+
+      if (slotId < 0 || slotId > _memoryManager->getTreelets().size())
       {
-        unsigned slotId = _hostSideFeedbackBuffer[i]._nodePosOrTreeletGid / _memoryManager->getNumNodesPerTreelet();
-
-        if (slotId < 0 || slotId > _memoryManager->getTreelets().size())
-        {
-          std::cerr << std::endl;
-          std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
-          std::cerr << std::endl << "         Tried to access slotId with Gid: " << slotId;
-          std::cerr << std::endl << "         (For an inner node): ";
-          return;
-        }
-
-
-        unsigned treeletGid = _memoryManager->getSlots()[slotId]._treeletGid;
-
-
-        if (treeletGid < 1 || treeletGid > _memoryManager->getTreelets().size())
-        {
-          std::cerr << std::endl;
-          std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
-          std::cerr << std::endl << "         Tried to access Treelet with Gid: " << treeletGid;
-          std::cerr << std::endl << "         (For an inner node): ";
-          return;
-        }
-
-        addNodeAndItsParentTreeletsToVisibleTreelets( treeletGid,
-                                                      _hostSideFeedbackBuffer[i]._errorIfLeafe,
-                                                      visibleOldTreeletGidsMap);
+        std::cerr << std::endl;
+        std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
+        std::cerr << std::endl << "         Tried to access slotId with Gid: " << slotId;
+        std::cerr << std::endl << "         (For an inner node): ";
+        return;
       }
+
+      unsigned treeletGid = _memoryManager->getSlots()[slotId]._treeletGid;
+
+      if (treeletGid < 0 || treeletGid > _memoryManager->getTreelets().size())
+      {
+        std::cerr << std::endl;
+        std::cerr << std::endl << "ERROR in RenderPassAnalyse::performAnalysePass(): ";
+        std::cerr << std::endl << "         Tried to access Treelet with Gid: " << treeletGid;
+        std::cerr << std::endl << "         (For an inner node): ";
+        return;
+      }
+
+      addNodeAndItsParentTreeletsToVisibleTreelets( treeletGid,
+                                                    _hostSideFeedbackBuffer[i]._error,
+                                                    visibleOldTreeletGidsMap);
+
     }
   }
 
@@ -372,7 +366,6 @@ RenderPassAnalyse::addNodeAndItsParentTreeletsToVisibleTreelets( gloost::gloostI
                                                                  float error,
                                                                  std::map<gloost::gloostId, float>& treeletGidContainer)
 {
-
   while (treeletGid != 0)
   {
     std::map<gloost::gloostId, float>::iterator pos = treeletGidContainer.find(treeletGid);
@@ -394,8 +387,19 @@ RenderPassAnalyse::addNodeAndItsParentTreeletsToVisibleTreelets( gloost::gloostI
     }
 
     treeletGid = _memoryManager->getTreelet(treeletGid)->getParentTreeletGid();
-
   }
+
+
+  if (treeletGid == 0)
+  {
+    treeletGidContainer[0] = 99.0f;
+  }
+  else
+  {
+    std::cerr << std::endl << "ROOT != : " << 0;
+  }
+
+
 }
 
 

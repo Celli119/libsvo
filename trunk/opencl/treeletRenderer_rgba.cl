@@ -514,9 +514,9 @@ shade_phong(const SampleResult* result,
     return color;
   }
 
-  return (float4)( 0.2f,
-                   0.3f,
-                   0.2f,
+  return (float4)( 0.4f,
+                   0.6f,
+                   0.4f,
                    1.0f);
 }
 
@@ -842,21 +842,21 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 //
 typedef struct
 {
-  int   _nodePosOrTreeletGid;
-  int   _isLeafeWithSubtreelet;
-  float _errorIfLeafe;
-  float _quality2;
+  int      _nodeId;
+  float    _error;
+  int      _subTreeletGid;
+  int      _fill;
 } __attribute__ ( ( aligned ( 16 ) ) ) FeedBackDataElement;
 
 
 //
-typedef struct
-{
-  int      _isLeafeWithSubtreelet;
-  int      _nodePosOrTreeletGid;
-  float    _errorIfLeafe;
-  float    _quality2;
-}/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
+//typedef struct
+//{
+//  int      _nodeId;
+//  float    _error;
+//  int      _subTreeletGid;
+//  int      _fill;
+//}/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -868,7 +868,7 @@ sampleAnalyse( __global const SvoNode* svo,
                float3 rayOrigin,
                float3 rayDirection,
                const float tScaleRatio,
-               FeedBackDataSample* sampleResult)
+               FeedBackDataElement* sampleResult)
 {
   float tMin,tMax;
   if (!intersectAABB( rayOrigin, rayDirection, &tMin, &tMax)) {
@@ -988,21 +988,9 @@ sampleAnalyse( __global const SvoNode* svo,
                the firtChildIndex is the Gid of that subtreelet
             2. This leafe is a leafe of ther whole svo and has no subtreelet
           */
-
-          sampleResult->_errorIfLeafe = scale_exp2-(tScaleRatio*tcMin);
-
-          if (svo[leafIndex]._firstchildIndex)
-          {
-            // ### WRITE required Treelet Gid encoded in the first child
-            sampleResult->_isLeafeWithSubtreelet = true;
-            sampleResult->_nodePosOrTreeletGid   = svo[leafIndex]._firstchildIndex; // <- which is the Treelet Gid of the child Treelet
-          }
-          else
-          {
-            sampleResult->_isLeafeWithSubtreelet = false;
-            sampleResult->_nodePosOrTreeletGid   = leafIndex;
-          }
-
+          sampleResult->_nodeId                = leafIndex;
+          sampleResult->_error                 = scale_exp2-(tScaleRatio*tcMin);
+          sampleResult->_subTreeletGid          = svo[leafIndex]._firstchildIndex; // <<  bigger as 0 if subtreelet exists
           return true;
         }
         else
@@ -1013,9 +1001,10 @@ sampleAnalyse( __global const SvoNode* svo,
             unsigned returnchildIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
                                                                                  svo[parent->parentNodeIndex]._firstchildIndex,
                                                                                  childIdx);
-            sampleResult->_isLeafeWithSubtreelet            = false;
-            sampleResult->_nodePosOrTreeletGid = returnchildIndex;
-//            sampleResult->_errorIfLeafe      = 0.0f;//tScaleRatio*tcMin / scale_exp2;
+
+            sampleResult->_nodeId                = returnchildIndex;
+            sampleResult->_error                 = tScaleRatio*tcMin > scale_exp2;
+            sampleResult->_subTreeletGid          = 0;
             return true;
           }
 
@@ -1079,10 +1068,10 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   rayDirection.w      = 0.0f;
   rayDirection        = normalize(rayDirection);
 
-  FeedBackDataSample result;
-  result._isLeafeWithSubtreelet = 0;
-  result._nodePosOrTreeletGid   = 0;
-  result._errorIfLeafe          = 0.0f;
+  FeedBackDataElement result;
+  result._nodeId        = 0;
+  result._error         = 0;
+  result._subTreeletGid = 0.0f;
 
 
   // primary ray
@@ -1091,18 +1080,12 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
                   frameBufferSize.z,     // <- scaleRatio
                   &result);
 
-  FeedBackDataElement feedBackElemet;
-  feedBackElemet._nodePosOrTreeletGid    = result._nodePosOrTreeletGid;
-  feedBackElemet._isLeafeWithSubtreelet  = result._isLeafeWithSubtreelet;
-  feedBackElemet._errorIfLeafe           = result._errorIfLeafe;
-  feedBackElemet._quality2               = 1.0f;
 
-
-    if ((bool)result._nodePosOrTreeletGid)
+    if ((bool)result._nodeId)
     {
       write_imagef ( renderbuffer,
                      (int2)(x,y),
-                     (float4)(result._isLeafeWithSubtreelet, 0.0, result._errorIfLeafe, 1.0f));
+                     (float4)(result._subTreeletGid, 0.0, result._error, 1.0f));
     }
     else
     {
@@ -1114,7 +1097,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
 
 
   const unsigned frameBufferPosition = (unsigned)(x + frameBufferSize.x*y);
-  feedbackBuffer[frameBufferPosition] = feedBackElemet;
+  feedbackBuffer[frameBufferPosition] = result;
 }
 
 

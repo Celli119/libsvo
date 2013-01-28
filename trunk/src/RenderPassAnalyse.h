@@ -42,16 +42,16 @@ class RenderPassAnalyse
 	  {
 	    FeedBackDataElement()
 	    {
-	      _nodePosOrTreeletGid   = 0;
-	      _isLeafeWithSubtreelet = 0;
-	      _errorIfLeafe        = 0.0f;
-	      unused               = 0.0f;
+	      _nodeId        = 0;
+	      _error         = 0.0f;
+	      _subTreeletGid = 0;
+	      _fill          = 0;
 	    }
 
-      int      _nodePosOrTreeletGid;
-      int      _isLeafeWithSubtreelet;
-      float    _errorIfLeafe;
-      float    unused;
+      int      _nodeId;
+      float    _error;
+      int      _subTreeletGid;
+      int      _fill;
 	  };
 
 	  struct TreeletGidAndError
