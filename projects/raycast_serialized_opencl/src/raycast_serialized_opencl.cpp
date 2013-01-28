@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDivide = 1.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 4.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -119,6 +119,7 @@ void resize(int width, int height);
 void key(int key, int state);
 void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
+void showTreeletCounters();
 
 
 
@@ -129,16 +130,13 @@ void idle(void);
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 32/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
 
   // load svo
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
-
-
-  SIND DIE HOCHGELADENEN AUCH VISIBLE?
 
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
@@ -339,7 +337,7 @@ void frameStep()
   }
 
   // up and down
-  if (glfwGetKey(' ' ))
+  if (glfwGetKey(' '))
   {
     camSpeed +=  upVector * speedAdd;
   }
@@ -382,8 +380,10 @@ void frameStep()
 
 
 
-#if 1
+  if (g_enableDynamicLoading)
+  {
 
+#if 1
     // run analyse render pass
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
@@ -392,10 +392,23 @@ void frameStep()
                                             frustumOnePixelWidth,
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDivide);
-  if (g_enableDynamicLoading)
-  {
+
+
+//    static bool oneTimeToggleY = false;
+//
+//    if (glfwGetKey('Y') && !oneTimeToggleY)
+    {
+//      oneTimeToggleY = true;
+      showTreeletCounters();
+    }
+//    else
+//    {
+//      oneTimeToggleY = false;
+//    }
+
     g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
 
+    // disable dynamic dynamic loading
 //    key('B', true);
   }
 #endif
@@ -410,18 +423,6 @@ void frameStep()
   // /timer
   timerUpdateDevice.stop();
   gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -451,6 +452,8 @@ void frameStep()
   // /timer
   timerFillBuffer.stop();
   gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
+
+
 
 
 }
@@ -664,6 +667,71 @@ void resize(int width, int height)
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+void showTreeletCounters()
+{
+
+  static unsigned testpassCounter = 0;
+  ++testpassCounter;
+
+//  for (unsigned i=0; i!=20; ++i)
+//  {
+//   std::cerr << std::endl << "++ " << testpassCounter << " ++++++++++++++++++++++++++++++++++++++++++++++: ";
+//  }
+
+  std::map<gloost::gloostId, int>& uploadTreetsIncore   = g_clMemoryManager->getTreeletUploadCounters();
+  std::map<gloost::gloostId, int>::iterator counterIt    = uploadTreetsIncore.begin();
+  std::map<gloost::gloostId, int>::iterator counterEndIt = uploadTreetsIncore.end();
+
+  std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>& _visibleOldTreeletsGids = g_renderPassAnalyse->getVisibleOldTreeletsGids();
+
+//  std::cerr << std::endl << "Treelets size: " << uploadTreetsIncore.size();
+//  std::cerr << std::endl << "Visible size:  " << g_renderPassAnalyse->getVisibleOldTreeletsGids().size();
+
+  return;
+
+
+  for (; counterIt!=counterEndIt; ++counterIt)
+  {
+
+    std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>::iterator visibleIt    = _visibleOldTreeletsGids.begin();
+    std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>::iterator visibleEndIt = _visibleOldTreeletsGids.end();
+
+    bool found       = false;
+    gloost::gloostId treeletId = 0;
+
+    for (; visibleIt!=visibleEndIt; ++visibleIt)
+    {
+
+      svo::RenderPassAnalyse::TreeletGidAndError tve = (*visibleIt);
+      treeletId = tve._treeletGid;
+
+      if (tve._treeletGid == counterIt->first)
+      {
+        found = true;
+      }
+//      std::cerr << std::endl << "tve._treeletGid: " << tve._treeletGid;
+    }
+
+    if (!found)
+    {
+//      std::cerr << std::endl << "uploaded but not visible: " << treeletId;
+    }
+//    else
+//    {
+//      std::cerr << std::endl << "OK: " << treeletId;
+//    }
+
+
+  }
+
+
+
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -754,7 +822,6 @@ void key(int key, int state)
         g_context->reloadProgram("../opencl/treeletRenderer_rgba.cl");
         g_frameDirty = true;
         break;
-
 
       case '+':
         ++g_tScaleRatioMultiplyer;

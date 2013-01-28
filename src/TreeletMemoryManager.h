@@ -156,6 +156,8 @@ class TreeletMemoryManager
     std::vector<VisibilityAndError>& getSlots();
 
 
+   std::map<gloost::gloostId, int>& getTreeletUploadCounters();
+
 	protected:
 
 
@@ -178,6 +180,9 @@ class TreeletMemoryManager
     std::stack<unsigned>                         _freeIncoreSlots;
 
     std::set<gloost::gloostId>                   _incoreSlotsToUpload;
+
+    // TEST
+    std::map<gloost::gloostId, int> _treeletUploadCounters;
 
 
 
