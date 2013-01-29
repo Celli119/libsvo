@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDivide = 4.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 8.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -141,13 +141,15 @@ void init()
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "venus_s4_d7";
+//  const std::string svoBaseName  = "david_face_d10_4";
 //  const std::string svoBaseName  = "frog2_seperated_s8_d7";
 //  const std::string svoBaseName  = "ring_11_4";w
 //  const std::string svoBaseName  = "Decimated_head_11_4";
 //  const std::string svoBaseName  = "david_2mm_13";
 //  const std::string svoBaseName  = "Decimated_head_9";
 //  const std::string svoBaseName  = "monster_12";
-  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
+  const std::string svoBaseName  = "venus_s8_d12";
+//  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
 //  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
 
 
@@ -712,17 +714,17 @@ void showTreeletCounters()
       {
         found = true;
       }
-//      std::cerr << std::endl << "tve._treeletGid: " << tve._treeletGid;
+      std::cerr << std::endl << "tve._treeletGid: " << tve._treeletGid;
     }
 
     if (!found)
     {
-//      std::cerr << std::endl << "uploaded but not visible: " << treeletId;
+      std::cerr << std::endl << "uploaded but not visible: " << treeletId;
     }
-//    else
-//    {
-//      std::cerr << std::endl << "OK: " << treeletId;
-//    }
+    else
+    {
+      std::cerr << std::endl << "OK: " << treeletId;
+    }
 
 
   }
