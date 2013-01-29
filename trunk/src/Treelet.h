@@ -208,10 +208,11 @@ class Treelet
     unsigned getFirstLeafIndex() const;
 
 
-    // returns the slot Gid of this treelet within the incore buffer
+    // returns the slot Gid of this treelet within the incore buffer, -1 if not incore
     gloost::gloostId  getIncoreSlotPosition() const;
-    // sets the slot Gid of this treelet within the incore buffer
-    void setIncoreSlotPosition(unsigned incoreSlotGid);
+
+    // sets the slot Gid of this treelet within the incore buffer, -1 if not incore
+    void setIncoreSlotPosition(gloost::gloostId incoreSlotGid);
 
 
 	protected:
@@ -235,9 +236,6 @@ class Treelet
 
     // container of all leaf QueueElements with required or more depth
     std::vector<QueueElement> _finalLeafQueueElements;
-
-//    // gloost::InterleavedAttributes
-//    gloost::InterleavedAttributes* _attributeBuffer;
 
     gloost::gloostId   _incoreSlotGid;  // slot Gid of this treelet within the incore buffer
 };

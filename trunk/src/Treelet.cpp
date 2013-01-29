@@ -338,7 +338,7 @@ Treelet::getIncoreSlotPosition() const
 */
 
 void
-Treelet::setIncoreSlotPosition(unsigned incoreSlotGid)
+Treelet::setIncoreSlotPosition(gloost::gloostId  incoreSlotGid)
 {
   _incoreSlotGid = incoreSlotGid;
 }

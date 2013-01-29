@@ -98,10 +98,10 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
 
 
   // fill up incoreBuffer
-#if 1
-  unsigned treeletGid = 1;
-  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(VisibilityAndError(treeletGid, MAX_VISIBILITY, 100)))
-//  for (unsigned i=0; i!=1; ++i)
+#if 0
+//  unsigned treeletGid = 1;
+//  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(VisibilityAndError(treeletGid, MAX_VISIBILITY, 100)))
+  for (unsigned treeletGid=1; treeletGid!=100; ++treeletGid)
   {
     insertTreeletIntoIncoreBuffer(VisibilityAndError(treeletGid, MAX_VISIBILITY, 100));
   }
@@ -280,7 +280,6 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
     std::cerr << std::endl;
     std::cerr << std::endl << "ERROR in : TreeletMemoryManager::loadFromFile()";
     std::cerr << std::endl << "           Could NOT open file" << filePath << ".ia";
-//    std::cerr << std::endl << "> ";
     return false;
   }
 
@@ -289,7 +288,6 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
-//    std::cerr << i << ", ";
     _attributeBuffers[i] = new gloost::InterleavedAttributes();
     _attributeBuffers[i]->loadFromFile(inFileAttributes);
   }
@@ -319,21 +317,24 @@ TreeletMemoryManager::resetIncoreBuffer()
 
   _treeletUploadCounters.clear();
 
-  std::vector< std::vector<unsigned> >().swap(_childTreeletsInIncoreBuffer);
-  _childTreeletsInIncoreBuffer.resize(_treelets.size(), std::vector<unsigned>());
+  std::vector< std::set<gloost::gloostId > >().swap(_childTreeletsInIncoreBuffer);
+  _childTreeletsInIncoreBuffer.resize(_treelets.size(), std::set<gloost::gloostId>());
 
 
-  std::cerr << std::endl;
-  std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
 
   // allocate incoreBuffer
   unsigned numNodesInIncoreBuffer = (_incoreBufferSizeInByte/SVO_CPUSVONODE_NODE_SIZE);
   _incoreBuffer.resize(numNodesInIncoreBuffer);
 
+  unsigned maxNumTreeletsInIncoreBuffer = std::floor(_incoreBufferSizeInByte/(float)_treeletSizeInByte);
+
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "Message from TreeletMemoryManager::initIncoreBuffer(): ";
   std::cerr << std::endl << "             incore buffer size:      " << _incoreBufferSizeInByte/1024/1024 << " MB";
   std::cerr << std::endl << "             incore num nodes:        " << _incoreBuffer.size();
+  std::cerr << std::endl << "             incore num Treelets:     " << maxNumTreeletsInIncoreBuffer;
 
-  unsigned maxNumTreeletsInIncoreBuffer = std::floor(_incoreBufferSizeInByte/(float)_treeletSizeInByte);
 
   _slots.resize(maxNumTreeletsInIncoreBuffer, VisibilityAndError());
 
@@ -344,7 +345,8 @@ TreeletMemoryManager::resetIncoreBuffer()
 
   for (unsigned i=1; i!=maxNumTreeletsInIncoreBuffer+1; ++i)
   {
-    _freeIncoreSlots.push((int)maxNumTreeletsInIncoreBuffer - (int)i);
+    int slotId = (int)maxNumTreeletsInIncoreBuffer - (int)i;
+    _freeIncoreSlots.push(slotId);
   }
 
 
@@ -382,7 +384,6 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
       --_slots[i]._visibility;
     }
 
-    _slots[0]._visibility = 1000;
 
     // set visibility of visible treelets
     std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleOldTreelets = renderPassAnalyse->getVisibleOldTreeletsGids();
@@ -392,12 +393,27 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
 
     for (; treeletGidAndErrorIt!=treeletGidAndErrorEndIt; ++treeletGidAndErrorIt)
     {
-      unsigned slotPos = _treeletGidToSlotGidMap[ (*treeletGidAndErrorIt)._treeletGid];
+      unsigned slotPos = _treeletGidToSlotGidMap[(*treeletGidAndErrorIt)._treeletGid];
       _slots[slotPos]._visibility = MAX_VISIBILITY;
 
 //      std::cerr << std::endl << "update: " << (*treeletGidAndErrorIt)._treeletGid << " to " << _slots[slotPos]._visibility;
     }
   }
+
+
+//  std::map<gloost::gloostId, gloost::gloostId>::iterator treeIt    =  _treeletGidToSlotGidMap.begin();
+//  std::map<gloost::gloostId, gloost::gloostId>::iterator treeEndIt =  _treeletGidToSlotGidMap.end();
+//
+//  for (; treeIt!=treeEndIt; ++treeIt)
+//  {
+//    if (treeIt->second == 0)
+//    {
+//      std::cerr << std::endl << "word: " << treeIt->first << " slot is set to " << treeIt->second;
+//    }
+//  }
+
+
+
 
 
   std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = renderPassAnalyse->getVisibleNewTreeletsGids();
@@ -426,18 +442,22 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
 {
 
   // test if Treelet is allready in incore buffer
-  std::map<gloost::gloostId, unsigned>::iterator pos = _treeletGidToSlotGidMap.find(tve._treeletGid);
-  if (pos != _treeletGidToSlotGidMap.end() &&  (*pos).second != 0)
+  std::map<gloost::gloostId, gloost::gloostId>::iterator pos = _treeletGidToSlotGidMap.find(tve._treeletGid);
+  if (pos != _treeletGidToSlotGidMap.end())
   {
     std::cerr << std::endl << "insertTreeletIntoIncoreBuffer: " << tve._treeletGid << " is allready in incoreBuffer !!!";
     return false;
   }
 
 
-//  while (freeIncorePosition(tve));
+  if (tve._treeletGid >= _treelets.size())
+  {
+    std::cerr << std::endl << "TreeletMemoryManager::insertTreeletIntoIncoreBuffer: " << tve._treeletGid;
+    return false;
+  }
 
 
-  if (!_freeIncoreSlots.size() || tve._treeletGid >= _treelets.size())
+  if (!_freeIncoreSlots.size())
   {
     if (!freeIncorePosition(tve))
     {
@@ -445,8 +465,13 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
     }
   }
 
-  unsigned freeSlotGid = _freeIncoreSlots.top();
+  gloost::gloostId freeSlotGid = _freeIncoreSlots.top();
   _freeIncoreSlots.pop();
+
+  if (freeSlotGid == 0)
+  {
+    std::cerr << std::endl << "!!! freeSlotGid == 0: ";
+  }
 
   ++_treeletUploadCounters[tve._treeletGid];
 
@@ -480,7 +505,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
 
 
   // mark incore slot of new Treelet to be uploaded to device memory
-  markIncoreSlotForUpload(_treeletGidToSlotGidMap[tve._treeletGid]);
+  markIncoreSlotForUpload(freeSlotGid);
 
 
   // updating corresponding parent treelets leaf
@@ -511,7 +536,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
   markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
 
   // note treeletGid to parent position within the _childTreeletsInIncoreBuffer
-  _childTreeletsInIncoreBuffer[parentTreeletGid].push_back(tve._treeletGid);
+  _childTreeletsInIncoreBuffer[parentTreeletGid].insert(tve._treeletGid);
 
 
   return true;
@@ -542,23 +567,36 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
     }
   }
 
+//  std::map<int, gloost::gloostId > treeletsSortedByVisibility;
+
+//  for (unsigned i=0; i!=_slots.size(); ++i)
+//  {
+//    if (_slots[i]._visibility < 0)
+//    {
+//      treeletsSortedByVisibility[_slots[i]._visibility] = _slots[i]._treeletGid;
+//    }
+//  }
+//
+//  if (treeletsSortedByVisibility.size())
+//  {
+//    freeableTreeletGid._treeletGid = treeletsSortedByVisibility.begin()->second;
+//  }
+//  else
+//  {
+//    return false;
+//  }
+
+
   // no slot to free found
   if (freeableTreeletGid._treeletGid == 0)
   {
     return false;
   }
 
-  std::cerr << std::endl;
-  std::cerr << std::endl << "found freeable gid: " << freeableTreeletGid._treeletGid;
-  std::cerr << std::endl << "    child treelets: " << _childTreeletsInIncoreBuffer[freeableTreeletGid._treeletGid].size();
-
-
-  // collect all child treelets of this freeable treelet and free the slots
+  // check all treeletGids attached below this treelet in the incore buffer
   std::queue<gloost::gloostId> childTreeletsQueue;
   childTreeletsQueue.push(freeableTreeletGid._treeletGid);
 
-
-  // gather all treeletGids attached below this treelet in the incore buffer
   unsigned freeCounter = 0;
   std::vector<unsigned> childTreeletsTreeletsToClear;
   while (childTreeletsQueue.size())
@@ -566,15 +604,31 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
     gloost::gloostId parentTreeletGid = childTreeletsQueue.front();
     childTreeletsQueue.pop();
 
-    // for all child treelets also in the incore buffer
-    for (unsigned i=0; i!=_childTreeletsInIncoreBuffer[parentTreeletGid].size(); ++i)
+    // for all child treelets also in the incore buffer, find subsubTreelet with no further subTreelets
+
+    if (_childTreeletsInIncoreBuffer[parentTreeletGid].size() == 0)
     {
-      gloost::gloostId childTreeletGid = _childTreeletsInIncoreBuffer[parentTreeletGid][i];
-      childTreeletsQueue.push(childTreeletGid);
-      childTreeletsTreeletsToClear.push_back(childTreeletGid);
+      childTreeletsTreeletsToClear.push_back(parentTreeletGid);
     }
-    // clear child treelet ids
-    std::vector<unsigned>().swap(_childTreeletsInIncoreBuffer[parentTreeletGid]);
+    else
+    {
+      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetIt    = _childTreeletsInIncoreBuffer[parentTreeletGid].begin();
+      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetEndIt = _childTreeletsInIncoreBuffer[parentTreeletGid].end();
+
+      for (; childrenInIncoreBufferSetIt!=childrenInIncoreBufferSetEndIt; ++childrenInIncoreBufferSetIt)
+      {
+        gloost::gloostId childTreeletGid = (*childrenInIncoreBufferSetIt);
+        childTreeletsQueue.push(childTreeletGid);
+
+        if (_treeletGidToSlotGidMap.find(childTreeletGid) == _treeletGidToSlotGidMap.end())
+        {
+          std::cerr << std::endl;
+          std::cerr << std::endl << "_treeletGidToSlotGidMap.find(childTreeletGid) == _treeletGidToSlotGidMap.end(): " << childTreeletGid;
+          std::cerr << std::endl << "   !!! childTreeletsTreeletsToClear: " << childTreeletGid;
+          std::cerr << std::endl;
+        }
+      }
+    }
   }
 
 
@@ -582,20 +636,26 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
   for (unsigned i=0; i!=childTreeletsTreeletsToClear.size(); ++i)
   {
     unsigned childTreeletGid = childTreeletsTreeletsToClear[i];
+    unsigned slotId          = _treeletGidToSlotGidMap[childTreeletGid];
 
-    unsigned slotId = _treeletGidToSlotGidMap[childTreeletGid];
-    _treeletGidToSlotGidMap.erase(childTreeletGid);
-    _slots[slotId] = VisibilityAndError();
-    _freeIncoreSlots.push(slotId);
-    ++freeCounter;
-    --_treeletUploadCounters[childTreeletGid];
+    if (slotId == 0)
+    {
+      std::cerr << std::endl;
+      std::cerr << std::endl << "!!! TRYING TO FREE SLOT 0: ";
+      std::cerr << std::endl << "               Treelet id = " << childTreeletGid;
+      std::cerr << std::endl;
+    }
+    else
+    {
+      removeTreeletFromIncoreBuffer(childTreeletGid);
+      --_treeletUploadCounters[childTreeletGid];
+    }
   }
 
-  std::cerr << std::endl << "freeCounter:                  " << freeCounter;
+//  std::cerr << std::endl << "freeCounter:                  " << freeCounter;
 
-  removeTreeletFromIncoreBuffer(freeableTreeletGid._treeletGid);
-
-  --_treeletUploadCounters[freeableTreeletGid._treeletGid];
+//  removeTreeletFromIncoreBuffer(freeableTreeletGid._treeletGid);
+//  --_treeletUploadCounters[freeableTreeletGid._treeletGid];
 
   return true;
 }
@@ -613,15 +673,16 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
 bool
 TreeletMemoryManager::removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid)
 {
-
-  std::cerr << std::endl << "removeTreeletFromIncoreBuffer: " << treeletGid;
-
-
   // test if Treelet is actually in incore buffer
-  std::map<gloost::gloostId, unsigned>::iterator pos = _treeletGidToSlotGidMap.find(treeletGid);
-  if (pos == _treeletGidToSlotGidMap.end() || !treeletGid)
+  std::map<gloost::gloostId, gloost::gloostId>::iterator treeletPosIt = _treeletGidToSlotGidMap.find(treeletGid);
+  if (treeletPosIt == _treeletGidToSlotGidMap.end())
   {
-    std::cerr << std::endl << "removeTreeletFromIncoreBuffer: " << treeletGid << " is NOT in incoreBuffer or 0 !!!";
+    std::cerr << std::endl << "removeTreeletFromIncoreBuffer: " << treeletGid << " is NOT in incoreBuffer!!!";
+    return false;
+  }
+  if (!treeletGid)
+  {
+    std::cerr << std::endl << "removeTreeletFromIncoreBuffer: " << treeletGid << " is  0 !!!";
     return false;
   }
 
@@ -631,8 +692,12 @@ TreeletMemoryManager::removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid)
   gloost::gloostId parentTreeletLeafParentPosition = _treelets[treeletGid]->getParentTreeletLeafsParentPosition();
   gloost::gloostId parentTreeletLeafIdx            = _treelets[treeletGid]->getParentTreeletLeafIdx();
 
-  unsigned leafPositionInIncoreBuffer       = _treeletGidToSlotGidMap[parentTreeletGid]*_numNodesPerTreelet + parentTreeletLeafPosition;
-  unsigned leafParentPositionInIncoreBuffer = _treeletGidToSlotGidMap[parentTreeletGid]*_numNodesPerTreelet + parentTreeletLeafParentPosition;
+
+  gloost::gloostId slotGid       = treeletPosIt->second;
+  gloost::gloostId parentSlotGid = _treeletGidToSlotGidMap[parentTreeletGid];
+
+  unsigned leafPositionInIncoreBuffer       = parentSlotGid*_numNodesPerTreelet + parentTreeletLeafPosition;
+  unsigned leafParentPositionInIncoreBuffer = parentSlotGid*_numNodesPerTreelet + parentTreeletLeafParentPosition;
 
   // copy original node/leaf to incore leaf position
   _incoreBuffer[leafPositionInIncoreBuffer] = getTreelet(parentTreeletGid)->getNodeForIndex(parentTreeletLeafPosition);
@@ -641,18 +706,19 @@ TreeletMemoryManager::removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid)
   _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, true);
 
   // mark incore slot of parent to be uploaded to device memory
-  markIncoreSlotForUpload(_treeletGidToSlotGidMap[parentTreeletGid]);
+  markIncoreSlotForUpload(parentSlotGid);
 
 
   // clear slot info
-  _slots[_treeletGidToSlotGidMap[treeletGid]] = VisibilityAndError();
+  _slots[slotGid] = VisibilityAndError();
 
   // add slots to available/free slots
-  _freeIncoreSlots.push(_treeletGidToSlotGidMap[treeletGid]);
+  _freeIncoreSlots.push(slotGid);
 
   //! remove assoziation from treelet gid to slot
-  _treeletGidToSlotGidMap.erase(treeletGid);
+  _treeletGidToSlotGidMap.erase(treeletPosIt);
 
+  _childTreeletsInIncoreBuffer[parentTreeletGid].erase(treeletGid);
 
   return true;
 }

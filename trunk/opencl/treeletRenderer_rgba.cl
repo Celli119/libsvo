@@ -881,6 +881,8 @@ sampleAnalyse( __global const SvoNode* svo,
   const float minNormal  = 0.0001f;
   const float epsilon    = 0.0001f;
 
+  unsigned int deepestNode = scale;
+
   private StackElement stack[MAX_STACK_SIZE];
 
   // init stack with root node
@@ -988,9 +990,9 @@ sampleAnalyse( __global const SvoNode* svo,
                the firtChildIndex is the Gid of that subtreelet
             2. This leafe is a leafe of ther whole svo and has no subtreelet
           */
-          sampleResult->_nodeId                = leafIndex;
-          sampleResult->_error                 = scale_exp2-(tScaleRatio*tcMin);
-          sampleResult->_subTreeletGid          = svo[leafIndex]._firstchildIndex; // <<  bigger as 0 if subtreelet exists
+          sampleResult->_nodeId         = leafIndex;
+          sampleResult->_error          = scale_exp2-(tScaleRatio*tcMin);
+          sampleResult->_subTreeletGid  = svo[leafIndex]._firstchildIndex; // <<  bigger as 0 if subtreelet exists
           return true;
         }
         else
@@ -1019,6 +1021,15 @@ sampleAnalyse( __global const SvoNode* svo,
           stack[scale].parentTMin      = tcMin;
           stack[scale].parentTMax      = tcMax;
           stack[scale].parentCenter    = childCenter;
+
+          // memorize the deepest voxel in case of no final hit
+          if (deepestNode > scale)
+          {
+            deepestNode = scale;
+            sampleResult->_nodeId                = parent->parentNodeIndex;
+            sampleResult->_error                 = tScaleRatio*tcMin > scale_exp2;
+            sampleResult->_subTreeletGid          = 0;
+          }
 
           parent = 0;
           continue;
