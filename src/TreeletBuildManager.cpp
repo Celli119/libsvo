@@ -126,6 +126,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   _attributeBuffers.resize(1, new gloost::InterleavedAttributes());
   {
     _treelets[0] = new Treelet(0u,  // this treelet Gid
+                               0u,  // root node depth
                                0u,  // parents treelet Gid
                                0u,  // leaf position within parent treelet
                                0u,  // idx (0...7) of the leaf in its parent
@@ -207,6 +208,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 #endif
 
       _treelets[treeletId] = new Treelet( treeletId,
+                                          parentIncompleteQueueElements[i]._depth,
                                           parentTreelet->getTreeletGid(),
                                           parentIncompleteQueueElements[i]._localLeafIndex,
                                           parentIncompleteQueueElements[i]._idx,

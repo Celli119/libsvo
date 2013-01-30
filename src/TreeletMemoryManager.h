@@ -155,9 +155,6 @@ class TreeletMemoryManager
     // rettuns a vector containing a Treelet Gid for each slot
     std::vector<VisibilityAndError>& getSlots();
 
-
-   std::map<gloost::gloostId, int>& getTreeletUploadCounters();
-
 	protected:
 
 
@@ -174,15 +171,14 @@ class TreeletMemoryManager
 
     std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
     std::vector<VisibilityAndError>              _slots;                  // << assoziation from slot id to Treelet Gid
+    unsigned                                     _firstDynamicSlotIndex;
+
 
     std::vector< std::set<gloost::gloostId > >   _childTreeletsInIncoreBuffer;
 
     std::stack<unsigned>                         _freeIncoreSlots;
 
     std::set<gloost::gloostId>                   _incoreSlotsToUpload;
-
-    // TEST
-    std::map<gloost::gloostId, int> _treeletUploadCounters;
 
 
 
@@ -197,10 +193,13 @@ class TreeletMemoryManager
 
 	private:
 
-
-
-
 };
+
+
+bool
+sortSlotsByVisibility (const TreeletMemoryManager::VisibilityAndError a,
+                       const TreeletMemoryManager::VisibilityAndError b);
+
 
 
 } // namespace svo

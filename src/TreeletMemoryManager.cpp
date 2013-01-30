@@ -41,7 +41,7 @@
 #include <string>
 #include <iostream>
 
-#define MAX_VISIBILITY 16
+#define MAX_VISIBILITY 8
 
 
 
@@ -76,10 +76,10 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   _incoreBufferSizeInByte(incoreBufferSizeInByte),
   _treeletGidToSlotGidMap(),
   _slots(),
+  _firstDynamicSlotIndex(0),
   _childTreeletsInIncoreBuffer(),
   _freeIncoreSlots(),
-  _incoreSlotsToUpload(),
-  _treeletUploadCounters()
+  _incoreSlotsToUpload()
 {
 
   // load svo file
@@ -97,15 +97,6 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   resetIncoreBuffer();
 
 
-  // fill up incoreBuffer
-#if 0
-//  unsigned treeletGid = 1;
-//  while (treeletGid < _treelets.size() && insertTreeletIntoIncoreBuffer(VisibilityAndError(treeletGid, MAX_VISIBILITY, 100)))
-  for (unsigned treeletGid=1; treeletGid!=100; ++treeletGid)
-  {
-    insertTreeletIntoIncoreBuffer(VisibilityAndError(treeletGid, MAX_VISIBILITY, 100));
-  }
-#endif
 
 }
 
@@ -315,8 +306,6 @@ TreeletMemoryManager::resetIncoreBuffer()
   _treeletGidToSlotGidMap.clear();
   _incoreSlotsToUpload.clear();
 
-  _treeletUploadCounters.clear();
-
   std::vector< std::set<gloost::gloostId > >().swap(_childTreeletsInIncoreBuffer);
   _childTreeletsInIncoreBuffer.resize(_treelets.size(), std::set<gloost::gloostId>());
 
@@ -360,6 +349,38 @@ TreeletMemoryManager::resetIncoreBuffer()
   std::cerr << std::endl << "             Attribute incore buffer size: " << _incoreAttributeBuffer->getVector().size();
 
   insertTreeletIntoIncoreBuffer(VisibilityAndError(0, MAX_VISIBILITY, 999));
+
+
+  // fill up incoreBuffer
+#if 1
+//  _firstDynamicSlotIndex = 0;
+//  std::set<gloost::gloostId> secondTreeletStageGids;
+//  for (unsigned i=1; i!=_treelets.size(); ++i)
+//  {
+//    if (_treelets[i]->getParentTreeletGid() == 0)
+//    {
+//      insertTreeletIntoIncoreBuffer(VisibilityAndError(_treelets[i]->getTreeletGid(), MAX_VISIBILITY, 100));
+//     ++_firstDynamicSlotIndex;
+//     secondTreeletStageGids.insert(_treelets[i]->getTreeletGid());
+//    }
+//  }
+
+//  for (unsigned i=_firstDynamicSlotIndex; i!=_treelets.size(); ++i)
+//  {
+//    if (secondTreeletStageGids.find(_treelets[i]->getParentTreeletGid()) != secondTreeletStageGids.end())
+//    {
+//      insertTreeletIntoIncoreBuffer(VisibilityAndError(_treelets[i]->getTreeletGid(), MAX_VISIBILITY, 100));
+//     _firstDynamicSlotIndex = _freeIncoreSlots.top();
+//    }
+//  }
+
+  std::cerr << std::endl;
+  std::cerr << std::endl << "_firstDynamicSlotIndex: " << _firstDynamicSlotIndex;
+  std::cerr << std::endl;
+
+#endif
+
+
 }
 
 
@@ -379,7 +400,7 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
   // update visibility of treelets allready in the incore buffer
   {
     // decrement visibiliti of all slots
-    for (unsigned i=0; i!=_slots.size(); ++i)
+    for (unsigned i=1; i!=_slots.size(); ++i)
     {
       --_slots[i]._visibility;
     }
@@ -395,26 +416,8 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
     {
       unsigned slotPos = _treeletGidToSlotGidMap[(*treeletGidAndErrorIt)._treeletGid];
       _slots[slotPos]._visibility = MAX_VISIBILITY;
-
-//      std::cerr << std::endl << "update: " << (*treeletGidAndErrorIt)._treeletGid << " to " << _slots[slotPos]._visibility;
-    }
+   }
   }
-
-
-//  std::map<gloost::gloostId, gloost::gloostId>::iterator treeIt    =  _treeletGidToSlotGidMap.begin();
-//  std::map<gloost::gloostId, gloost::gloostId>::iterator treeEndIt =  _treeletGidToSlotGidMap.end();
-//
-//  for (; treeIt!=treeEndIt; ++treeIt)
-//  {
-//    if (treeIt->second == 0)
-//    {
-//      std::cerr << std::endl << "word: " << treeIt->first << " slot is set to " << treeIt->second;
-//    }
-//  }
-
-
-
-
 
   std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleTreelets = renderPassAnalyse->getVisibleNewTreeletsGids();
 
@@ -425,6 +428,9 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
   {
     insertTreeletIntoIncoreBuffer(VisibilityAndError((*treeletGidIt)._treeletGid, MAX_VISIBILITY, (*treeletGidIt)._error));
   }
+
+  freeIncorePosition(VisibilityAndError());
+
 }
 
 
@@ -473,7 +479,6 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
     std::cerr << std::endl << "!!! freeSlotGid == 0: ";
   }
 
-  ++_treeletUploadCounters[tve._treeletGid];
 
   _slots[freeSlotGid] = tve;
 
@@ -555,23 +560,75 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const VisibilityAndError& tv
 bool
 TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
 {
-
   RenderPassAnalyse::TreeletGidAndError freeableTreeletGid(0,0);
 
-  for (unsigned i=1u; i!=_slots.size(); ++i)
+  unsigned              testCounter = 0;
+  static const unsigned numProbes   = 1000;
+  static unsigned       searchPos   = _firstDynamicSlotIndex;
+
+  for (unsigned i=0; i!=_slots.size(); ++i)
   {
-    if (_slots[i]._visibility < 0 && _slots[i]._treeletGid)
+    if (_slots[searchPos]._visibility < 0 && _slots[searchPos]._treeletGid != -1)
     {
-      freeableTreeletGid = RenderPassAnalyse::TreeletGidAndError(_slots[i]._treeletGid, _slots[i]._error);
+      gloost::gloostId parentTreeletGid = _treelets[_slots[searchPos]._treeletGid]->getParentTreeletGid();
+
+      if (_slots[_treelets[parentTreeletGid]->getIncoreSlotPosition()]._visibility < 0)
+      {
+        freeableTreeletGid = RenderPassAnalyse::TreeletGidAndError(_slots[searchPos]._treeletGid, _slots[searchPos]._error);
+        break;
+      }
+    }
+
+    ++searchPos;
+    ++testCounter;
+    if (searchPos ==_slots.size())
+    {
+      searchPos = 1;
+    }
+
+    if (testCounter == numProbes)
+    {
       break;
     }
   }
+
 
   // no slot to free found
   if (freeableTreeletGid._treeletGid == 0)
   {
     return false;
   }
+//
+//  // check all treeletGids attached below this treelet in the incore buffer
+//  std::queue<gloost::gloostId> childTreeletsQueue;
+//  childTreeletsQueue.push(freeableTreeletGid._treeletGid);
+//
+//  unsigned freeCounter = 0;
+//  std::vector<unsigned> childTreeletsTreeletsToClear;
+//  while (childTreeletsQueue.size())
+//  {
+//    gloost::gloostId parentTreeletGid = childTreeletsQueue.front();
+//    childTreeletsQueue.pop();
+//
+//    // for all child treelets also in the incore buffer, find subsubTreelet with no further subTreelets
+//    if (_childTreeletsInIncoreBuffer[parentTreeletGid].size() == 0)
+//    {
+//      childTreeletsTreeletsToClear.push_back(parentTreeletGid);
+////      break;
+//    }
+//    else
+//    {
+//      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetIt    = _childTreeletsInIncoreBuffer[parentTreeletGid].begin();
+//      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetEndIt = _childTreeletsInIncoreBuffer[parentTreeletGid].end();
+//
+//      for (; childrenInIncoreBufferSetIt!=childrenInIncoreBufferSetEndIt; ++childrenInIncoreBufferSetIt)
+//      {
+//        gloost::gloostId childTreeletGid = (*childrenInIncoreBufferSetIt);
+//        childTreeletsQueue.push(childTreeletGid);
+//      }
+//    }
+//  }
+//
 
   // check all treeletGids attached below this treelet in the incore buffer
   std::queue<gloost::gloostId> childTreeletsQueue;
@@ -584,25 +641,20 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
     gloost::gloostId parentTreeletGid = childTreeletsQueue.front();
     childTreeletsQueue.pop();
 
-    // for all child treelets also in the incore buffer, find subsubTreelet with no further subTreelets
-    if (_childTreeletsInIncoreBuffer[parentTreeletGid].size() == 0)
-    {
-      childTreeletsTreeletsToClear.push_back(parentTreeletGid);
-//      break;
-    }
-    else
-    {
-      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetIt    = _childTreeletsInIncoreBuffer[parentTreeletGid].begin();
-      std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetEndIt = _childTreeletsInIncoreBuffer[parentTreeletGid].end();
+    std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetIt    = _childTreeletsInIncoreBuffer[parentTreeletGid].begin();
+    std::set<gloost::gloostId >::iterator childrenInIncoreBufferSetEndIt = _childTreeletsInIncoreBuffer[parentTreeletGid].end();
 
-      for (; childrenInIncoreBufferSetIt!=childrenInIncoreBufferSetEndIt; ++childrenInIncoreBufferSetIt)
-      {
-        gloost::gloostId childTreeletGid = (*childrenInIncoreBufferSetIt);
-        childTreeletsQueue.push(childTreeletGid);
-      }
+    for (; childrenInIncoreBufferSetIt!=childrenInIncoreBufferSetEndIt; ++childrenInIncoreBufferSetIt)
+    {
+      gloost::gloostId childTreeletGid = (*childrenInIncoreBufferSetIt);
+      childTreeletsQueue.push(childTreeletGid);
+      childTreeletsTreeletsToClear.push_back(childTreeletGid);
     }
+
+    _childTreeletsInIncoreBuffer[parentTreeletGid] = std::set<gloost::gloostId >();
   }
 
+  _childTreeletsInIncoreBuffer[freeableTreeletGid._treeletGid] = std::set<gloost::gloostId >();
 
   // free slots of child treelets
   for (unsigned i=0; i!=childTreeletsTreeletsToClear.size(); ++i)
@@ -619,10 +671,13 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
     }
     else
     {
-      removeTreeletFromIncoreBuffer(childTreeletGid);
-      --_treeletUploadCounters[childTreeletGid];
+      _freeIncoreSlots.push(slotId);
+      _treeletGidToSlotGidMap.erase(childTreeletGid);
+      _slots[slotId] = VisibilityAndError();
     }
   }
+
+  removeTreeletFromIncoreBuffer(freeableTreeletGid._treeletGid);
 
   return true;
 }
@@ -777,24 +832,12 @@ TreeletMemoryManager::getSlots()
 //////////////////////////////////////////////////////
 
 
-/**
-  \brief   ...
-  \param   ...
-  \remarks ...
-*/
-
-/*virtual */
-std::map<gloost::gloostId, int>&
-TreeletMemoryManager::getTreeletUploadCounters()
+bool
+sortSlotsByVisibility (const TreeletMemoryManager::VisibilityAndError a,
+                       const TreeletMemoryManager::VisibilityAndError b)
 {
-  return _treeletUploadCounters;
+  return (a._visibility<b._visibility);
 }
-
-
-//////////////////////////////////////////////////////
-
-
-
 
 
 } // namespace svo

@@ -57,27 +57,6 @@ namespace gloost
 namespace svo
 {
 
-  // struct contains the triangle id and u,v coordinates for an leaf voxel
-  struct DiscreteSample
-  {
-    DiscreteSample(unsigned primitiveId,
-                   gloost::mathType u,
-                   gloost::mathType v,
-                   const gloost::Matrix& AABBTransform)
-    {
-      _primitiveId    = primitiveId;
-      _u              = u;
-      _v              = v;
-      _AABBTransform = AABBTransform;
-    }
-
-    unsigned _primitiveId;
-
-    gloost::mathType _u;
-    gloost::mathType _v;
-    gloost::Matrix   _AABBTransform;
-  };
-
   //  Sparse Voxel Octree with utility functions
 
 class Treelet
@@ -110,9 +89,6 @@ class Treelet
       std::vector<unsigned> _primitiveIds;           // primitive ids of all primitives contributing to this node
     };
 
-    typedef std::vector< std::vector<DiscreteSample> > SampleListVector;
-    typedef std::vector<DiscreteSample>                SampleList;
-
 
     // class constructor
     Treelet();
@@ -120,6 +96,7 @@ class Treelet
 
     // class constructor
     Treelet(gloost::gloostId  treeletGid,
+            unsigned          rootNodeDepth,
             gloost::gloostId  parentTreeletGid,
             gloost::gloostId  parentTreeletLeafPosition,
             gloost::gloostId  parentTreeletLeafIdx,
@@ -203,6 +180,9 @@ class Treelet
     // sets the number of nodes
     void setNumLeaves(unsigned value);
 
+    // returns the depth of the Treelets root node within the svo
+    unsigned getRootNodeDepth() const;
+
 
     // returns the index of the first leaf node
     unsigned getFirstLeafIndex() const;
@@ -218,6 +198,7 @@ class Treelet
 	protected:
 
     gloost::gloostId    _treeletGid;
+    unsigned            _rootNodeDepth;                     // number of treelets above this Treelet in the hierarchy
     gloost::gloostId    _parentTreeletGid;
     gloost::gloostId    _parentTreeletLeafPosition;        // position of the leaf within the parent Treelet
     gloost::gloostId    _parentTreeletLeafIdx;             // index 0...7 of the leaf in its parent

@@ -100,12 +100,14 @@ Treelet::Treelet():
 */
 
 Treelet::Treelet( gloost::gloostId  treeletGid,
+                  unsigned          rootNodeDepth,
                   gloost::gloostId  parentTreeletGid,
                   gloost::gloostId  parentTreeletLeafPosition,
                   gloost::gloostId  parentTreeletLeafIdx,
                   gloost::gloostId  parentTreeletLeafsParentPosition,
                   unsigned          memSizeInByte):
   _treeletGid(treeletGid),
+  _rootNodeDepth(rootNodeDepth),
   _parentTreeletGid(parentTreeletGid),
   _parentTreeletLeafPosition(parentTreeletLeafPosition),
   _parentTreeletLeafIdx(parentTreeletLeafIdx),
@@ -300,6 +302,22 @@ Treelet::setNumLeaves(unsigned value)
 
 
 /**
+  \brief returns the depth of the Treelets root node within the svo
+  \param ...
+  \remarks ...
+*/
+
+unsigned
+Treelet::getRootNodeDepth() const
+{
+  return _rootNodeDepth;
+}
+
+
+//////////////////////////////////////////////////////
+
+
+/**
   \brief returns the index of the first leaf node
   \param ...
   \remarks ...
@@ -386,6 +404,7 @@ bool
 Treelet::writeToFile(gloost::BinaryFile& outFileToAppend)
 {
   outFileToAppend.writeUInt32(_numNodes);                                   // write number of nodes
+//  outFileToAppend.writeUInt32(_rootNodeDepth);                              // write depth of root node
   outFileToAppend.writeUInt32(_numLeaves);                                  // write number of leaves
   outFileToAppend.writeUInt32(_memSize);                                    // write mem size
   outFileToAppend.writeUInt32(_treeletGid);                                 // write treeletGid
@@ -441,6 +460,8 @@ bool
 Treelet::loadFromFile(gloost::BinaryFile& inFile)
 {
   _numNodes                         = inFile.readUInt32();
+//  _rootNodeDepth                    = inFile.readUInt32();
+
   _numLeaves                        = inFile.readUInt32();
   _memSize                          = inFile.readUInt32();
   _treeletGid                       = inFile.readUInt32();
