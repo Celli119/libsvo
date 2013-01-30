@@ -304,7 +304,7 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-        if (childQueueElements[childIdx]._depth < 14)
+        if (childQueueElements[childIdx]._depth < 11)
         {
           _queue.push(childQueueElements[childIdx]);
         }

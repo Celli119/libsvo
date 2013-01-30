@@ -164,7 +164,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 #if 1
-
   unsigned treeletId      = 1u;
   unsigned queueItemCount = _treelets[0]->getIncompleteLeafQueueElements().size();
 
@@ -194,7 +193,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
       std::cerr << std::endl << "             Building Treelet " << treeletId << " of " << queueItemCount <<  " from triangle samples (" << (queueItemCount*(float)treeletSizeInByte)*0.000976562*0.000976562*0.000976562 << " GB)";
       std::cerr << std::endl << "             Current depth:   " << parentIncompleteQueueElements[i]._depth;
 #else
-      if (treeletId%500 == 0)
+      if (treeletId % 1000 == 0)
       {
         float completeRatio = (float)treeletId/queueItemCount * 100.0;
 

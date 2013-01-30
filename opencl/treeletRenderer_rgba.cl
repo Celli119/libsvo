@@ -486,9 +486,9 @@ shade_phong(const SampleResult* result,
     float nDotL = max(0.0f, dot(normal, lightDirection));
 
     // specular
-    float3 reflectionDir = normalize( ( ( 2.0 * normal ) * nDotL ) - lightDirection );
-    float reflectDotView = max( 0.0, dot( reflectionDir,  -rayDirection) );
-    float specular = max(0.0f, pow(reflectDotView, 100.0f));
+    float3 reflectionDir = normalize( ( ( 2.0f * normal ) * nDotL ) - lightDirection );
+    float reflectDotView = max( 0.0f, dot( reflectionDir,  -rayDirection) );
+    float specular = max(0.0f, pow(reflectDotView, 10.0f))*(nDotL>0.0f);
 
 
 
@@ -505,9 +505,9 @@ shade_phong(const SampleResult* result,
 
     shadow = (1.0f-shadow);
 
-    color =   color*0.5
+    color = (color*0.4
             + color*nDotL*shadow
-            + color*specular*shadow;
+            + specular*shadow*0.2f)*0.8f;
 
     color.w = 1.0f;
 
@@ -1023,12 +1023,12 @@ sampleAnalyse( __global const SvoNode* svo,
           stack[scale].parentCenter    = childCenter;
 
           // memorize the deepest voxel in case of no final hit
-          if (deepestNode > scale)
+          if (deepestNode < scale)
           {
             deepestNode = scale;
-            sampleResult->_nodeId                = parent->parentNodeIndex;
-            sampleResult->_error                 = tScaleRatio*tcMin > scale_exp2;
-            sampleResult->_subTreeletGid          = 0;
+            sampleResult->_nodeId         = parent->parentNodeIndex;
+            sampleResult->_error          = tScaleRatio*tcMin > scale_exp2;
+            sampleResult->_subTreeletGid  = 0;
           }
 
           parent = 0;

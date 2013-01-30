@@ -129,8 +129,8 @@ void showTreeletCounters();
 
 void init()
 {
-  const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 4;
+  const unsigned incoreBufferSizeInByte = 128/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -140,17 +140,7 @@ void init()
 
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "venus_s4_d7";
-//  const std::string svoBaseName  = "david_face_d10_4";
-//  const std::string svoBaseName  = "frog2_seperated_s8_d7";
-//  const std::string svoBaseName  = "ring_11_4";w
-//  const std::string svoBaseName  = "Decimated_head_11_4";
-//  const std::string svoBaseName  = "david_2mm_13";
-//  const std::string svoBaseName  = "Decimated_head_9";
-//  const std::string svoBaseName  = "monster_12";
-  const std::string svoBaseName  = "venus_s8_d12";
-//  const std::string svoBaseName  = "xyzrgb_dragon_11_4";
-//  const std::string svoBaseName  = "xyzrgb_dragon_12_8";
+  const std::string svoBaseName  = "Decimated_Head_s2_d10";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -386,27 +376,13 @@ void frameStep()
   {
 
 #if 1
-    // run analyse render pass
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
                                             modelMatrix,
-                                            g_tScaleRatio,
+                                            g_tScaleRatio*g_tScaleRatioMultiplyer,
                                             frustumOnePixelWidth,
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDivide);
-
-
-//    static bool oneTimeToggleY = false;
-//
-//    if (glfwGetKey('Y') && !oneTimeToggleY)
-    {
-//      oneTimeToggleY = true;
-      showTreeletCounters();
-    }
-//    else
-//    {
-//      oneTimeToggleY = false;
-//    }
 
     g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
 
@@ -425,8 +401,6 @@ void frameStep()
   // /timer
   timerUpdateDevice.stop();
   gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
-
-
 
 
   // timer
