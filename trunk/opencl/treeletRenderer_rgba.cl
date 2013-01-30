@@ -255,7 +255,7 @@ sample( __global const SvoNode* svo,
   StackElement* parent = 0;
 
   unsigned       whileCounter = 0;
-  const unsigned maxLoops     = (scaleMax)*(scaleMax)*(scaleMax);
+  const unsigned maxLoops     = (scaleMax+1)*(scaleMax+1)*5;
 
 /////////////////// LOOP ///////////////////////////////XS
 
@@ -321,23 +321,6 @@ sample( __global const SvoNode* svo,
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
                                svo[parent->parentNodeIndex]._firstchildIndex,
                                childIdx);
-//          // check if leaf points to another treelet
-////          if (svo[leafIndex]._masks)
-//          {
-//            // update parent befor push
-//            parent->parentTMin = tcMax;
-//
-//            // ### PUSH
-//            --scale;
-////            stack[scale].parentNodeIndex = svo[leafIndex]._masks;
-//            stack[scale].parentNodeIndex = 0;
-//            stack[scale].parentTMin      = tcMin;
-//            stack[scale].parentTMax      = tcMax;
-//            stack[scale].parentCenter    = childCenter;
-//
-//            parent = 0;
-//            continue;
-//          }
 
           // else: return leaf
           result->hit           = true;
@@ -519,65 +502,6 @@ shade_phong(const SampleResult* result,
                    0.4f,
                    1.0f);
 }
-
-
-///////////////////////////////////////////////////////////////////////////////
-
-//
-//inline float4
-//shade_diffuse_color_reflection(const SampleResult* result,
-//                               __global const SvoNode* svo,
-//                               __global unsigned* attribIndices,
-//                               __global Attribs* attribs,
-//                               const float3 rayDirection,
-//                               int          numReflections)
-//{
-//
-//  if (result->hit) {
-//    SampleResult refectResult = *result;
-//
-//    float4 resultcolor   = (float4)(0.0f,0.0f,0.0f,0.0f);
-//    float3 viewDirection = rayDirection;
-//
-//    int reflectCounter = numReflections;
-//
-//    float strength = 0.75f;
-//
-//    while (true) {
-//      // color and normal for current sample
-//      float3 normal = getNormal(refectResult.attribIndex, attribs);
-//
-//      resultcolor = resultcolor * (1.0f-strength) + shade_diffuse_color_shadow(&refectResult,
-//                    svo,
-//                    attribIndices,
-//                    attribs)*strength;
-//
-//      strength *= 0.75f;
-//
-//      if (reflectCounter == 0 || !refectResult.hit) {
-//        break;
-//      } else {
-//
-//        const float3 reflectDir    = normalize(viewDirection + ( -2.0f * normal * dot( normal, viewDirection )));
-//        float3       reflectOrigin = refectResult.nodeCenter  + normal*0.01f;
-//
-//        sample( svo,
-//                reflectOrigin, reflectDir,
-//                0.001f,
-//                &refectResult);
-//
-//        viewDirection = reflectDir;
-//
-//        --reflectCounter;
-//      }
-//    }
-//    return resultcolor;
-//  }
-//  return (float4)( 0.2f,
-//                   0.3f,
-//                   0.2f,
-//                   1.0f);
-//}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -879,7 +803,7 @@ sampleAnalyse( __global const SvoNode* svo,
   int         scale      = scaleMax-1;
   float       scale_exp2 = 0.5f;// exp2f(scale - s_max)
   const float minNormal  = 0.0001f;
-  const float epsilon    = 0.0001f;
+  const float epsilon    = 0.00001f;
 
   unsigned int deepestNode = scale;
 

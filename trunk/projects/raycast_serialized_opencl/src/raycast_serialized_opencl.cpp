@@ -129,8 +129,8 @@ void showTreeletCounters();
 
 void init()
 {
-  const unsigned screenDivide           = 4;
-  const unsigned incoreBufferSizeInByte = 128/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -139,8 +139,12 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
-  const std::string svoBaseName  = "Decimated_Head_s2_d10";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "david_face_d10_4";
+//  const std::string svoBaseName  = "venus_s8_d12";
+//  const std::string svoBaseName  = "venus_s8_d12";
+//  const std::string svoBaseName  = "xyzrgb_dragon_s8_d12";
+//  const std::string svoBaseName  = "xyzrgb_dragon_s4_d11";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -553,7 +557,11 @@ void draw2d()
           {
             glColor4f(1.0f, 0.0f, 0.0f, 1.0);
           }
-          g_texter->renderTextLine("free incore slots:  " + gloost::toString(g_clMemoryManager->getFreeIncoreSlotStack().size()));
+
+          unsigned freeIncoreSlots = g_clMemoryManager->getFreeIncoreSlotStack().size();
+          float freeIncoreSlotsMb  = ((float)freeIncoreSlots * (float)sizeof(svo::CpuSvoNode)) / 1024.0f / 1024.0f;
+
+          g_texter->renderTextLine("free incore slots:  " + gloost::toString(freeIncoreSlots) + " (" + gloost::toString(freeIncoreSlotsMb) + "MB)");
           g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_renderPassAnalyse->getVisibleNewTreeletsGids().size()));
 
 
@@ -640,71 +648,6 @@ void resize(int width, int height)
   glFrustum(-ar, ar, -1.0, 1.0, 0.1, 100.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity() ;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-void showTreeletCounters()
-{
-
-  static unsigned testpassCounter = 0;
-  ++testpassCounter;
-
-//  for (unsigned i=0; i!=20; ++i)
-//  {
-//   std::cerr << std::endl << "++ " << testpassCounter << " ++++++++++++++++++++++++++++++++++++++++++++++: ";
-//  }
-
-  std::map<gloost::gloostId, int>& uploadTreetsIncore   = g_clMemoryManager->getTreeletUploadCounters();
-  std::map<gloost::gloostId, int>::iterator counterIt    = uploadTreetsIncore.begin();
-  std::map<gloost::gloostId, int>::iterator counterEndIt = uploadTreetsIncore.end();
-
-  std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>& _visibleOldTreeletsGids = g_renderPassAnalyse->getVisibleOldTreeletsGids();
-
-//  std::cerr << std::endl << "Treelets size: " << uploadTreetsIncore.size();
-//  std::cerr << std::endl << "Visible size:  " << g_renderPassAnalyse->getVisibleOldTreeletsGids().size();
-
-  return;
-
-
-  for (; counterIt!=counterEndIt; ++counterIt)
-  {
-
-    std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>::iterator visibleIt    = _visibleOldTreeletsGids.begin();
-    std::multiset<svo::RenderPassAnalyse::TreeletGidAndError>::iterator visibleEndIt = _visibleOldTreeletsGids.end();
-
-    bool found       = false;
-    gloost::gloostId treeletId = 0;
-
-    for (; visibleIt!=visibleEndIt; ++visibleIt)
-    {
-
-      svo::RenderPassAnalyse::TreeletGidAndError tve = (*visibleIt);
-      treeletId = tve._treeletGid;
-
-      if (tve._treeletGid == counterIt->first)
-      {
-        found = true;
-      }
-      std::cerr << std::endl << "tve._treeletGid: " << tve._treeletGid;
-    }
-
-    if (!found)
-    {
-      std::cerr << std::endl << "uploaded but not visible: " << treeletId;
-    }
-    else
-    {
-      std::cerr << std::endl << "OK: " << treeletId;
-    }
-
-
-  }
-
-
-
 }
 
 
@@ -880,7 +823,7 @@ int main(int argc, char *argv[])
 //  glfwSwapInterval( 1 );
 
 
-  glfwSwapBuffers();
+//  glfwSwapBuffers();
 
   /// load and intialize stuff for our demo
   init();
