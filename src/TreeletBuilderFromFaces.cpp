@@ -195,7 +195,7 @@ TreeletBuilderFromFaces::buildFromQueue()
 
 
   // as long there is space within this treelet
-  while (_queue.size() && (currentNodeIndex < _treelet->getNodes().size()-7) )
+  while (_queue.size() && (currentNodeIndex < _treelet->getNodes().size()-8) )
   {
 
 //#ifdef SVO_BUILDING_VERBOSE
@@ -304,17 +304,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-        if (childQueueElements[childIdx]._depth < _maxDepth+2)
+//        if (childQueueElements[childIdx]._depth <= _maxDepth+2)
         {
           _queue.push(childQueueElements[childIdx]);
         }
-        else/* if ()*/
-        {
-          // set the leaf flag within leafes parent node
-          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
-                                                                                                   true);
-          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
-        }
+//        else/* if ()*/
+//        {
+//          // set the leaf flag within leafes parent node
+//          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
+//                                                                                                   true);
+//          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
+//        }
 
         ++currentNodeIndex;
       }

@@ -25,6 +25,7 @@ unsigned g_treeletSizeInByte  = 512u*1024u;
 unsigned g_maxSvoDepth        = 8u;
 unsigned g_nodesVisDepth      = 99u;
 unsigned g_numBuildingThreads = 12u;
+float    g_rotateXInDeg       = 0.0f;
 
 #include <gloost/Matrix.h>
 gloost::Matrix g_sizeAndCenterMatrix;
@@ -72,6 +73,11 @@ void idle(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <gloost/DirectoryList.h>
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 
 
   /// load and initialize resources for our demo
@@ -79,16 +85,64 @@ void idle(void);
 void init()
 {
 
-  std::cerr << std::endl << "Loading geometry: " << g_inputPath;
-  gloost::PlyLoader ply(g_inputPath);
-  g_mesh = ply.getMesh();
-  g_mesh->takeReference();
+
+
+  // merge files of a directory
+  if (gloost::pathToBasename(g_inputPath).length() == 0)
+  {
+    std::cerr << std::endl;
+    std::cerr << std::endl << "Reading directory: " << g_inputPath;
+
+
+    g_mesh = new gloost::Mesh();
+    g_mesh->takeReference();
+
+    gloost::DirectoryList directory(g_inputPath);
+    directory.open(".ply");
+
+    for (unsigned i=0; i!=directory.get_entries().size(); ++i)
+    {
+      std::cerr << std::endl << "  -> " << gloost::pathToBasename(directory.get_entries()[i]);
+    }
+
+    std::cerr << std::endl;
+    std::cerr << std::endl << "Loading and mergin files: " << g_inputPath;
+    for (unsigned i=0; i!=directory.get_entries().size(); ++i)
+    {
+      std::cerr << std::endl << "  -> " << gloost::pathToBasename(directory.get_entries()[i]) << " ... ";
+
+      gloost::PlyLoader ply(directory.get_entries()[i]);
+
+      std::cerr << std::endl << "loaded ... ";
+
+      g_mesh->add(ply.getMesh());
+
+      std::cerr << std::endl << "merged";
+    }
+    g_mesh->takeReference();
+  }
+  // just load one file
+  else
+  {
+    std::cerr << std::endl << "Loading geometry: " << g_inputPath;
+    gloost::PlyLoader ply(g_inputPath);
+    g_mesh = ply.getMesh();
+    g_mesh->takeReference();
+  }
+
+  g_mesh->recalcBoundingBox();
+
   std::cerr << std::endl << " Mesh memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
 
 
+
   /// transform
-  gloost::Matrix rotateMat;
-  rotateMat.setIdentity();
+  gloost::Matrix rotateMat = gloost::Matrix::createIdentity();
+
+  if (gloost::abs(g_rotateXInDeg) > 0.00001)
+  {
+    rotateMat = gloost::Matrix::createRotMatrix(gloost::Vector3(1.0, 0.0, 0.0), gloost::deg2rad(g_rotateXInDeg));
+  }
 
   gloost::Matrix translateMat;
   translateMat.setIdentity();
@@ -130,6 +184,7 @@ int main(int argc, char *argv[])
   cmdp.addOpt("d", 1,  "<uint min svo depth>", "minimal depth of all leaves (default: " + gloost::toString(g_maxSvoDepth) + ")");
   cmdp.addOpt("i", 1,  "input", "input file path, loads *.ply files with per vertex color and normals");
   cmdp.addOpt("o", 1,  "output", "output directory path (default: input file path)");
+  cmdp.addOpt("X", 1,  "rotationX", "rotate the input mesh around the X axis");
 
   cmdp.init(argc,argv);
 
@@ -196,6 +251,12 @@ int main(int argc, char *argv[])
   if (cmdp.isOptSet("o"))
   {
     g_outputPath = cmdp.getOptsString("o")[0];
+  }
+
+
+  if (cmdp.isOptSet("X"))
+  {
+    g_rotateXInDeg = cmdp.getOptsFloat("X")[0];
   }
 
 
