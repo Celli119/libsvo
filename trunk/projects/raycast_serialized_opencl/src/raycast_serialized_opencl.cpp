@@ -87,6 +87,7 @@ gloost::InterleavedAttributes* g_voxelAttributes = 0;
 unsigned g_framebufferTextureId = 0;
 
 #include <gloost/gloostHelper.h>
+#include <gloost/gloostGlUtil.h>
 
 // info
 bool        g_showTextInfo         = true;
@@ -130,7 +131,7 @@ void showTreeletCounters();
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -416,7 +417,8 @@ void frameStep()
   g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
   g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
   g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
-  g_context->setKernelArgFloat4("renderToBuffer", 8, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+  g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
+  g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
   g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
   {

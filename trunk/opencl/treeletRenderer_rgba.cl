@@ -616,6 +616,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                  const float4           pixelFarVectorV,
                  const float4           far_lower_left,
                  const float4           cameraPosition,
+                 const float16          normalMatrix,
                  const float4           otherParams)
 {
   const unsigned x = get_global_id(0);
