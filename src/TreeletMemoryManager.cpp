@@ -35,11 +35,14 @@
 // gloost system includes
 #include <gloost/Mesh.h>
 #include <gloost/BinaryFile.h>
+#include <contrib/Timer.h>
+#include <contrib/TimerLog.h>
 
 
 // cpp includes
 #include <string>
 #include <iostream>
+#include <omp.h>
 
 #define MAX_VISIBILITY 8
 
@@ -97,6 +100,7 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   resetIncoreBuffer();
 
 
+  gloostTest::TimerLog::get()->addTimer("memory_manager.update_incore_buffer_host");
 
 }
 
@@ -397,10 +401,19 @@ void
 TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse)
 {
 
+
+  // timer
+  gloostTest::Timer timerupdateIncoreBufferHost;
+  timerupdateIncoreBufferHost.start();
+
+
   // update visibility of treelets allready in the incore buffer
   {
     // decrement visibiliti of all slots
-    for (unsigned i=1; i!=_slots.size(); ++i)
+
+    omp_set_num_threads(4);
+    #pragma omp parallel for
+    for (unsigned i=1; i<_slots.size(); ++i)
     {
       --_slots[i]._visibility;
     }
@@ -430,6 +443,12 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
   }
 
   freeIncorePosition(VisibilityAndError());
+
+
+  // /timer
+  timerupdateIncoreBufferHost.stop();
+  gloostTest::TimerLog::get()->putSample("memory_manager.update_incore_buffer_host", timerupdateIncoreBufferHost.getDurationInMicroseconds()/1000.0);
+
 
 }
 
@@ -563,7 +582,7 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
   RenderPassAnalyse::TreeletGidAndError freeableTreeletGid(0,0);
 
   unsigned              testCounter = 0;
-  static const unsigned numProbes   = 1000;
+  static const unsigned numProbes   = 100;
   static unsigned       searchPos   = _firstDynamicSlotIndex;
 
   for (unsigned i=0; i!=_slots.size(); ++i)

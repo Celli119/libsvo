@@ -102,22 +102,24 @@ void init()
 
     for (unsigned i=0; i!=directory.get_entries().size(); ++i)
     {
-      std::cerr << std::endl << "  -> " << gloost::pathToBasename(directory.get_entries()[i]);
+      std::cerr << std::endl << "  -> " << gloost::pathToFilename(directory.get_entries()[i]);
     }
 
     std::cerr << std::endl;
     std::cerr << std::endl << "Loading and mergin files: " << g_inputPath;
     for (unsigned i=0; i!=directory.get_entries().size(); ++i)
     {
-      std::cerr << std::endl << "  -> " << gloost::pathToBasename(directory.get_entries()[i]) << " ... ";
+      std::cerr << std::endl << "  " << i
+                             << " of " << directory.get_entries().size() << "  -> "
+                             << gloost::pathToFilename(directory.get_entries()[i]) << " ... ";
 
       gloost::PlyLoader ply(directory.get_entries()[i]);
 
-      std::cerr << std::endl << "loaded ... ";
+      std::cerr << "loaded ... ";
 
       g_mesh->add(ply.getMesh());
 
-      std::cerr << std::endl << "merged";
+      std::cerr << "merged";
     }
     g_mesh->takeReference();
   }
