@@ -492,6 +492,11 @@ shade_phong(const SampleResult* result,
             + color*nDotL*shadow
             + specular*shadow*0.2f)*0.8f;
 
+    color.x = smoothstep(0.0f, 1.0f, color.x);
+    color.y = smoothstep(0.0f, 1.0f, color.y*color.y);
+    color.y = smoothstep(0.0f, 1.0f, color.z);
+
+
     color.w = 1.0f;
 
     return color;
@@ -948,13 +953,13 @@ sampleAnalyse( __global const SvoNode* svo,
           stack[scale].parentCenter    = childCenter;
 
           // memorize the deepest voxel in case of no final hit
-          if (deepestNode < scale)
-          {
-            deepestNode = scale;
-            sampleResult->_nodeId         = parent->parentNodeIndex;
-            sampleResult->_error          = tScaleRatio*tcMin > scale_exp2;
-            sampleResult->_subTreeletGid  = 0;
-          }
+//          if (deepestNode < scale)
+//          {
+//            deepestNode = scale;
+//            sampleResult->_nodeId         = parent->parentNodeIndex;
+//            sampleResult->_error          = tScaleRatio*tcMin > scale_exp2;
+//            sampleResult->_subTreeletGid  = 0;
+//          }
 
           parent = 0;
           continue;

@@ -60,7 +60,7 @@ gloost::Mouse g_mouse;
 #include <gloost/PerspectiveCamera.h>
 gloost::PerspectiveCamera*   g_camera                = 0;
 float                        g_tScaleRatio           = 1.0f;
-int                          g_tScaleRatioMultiplyer = 1;
+float                        g_tScaleRatioMultiplyer = 1.0f;
 
 
 gloost::Point3 g_modelOffset;
@@ -140,7 +140,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "terrain_05_s6_d12";
 //  const std::string svoBaseName  = "david_face_d10_4";
 //  const std::string svoBaseName  = "venus_s8_d12";
 //  const std::string svoBaseName  = "venus_s8_d12";
@@ -210,7 +211,7 @@ void init()
 
   gloostTest::TimerLog::get()->setNumSamples(16);
   gloostTest::TimerLog::get()->addTimer("render.enqueueKernel");
-  gloostTest::TimerLog::get()->addTimer("memory_manager.updateDeviceMem");
+  gloostTest::TimerLog::get()->addTimer("memory_manager.update_incore_buffer_server");
 
 
 }
@@ -389,6 +390,8 @@ void frameStep()
                                             frustumOnePixelHeight,
                                             g_fbToAnalyseBufferDivide);
 
+
+
     g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
 
     // disable dynamic dynamic loading
@@ -405,7 +408,7 @@ void frameStep()
 
   // /timer
   timerUpdateDevice.stop();
-  gloostTest::TimerLog::get()->putSample("memory_manager.updateDeviceMem", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
+  gloostTest::TimerLog::get()->putSample("memory_manager.update_incore_buffer_server", timerUpdateDevice.getDurationInMicroseconds()/1000.0);
 
 
   // timer
@@ -584,7 +587,7 @@ void draw2d()
 
           // timer current values
           glColor4f(1.0f, 1.0f, 0.0f, 1.0);
-          g_texter->setWritePosition(300, 200);
+          g_texter->setWritePosition(400, 200);
           timerIt = gloostTest::TimerLog::get()->getTimes().begin();
           double sum = 0;
           while (timerIt != timerEndIt)
@@ -597,7 +600,7 @@ void draw2d()
 
           // timer current values
           glColor4f(1.0f, 1.0f, 0.0f, 1.0);
-          g_texter->setWritePosition(400, 200);
+          g_texter->setWritePosition(500, 200);
           timerIt = gloostTest::TimerLog::get()->getTimes().begin();
           double sumLast = 0;
           while (timerIt != timerEndIt)
@@ -745,11 +748,10 @@ void key(int key, int state)
         break;
 
       case '+':
-        ++g_tScaleRatioMultiplyer;
+        g_tScaleRatioMultiplyer*=2.0f;
         break;
       case '-':
-        --g_tScaleRatioMultiplyer;
-        g_tScaleRatioMultiplyer = gloost::max(g_tScaleRatioMultiplyer, 1);
+        g_tScaleRatioMultiplyer *=0.5;
         break;
 
       case 'F':

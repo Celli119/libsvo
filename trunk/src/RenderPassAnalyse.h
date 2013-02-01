@@ -47,7 +47,6 @@ class RenderPassAnalyse
 	      _subTreeletGid = 0;
 	      _fill          = 0;
 	    }
-
       int      _nodeId;
       float    _error;
       int      _subTreeletGid;
