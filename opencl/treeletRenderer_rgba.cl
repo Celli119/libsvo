@@ -1,6 +1,5 @@
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 
 //
@@ -259,16 +258,14 @@ sample( __global const SvoNode* svo,
 
 /////////////////// LOOP ///////////////////////////////XS
 
-  while (scale < scaleMax)
-  {
+  while (scale < scaleMax) {
 
     parent           = &stack[scale];
     scale_exp2       = pow(2.0f, scale - scaleMax);
     childSizeHalf    = scale_exp2*0.5f;
 
     ++whileCounter;
-    if (whileCounter == maxLoops)
-    {
+    if (whileCounter == maxLoops) {
       result->hit           = true;
       result->nodeIndex     = parent->parentNodeIndex;
       result->depth         = scaleMax-scale;
@@ -290,8 +287,8 @@ sample( __global const SvoNode* svo,
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (   4*(childEntryPoint.x > 0.0f)
-                                        + 2*(childEntryPoint.y > 0.0f)
-                                        +   (childEntryPoint.z > 0.0f));
+                                          + 2*(childEntryPoint.y > 0.0f)
+                                          +   (childEntryPoint.z > 0.0f));
 
       // childCenter in world coordinates
       float3 childCenter = (float3)(-0.5f + (bool)(childIdx & 4),
@@ -489,14 +486,12 @@ shade_phong(const SampleResult* result,
     shadow = (1.0f-shadow);
 
     color = (color*0.4
-            + color*nDotL*shadow
-            + specular*shadow*0.2f)*0.8f;
+             + color*nDotL*shadow
+             + specular*shadow*0.2f)*0.8f;
 
     color.x = smoothstep(0.0f, 1.0f, color.x);
-    color.y = smoothstep(0.0f, 1.0f, color.y*color.y);
-    color.y = smoothstep(0.0f, 1.0f, color.z);
-
-
+    color.y = smoothstep(0.0f, 1.0f, color.y);
+    color.z = smoothstep(0.0f, 1.0f, color.z);
     color.w = 1.0f;
 
     return color;
@@ -648,8 +643,7 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 
   switch ((int)otherParams.x) { // rendermode select
   case 0:
-    if (result.hit)
-    {
+    if (result.hit) {
       write_imagef ( renderbuffer,
                      (int2)(x,y),
                      (float4)(getColor(result.nodeIndex, attribs).xyz, 1.0f));
@@ -659,23 +653,21 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                   (int2)(x,y),
                   (float4)(0.2f,0.3f,0.2f,1.0f));
     break;
-    case 1:
+  case 1:
 
-          if (result.hit)
-          {
-            write_imagef ( renderbuffer,
-                          (int2)(x,y),
-                          (float4)(getNormal(result.nodeIndex, attribs), 1.0f));
-            return;
-          }
+    if (result.hit) {
+      write_imagef ( renderbuffer,
+                     (int2)(x,y),
+                     (float4)(getNormal(result.nodeIndex, attribs), 1.0f));
+      return;
+    }
 
-           write_imagef ( renderbuffer,
-                          (int2)(x,y),
-                          (float4)(0.2f,0.3f,0.2f,1.0f));
-        break;
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   (float4)(0.2f,0.3f,0.2f,1.0f));
+    break;
 
-  case 2:
-    {
+  case 2: {
       float3 color = DataPointToColor(result.numWhileLoops, 0.0f, MAX_STACK_SIZE*30);
       write_imagef ( renderbuffer,
                      (int2)(x,y),
@@ -710,21 +702,19 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
                                attribs));
     break;
 
-  case 7:
-    {
-      if (result.hit)
-      {
+  case 7: {
+      if (result.hit) {
 //        if (result.quality > 0.0f)
 //        {
 //          float3 color = DataPointToColor(result.quality, 0.0f, 0.01);
-          result.quality = sqrt(sqrt(result.quality));
-          write_imagef ( renderbuffer,
-                         (int2)(x,y),
-                         (float4)(result.quality,
-                                  result.quality,
-                                  result.quality,
-                                  1.0f));
-          return;
+        result.quality = sqrt(sqrt(result.quality));
+        write_imagef ( renderbuffer,
+                       (int2)(x,y),
+                       (float4)(result.quality,
+                                result.quality,
+                                result.quality,
+                                1.0f));
+        return;
 //        }
 //        else // no quality
 //        {
@@ -733,12 +723,10 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 //                   (float4)(0.4,0.4,0.4, 1.0f));
 //        }
 
-      }
-      else // bg
-      {
+      } else { // bg
         write_imagef ( renderbuffer,
-                 (int2)(x,y),
-                 (float4)(0.6f,0.3f,0.3f, 1.0f));
+                       (int2)(x,y),
+                       (float4)(0.6f,0.3f,0.3f, 1.0f));
       }
     }
     break;
@@ -770,23 +758,12 @@ renderToBuffer ( __write_only image2d_t renderbuffer,
 ///////////////////////////////////////////////////////////////////////////////
 
 //
-typedef struct
-{
+typedef struct {
   int      _nodeId;
   float    _error;
   int      _subTreeletGid;
-  int      _fill;
+  float    _tMin;
 } __attribute__ ( ( aligned ( 16 ) ) ) FeedBackDataElement;
-
-
-//
-//typedef struct
-//{
-//  int      _nodeId;
-//  float    _error;
-//  int      _subTreeletGid;
-//  int      _fill;
-//}/*__attribute__ ( ( aligned ( 16 ) ) )*/ FeedBackDataSample;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -875,8 +852,7 @@ sampleAnalyse( __global const SvoNode* svo,
     }
 
 
-    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon)
-    {
+    if (fabs(parent->parentTMin - parent->parentTMax) > epsilon) {
       // childEntryPoint in parent voxel coordinates
       float3 childEntryPoint = (rayOrigin + (parent->parentTMin + epsilon) * rayDirection) - parent->parentCenter;
       int childIdx           =  (int) (     4*(childEntryPoint.x > 0.0f)
@@ -905,11 +881,9 @@ sampleAnalyse( __global const SvoNode* svo,
       float tcMax = min(tx1, min(ty1, tz1)); // <- you can only leave once
 
       // if child is valid
-      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-      {
+      if (getValidMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
         // TERMINATE if voxel is a leaf
-        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx))
-        {
+        if (getLeafMaskFlag(svo[parent->parentNodeIndex]._masks, childIdx)) {
           unsigned leafIndex = parent->parentNodeIndex + getNthchildIdx( svo[parent->parentNodeIndex]._masks,
                                svo[parent->parentNodeIndex]._firstchildIndex,
                                childIdx);
@@ -923,20 +897,19 @@ sampleAnalyse( __global const SvoNode* svo,
           sampleResult->_nodeId         = leafIndex;
           sampleResult->_error          = scale_exp2-(tScaleRatio*tcMin);
           sampleResult->_subTreeletGid  = svo[leafIndex]._firstchildIndex; // <<  bigger as 0 if subtreelet exists
+          sampleResult->_tMin           = tcMin;                           // <<  length of the ray
           return true;
-        }
-        else
-        {
+        } else {
           // TERMINATE if voxel is small enough
-          if (tScaleRatio*tcMin > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH)
-          {
+          if (tScaleRatio*tcMin > scale_exp2 || scaleMax-scale == MAX_SVO_RAYCAST_DEPTH) {
             unsigned returnchildIndex = parent->parentNodeIndex + getNthchildIdx(svo[parent->parentNodeIndex]._masks,
-                                                                                 svo[parent->parentNodeIndex]._firstchildIndex,
-                                                                                 childIdx);
+                                        svo[parent->parentNodeIndex]._firstchildIndex,
+                                        childIdx);
 
             sampleResult->_nodeId                = returnchildIndex;
             sampleResult->_error                 = tScaleRatio*tcMin > scale_exp2;
-            sampleResult->_subTreeletGid          = 0;
+            sampleResult->_subTreeletGid         = 0;
+            sampleResult->_tMin                  = tcMin;                           // <<  length of the ray
             return true;
           }
 
@@ -1013,6 +986,7 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
   result._nodeId        = 0;
   result._error         = 0;
   result._subTreeletGid = 0.0f;
+  result._tMin          = 9999999.0f;
 
 
   // primary ray
@@ -1022,18 +996,15 @@ renderToFeedbackBuffer ( __global FeedBackDataElement* feedbackBuffer,
                   &result);
 
 
-    if ((bool)result._nodeId)
-    {
-      write_imagef ( renderbuffer,
-                     (int2)(x,y),
-                     (float4)(result._subTreeletGid, 0.0, result._error, 1.0f));
-    }
-    else
-    {
-      write_imagef (renderbuffer,
-                    (int2)(x,y),
-                    (float4)(0.2f,0.3f,0.2f,1.0f));
-    }
+  if ((bool)result._nodeId) {
+    write_imagef ( renderbuffer,
+                   (int2)(x,y),
+                   (float4)(result._subTreeletGid, 0.0, result._error, 1.0f));
+  } else {
+    write_imagef (renderbuffer,
+                  (int2)(x,y),
+                  (float4)(0.2f,0.3f,0.2f,1.0f));
+  }
 
 
 

@@ -45,12 +45,12 @@ class RenderPassAnalyse
 	      _nodeId        = 0;
 	      _error         = 0.0f;
 	      _subTreeletGid = 0;
-	      _fill          = 0;
+	      _tMin          = 0;
 	    }
       int      _nodeId;
       float    _error;
       int      _subTreeletGid;
-      int      _fill;
+      float    _tMin;
 	  };
 
 	  struct TreeletGidAndError
