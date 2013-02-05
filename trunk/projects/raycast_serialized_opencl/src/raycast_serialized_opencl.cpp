@@ -93,7 +93,6 @@ unsigned g_framebufferTextureId = 0;
 bool        g_showTextInfo         = true;
 bool        g_showRayCastImage     = true;
 unsigned    g_viewMode             = 0u;
-//std::string g_viewModeText         = "color";
 bool        g_frameDirty           = true;
 bool        g_raycastEveryFrame    = true;
 bool        g_enableDynamicLoading = false;
@@ -141,7 +140,8 @@ void init()
 
 
 //  const std::string svoBaseName  = "TreeletBuildManager_out";
-  const std::string svoBaseName  = "terrain_05_s6_d12";
+  const std::string svoBaseName  = "david_2-3_s6_d12";
+//  const std::string svoBaseName  = "terrain_05_s6_d12";
 //  const std::string svoBaseName  = "david_face_d10_4";
 //  const std::string svoBaseName  = "venus_s8_d12";
 //  const std::string svoBaseName  = "venus_s8_d12";
