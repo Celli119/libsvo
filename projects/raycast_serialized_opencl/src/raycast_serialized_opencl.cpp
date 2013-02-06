@@ -139,8 +139,8 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
-  const std::string svoBaseName  = "david_2-3_s6_d12";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "david_2-3_s6_d12";
 //  const std::string svoBaseName  = "terrain_05_s6_d12";
 //  const std::string svoBaseName  = "david_face_d10_4";
 //  const std::string svoBaseName  = "venus_s8_d12";
@@ -422,6 +422,9 @@ void frameStep()
   g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
   g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
   g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
+
+  static bool flipFlop = false;
+  flipFlop = !flipFlop;
 
   g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
   {

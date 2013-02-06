@@ -485,9 +485,9 @@ shade_phong(const SampleResult* result,
 
     shadow = (1.0f-shadow);
 
-    color = (color*0.4
-             + color*nDotL*shadow
-             + specular*shadow*0.2f)*0.8f;
+    color = color*0.5
+             + (color*nDotL*shadow
+             + specular*shadow*0.2f)*0.5f;
 
     color.x = smoothstep(0.0f, 1.0f, color.x);
     color.y = smoothstep(0.0f, 1.0f, color.y);
@@ -840,8 +840,6 @@ sampleAnalyse( __global const SvoNode* svo,
     parent = &stack[scale];
     scale_exp2       = pow(2.0f, scale - scaleMax);
     childSizeHalf    = scale_exp2*0.5f;
-
-
 //    }
 
     // ### POP if parent is behind the camera

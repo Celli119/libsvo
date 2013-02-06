@@ -171,7 +171,7 @@ class TreeletMemoryManager
 
     std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
     std::vector<VisibilityAndError>              _slots;                  // << assoziation from slot id to Treelet Gid
-    unsigned                                     _firstDynamicSlotIndex;
+//    unsigned                                     _firstDynamicSlotIndex;
 
 
     std::vector< std::set<gloost::gloostId > >   _childTreeletsInIncoreBuffer;
