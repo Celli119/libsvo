@@ -79,7 +79,7 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   _incoreBufferSizeInByte(incoreBufferSizeInByte),
   _treeletGidToSlotGidMap(),
   _slots(),
-  _firstDynamicSlotIndex(0),
+//  _firstDynamicSlotIndex(0),
   _childTreeletsInIncoreBuffer(),
   _freeIncoreSlots(),
   _incoreSlotsToUpload()
@@ -378,10 +378,6 @@ TreeletMemoryManager::resetIncoreBuffer()
 //    }
 //  }
 
-  std::cerr << std::endl;
-  std::cerr << std::endl << "_firstDynamicSlotIndex: " << _firstDynamicSlotIndex;
-  std::cerr << std::endl;
-
 #endif
 
 
@@ -400,8 +396,6 @@ TreeletMemoryManager::resetIncoreBuffer()
 void
 TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse)
 {
-
-
   // timer
   gloostTest::Timer timerupdateIncoreBufferHost;
   timerupdateIncoreBufferHost.start();
@@ -410,14 +404,12 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
   // update visibility of treelets allready in the incore buffer
   {
     // decrement visibiliti of all slots
-
     omp_set_num_threads(4);
     #pragma omp parallel for
     for (unsigned i=1; i<_slots.size(); ++i)
     {
       --_slots[i]._visibility;
     }
-
 
     // set visibility of visible treelets
     std::multiset<RenderPassAnalyse::TreeletGidAndError>& visibleOldTreelets = renderPassAnalyse->getVisibleOldTreeletsGids();
@@ -427,7 +419,7 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
 
     for (; treeletGidAndErrorIt!=treeletGidAndErrorEndIt; ++treeletGidAndErrorIt)
     {
-      unsigned slotPos = _treeletGidToSlotGidMap[(*treeletGidAndErrorIt)._treeletGid];
+      unsigned slotPos = _treelets[(*treeletGidAndErrorIt)._treeletGid]->getIncoreSlotPosition();
       _slots[slotPos]._visibility = MAX_VISIBILITY;
    }
   }
@@ -442,7 +434,10 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
     insertTreeletIntoIncoreBuffer(VisibilityAndError((*treeletGidIt)._treeletGid, MAX_VISIBILITY, (*treeletGidIt)._error));
   }
 
-  freeIncorePosition(VisibilityAndError());
+  for (unsigned i=0; i!=1000; ++i)
+  {
+    freeIncorePosition(VisibilityAndError());
+  }
 
 
   // /timer
@@ -583,7 +578,7 @@ TreeletMemoryManager::freeIncorePosition(const VisibilityAndError& tve)
 
   unsigned              testCounter = 0;
   static const unsigned numProbes   = 100;
-  static unsigned       searchPos   = _firstDynamicSlotIndex;
+  static unsigned       searchPos   = 1;
 
   for (unsigned i=0; i!=_slots.size(); ++i)
   {

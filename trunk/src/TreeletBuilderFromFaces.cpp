@@ -211,14 +211,10 @@ TreeletBuilderFromFaces::buildFromQueue()
     const Treelet::QueueElement& parentQueuedElement = _queue.front();
     std::vector<Treelet::QueueElement> childQueueElements(8, Treelet::QueueElement());
 
-//    omp_set_dynamic(0);
     omp_set_num_threads(4);
     #pragma omp parallel for
-//    #pragma omp for
     for (unsigned i=0u; i<8u; ++i)
     {
-//      std::cerr << std::endl << "I am thread " << omp_get_thread_num()+1 << " of " << omp_get_num_threads();
-
       float childOffsetX;
       float childOffsetY;
       float childOffsetZ;
@@ -304,17 +300,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-//        if (childQueueElements[childIdx]._depth <= _maxDepth+2)
+        if (childQueueElements[childIdx]._depth <= _maxDepth+2)
         {
           _queue.push(childQueueElements[childIdx]);
         }
-//        else/* if ()*/
-//        {
-//          // set the leaf flag within leafes parent node
-//          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
-//                                                                                                   true);
-//          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
-//        }
+        else/* if ()*/
+        {
+          // set the leaf flag within leafes parent node
+          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
+                                                                                                   true);
+          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
+        }
 
         ++currentNodeIndex;
       }
@@ -336,20 +332,9 @@ TreeletBuilderFromFaces::buildFromQueue()
      can be build from them :-)
   */
 
-#ifdef SVO_BUILDING_VERBOSE
-  std::cerr << std::endl;
-  std::cerr << std::endl << "  -> Finishing Treelet with leaf count: " << _queue.size();
-#endif
 
   _treelet->setNumNodes((int)currentNodeIndex);
   _treelet->setNumLeaves(_queue.size());
-
-
-
-#ifdef SVO_BUILDING_VERBOSE
-  unsigned maxLeafDepth = 0;
-  unsigned minLeafDepth = 1000;
-#endif
 
 
   while (_queue.size())
@@ -359,10 +344,6 @@ TreeletBuilderFromFaces::buildFromQueue()
     // set the leaf flag within leafes parent node
     _treelet->getNodes()[leafQueuedElement._parentLocalNodeIndex].setLeafMaskFlag(leafQueuedElement._idx, true);
 
-#ifdef SVO_BUILDING_VERBOSE
-    maxLeafDepth = gloost::max(maxLeafDepth, leafQueuedElement._depth);
-    minLeafDepth = gloost::min(minLeafDepth, leafQueuedElement._depth);
-#endif
 
 
 #if 1
@@ -377,12 +358,6 @@ TreeletBuilderFromFaces::buildFromQueue()
 #endif
     _queue.pop();
   }
-
-#ifdef SVO_BUILDING_VERBOSE
-  std::cerr << std::endl << "       leafes with depth < maxDepth: " << _treelet->getLeafQueueElements().size();
-  std::cerr << std::endl << "       min leaf depth                " << minLeafDepth;
-  std::cerr << std::endl << "       max leaf depth                " << maxLeafDepth;
-#endif
 }
 
 
