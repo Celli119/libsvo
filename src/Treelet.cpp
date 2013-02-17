@@ -340,7 +340,7 @@ Treelet::getFirstLeafIndex() const
 */
 
 gloost::gloostId
-Treelet::getIncoreSlotPosition() const
+Treelet::getSlotGid() const
 {
   return _incoreSlotGid;
 }
@@ -356,7 +356,7 @@ Treelet::getIncoreSlotPosition() const
 */
 
 void
-Treelet::setIncoreSlotPosition(gloost::gloostId  incoreSlotGid)
+Treelet::setSlotGid(gloost::gloostId  incoreSlotGid)
 {
   _incoreSlotGid = incoreSlotGid;
 }

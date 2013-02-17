@@ -189,10 +189,10 @@ class Treelet
 
 
     // returns the slot Gid of this treelet within the incore buffer, -1 if not incore
-    gloost::gloostId  getIncoreSlotPosition() const;
+    gloost::gloostId  getSlotGid() const;
 
     // sets the slot Gid of this treelet within the incore buffer, -1 if not incore
-    void setIncoreSlotPosition(gloost::gloostId incoreSlotGid);
+    void setSlotGid(gloost::gloostId incoreSlotGid);
 
 
 	protected:

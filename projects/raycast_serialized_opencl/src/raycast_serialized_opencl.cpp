@@ -130,7 +130,7 @@ void showTreeletCounters();
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 600/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;

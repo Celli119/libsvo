@@ -68,15 +68,15 @@ class TreeletMemoryManager
 	public:
 
     // stores visibility and error of a slot
-	  struct VisibilityAndError
+	  struct SlotInfo
 	  {
-      VisibilityAndError():
+      SlotInfo():
         _treeletGid(-1),
         _visibility(0),
         _error(100000)
       {}
 
-      VisibilityAndError(gloost::gloostId treeletGid, unsigned visibility, float error):
+      SlotInfo(gloost::gloostId treeletGid, unsigned visibility, float error):
         _treeletGid(treeletGid),
         _visibility(visibility),
         _error(error)
@@ -125,13 +125,13 @@ class TreeletMemoryManager
     void updateClientSideIncoreBuffer(RenderPassAnalyse* renderPassAnalyse);
 
     // inserts a Treelet into the gpu buffer
-    bool insertTreeletIntoIncoreBuffer(const VisibilityAndError& tve);
+    bool insertTreeletIntoIncoreBuffer(const SlotInfo& tve);
 
     // removes a Treelet from the gpu buffer
     bool removeTreeletFromIncoreBuffer(gloost::gloostId treeletGid);
 
     // frees one or more slots
-    bool freeIncorePosition(const VisibilityAndError& tve);
+    bool freeIncorePosition(const SlotInfo& tve);
 
 
 
@@ -153,7 +153,7 @@ class TreeletMemoryManager
 
 
     // rettuns a vector containing a Treelet Gid for each slot
-    std::vector<VisibilityAndError>& getSlots();
+    std::vector<SlotInfo>& getSlots();
 
 	protected:
 
@@ -169,9 +169,7 @@ class TreeletMemoryManager
     gloost::InterleavedAttributes*               _incoreAttributeBuffer;
     unsigned                                     _incoreBufferSizeInByte;
 
-    std::map<gloost::gloostId, gloost::gloostId> _treeletGidToSlotGidMap; // << assoziation from Treelet Gid to slot id
-    std::vector<VisibilityAndError>              _slots;                  // << assoziation from slot id to Treelet Gid
-//    unsigned                                     _firstDynamicSlotIndex;
+    std::vector<SlotInfo>              _slots;   // << assoziation from slot id to Treelet Gid
 
 
     std::vector< std::set<gloost::gloostId > >   _childTreeletsInIncoreBuffer;
@@ -197,8 +195,8 @@ class TreeletMemoryManager
 
 
 bool
-sortSlotsByVisibility (const TreeletMemoryManager::VisibilityAndError a,
-                       const TreeletMemoryManager::VisibilityAndError b);
+sortSlotsByVisibility (const TreeletMemoryManager::SlotInfo& a,
+                       const TreeletMemoryManager::SlotInfo& b);
 
 
 
