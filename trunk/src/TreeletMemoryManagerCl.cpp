@@ -155,6 +155,10 @@ TreeletMemoryManagerCl::getClAttributeIncoreBufferGid() const
 void
 TreeletMemoryManagerCl::updateDeviceMemory()
 {
+  if (!_incoreSlotsToUpload.size())
+  {
+    return;
+  }
 
   // collect incore buffer ranges to upload
   gloost::bencl::ClBuffer* incoreClBuffer = _clContext->getClBuffer(_svoClBufferGid);
@@ -163,14 +167,10 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   std::set<gloost::gloostId>::iterator slotGidIt    = _incoreSlotsToUpload.begin();
   std::set<gloost::gloostId>::iterator slotGidEndIt = _incoreSlotsToUpload.end();
 
-  if (!_incoreSlotsToUpload.size())
-  {
-    return;
-  }
-
-
   while (slotGidIt!=slotGidEndIt)
   {
+
+    std::cerr << std::endl << "(*slotGidIt): " << (*slotGidIt);
 
     // svo data
     unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
@@ -181,7 +181,6 @@ TreeletMemoryManagerCl::updateDeviceMemory()
                                                 destOffsetInByte,
                                                 getTreeletSizeInByte(),
                                                 (const char*)&(_incoreBuffer[srcIndex]));
-
 
     // attrib data
     unsigned attribSrcIndex         = (*slotGidIt)*_numNodesPerTreelet*_incoreAttributeBuffer->getNumElementsPerPackage();
@@ -197,9 +196,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
     ++slotGidIt;
   }
   clFinish( device->getClCommandQueue() );
-
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
-
 }
 
 

@@ -274,6 +274,8 @@ TreeletBuilderFromFaces::buildFromQueue()
       }
     }
 
+#define BUILD_DEPTH_LIMIT_MAX_DEPTH false
+
 #if 1
     // update parent node and build serial svo structure by checking content of new QueueElement
     bool isFirstValidChild = true;
@@ -300,7 +302,7 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-        if (childQueueElements[childIdx]._depth <= _maxDepth+2)
+        if (childQueueElements[childIdx]._depth <= _maxDepth+2 || !BUILD_DEPTH_LIMIT_MAX_DEPTH)
         {
           _queue.push(childQueueElements[childIdx]);
         }

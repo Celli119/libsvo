@@ -183,8 +183,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   if (_rumble)
   {
     frustumFarLowerLeftPlusOffset = frustum.far_lower_left
-                                    + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth
-                                    + gloost::frand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight;
+                                    + gloost::crand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelWidth*0.5
+                                    + gloost::crand()*frameBufferToFeedbackBufferRatio*frameBufferFrustumOnePixelHeight*0.5;
   }
 
   gloost::bencl::ClContext* clContext = _memoryManager->getContext();
@@ -325,7 +325,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 768;
+  static const unsigned maxTreeletsToPropergate = 512;
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
