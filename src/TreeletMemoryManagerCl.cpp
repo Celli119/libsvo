@@ -170,6 +170,14 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   while (slotGidIt!=slotGidEndIt)
   {
 
+
+
+
+
+
+
+
+
     std::cerr << std::endl << "(*slotGidIt): " << (*slotGidIt);
 
     // svo data
