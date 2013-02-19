@@ -167,43 +167,70 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   std::set<gloost::gloostId>::iterator slotGidIt    = _incoreSlotsToUpload.begin();
   std::set<gloost::gloostId>::iterator slotGidEndIt = _incoreSlotsToUpload.end();
 
+//  std::cerr << std::endl;
+//  std::cerr << std::endl << "_incoreSlotsToUpload.size(): " << _incoreSlotsToUpload.size();
+  unsigned numCopyCalls = 0;
+
   while (slotGidIt!=slotGidEndIt)
   {
 
+    gloost::gloostId startSlot = (*slotGidIt);
+    ++slotGidIt;
 
+    unsigned numSlots    = 1;
+    unsigned numTreelets = 1;
 
+    if (slotGidIt!=slotGidEndIt)
+    {
 
+      while(slotGidIt!=slotGidEndIt)
+      {
+        int   slotDist = (*slotGidIt) - (int)startSlot;
+        float ratio    = (numTreelets+1) / (float)(slotDist+1);
 
+        if (ratio > 0.1)
+        {
+          numSlots = slotDist+1;
+          ++numTreelets;
+          ++slotGidIt;
+        }
+        else
+        {
+          break;
+        }
 
+      }
+    }
 
-
-
-    std::cerr << std::endl << "(*slotGidIt): " << (*slotGidIt);
+    ++numCopyCalls;
 
     // svo data
-    unsigned srcIndex         = (*slotGidIt)*_numNodesPerTreelet;
-    unsigned destOffsetInByte = (*slotGidIt)*getTreeletSizeInByte();
+    unsigned srcIndex         = (startSlot)*_numNodesPerTreelet;
+    unsigned destOffsetInByte = (startSlot)*getTreeletSizeInByte();
 
     int status = incoreClBuffer->enqueueWrite( device->getClCommandQueue(),
                                                 false,
                                                 destOffsetInByte,
-                                                getTreeletSizeInByte(),
+                                                numSlots*getTreeletSizeInByte(),
                                                 (const char*)&(_incoreBuffer[srcIndex]));
 
     // attrib data
-    unsigned attribSrcIndex         = (*slotGidIt)*_numNodesPerTreelet*_incoreAttributeBuffer->getNumElementsPerPackage();
-    unsigned attribDestOffsetInByte = (*slotGidIt)*_attributeBuffers[0]->getVector().size()*sizeof(float);
+    unsigned attribSrcIndex         = (startSlot)*_numNodesPerTreelet*_incoreAttributeBuffer->getNumElementsPerPackage();
+    unsigned attribDestOffsetInByte = (startSlot)*_attributeBuffers[0]->getVector().size()*sizeof(float);
 
     gloost::bencl::ClBuffer* incoreAttributeClBuffer = _clContext->getClBuffer(_attributeClBufferGid);
 
     status = incoreAttributeClBuffer->enqueueWrite(device->getClCommandQueue(),
                                                    false,
                                                    attribDestOffsetInByte,
-                                                   _attributeBuffers[0]->getVector().size()*sizeof(float),
+                                                   numSlots*_attributeBuffers[0]->getVector().size()*sizeof(float),
                                                    (const char*)&(_incoreAttributeBuffer->getVector()[attribSrcIndex]));
-    ++slotGidIt;
   }
   clFinish( device->getClCommandQueue() );
+
+//  std::cerr << std::endl << "numCopyCalls: " << numCopyCalls;
+  std::cerr << std::endl << "            : " << (float)numCopyCalls/_incoreSlotsToUpload.size() * 100.0 << " %";
+
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
 }
 
