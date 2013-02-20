@@ -175,7 +175,6 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   {
 
     gloost::gloostId startSlot = (*slotGidIt);
-    ++slotGidIt;
 
     unsigned numSlots    = 1;
     unsigned numTreelets = 1;
@@ -188,7 +187,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
         int   slotDist = (*slotGidIt) - (int)startSlot;
         float ratio    = (numTreelets+1) / (float)(slotDist+1);
 
-        if (ratio > 0.1)
+        if (ratio > 0.25)
         {
           numSlots = slotDist+1;
           ++numTreelets;
