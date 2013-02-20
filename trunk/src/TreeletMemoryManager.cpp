@@ -517,14 +517,17 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const SlotInfo& tve)
     return true;
   }
 
-  gloost::gloostId parentTreeletGid                = _treelets[tve._treeletGid]->getParentTreeletGid();
-  gloost::gloostId parentTreeletLeafPosition       = _treelets[tve._treeletGid]->getParentTreeletLeafPosition();
-  gloost::gloostId parentTreeletLeafParentPosition = _treelets[tve._treeletGid]->getParentTreeletLeafsParentPosition();
-  gloost::gloostId parentTreeletLeafIdx            = _treelets[tve._treeletGid]->getParentTreeletLeafIdx();
+  Treelet* treelet = _treelets[tve._treeletGid];
+  gloost::gloostId parentTreeletGid                = treelet->getParentTreeletGid();
+  gloost::gloostId parentTreeletLeafPosition       = treelet->getParentTreeletLeafPosition();
+  gloost::gloostId parentTreeletLeafParentPosition = treelet->getParentTreeletLeafsParentPosition();
+  gloost::gloostId parentTreeletLeafIdx            = treelet->getParentTreeletLeafIdx();
 
-  unsigned leafPositionInIncoreBuffer       = _treelets[parentTreeletGid]->getSlotGid()
+
+  Treelet* parentTreelet = _treelets[parentTreeletGid];
+  unsigned leafPositionInIncoreBuffer       = parentTreelet->getSlotGid()
                                             * _numNodesPerTreelet+parentTreeletLeafPosition;
-  unsigned leafParentPositionInIncoreBuffer = _treelets[parentTreeletGid]->getSlotGid()
+  unsigned leafParentPositionInIncoreBuffer = parentTreelet->getSlotGid()
                                             * _numNodesPerTreelet+parentTreeletLeafParentPosition;
 
   // copy root node of new Treelet to the leaf of parents Treelet
@@ -538,7 +541,7 @@ TreeletMemoryManager::insertTreeletIntoIncoreBuffer(const SlotInfo& tve)
                                                                -(int)leafPositionInIncoreBuffer );
 
   // mark incore slot of parent to be uploaded to device memory
-  markIncoreSlotForUpload(_treelets[parentTreeletGid]->getSlotGid());
+  markIncoreSlotForUpload(parentTreelet->getSlotGid());
 
   // note treeletGid to parent position within the _childTreeletsInIncoreBuffer
   _childTreeletsInIncoreBuffer[parentTreeletGid].insert(tve._treeletGid);
