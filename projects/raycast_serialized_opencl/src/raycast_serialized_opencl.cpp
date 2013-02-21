@@ -139,9 +139,9 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "david_2-3_s6_d12";
-  const std::string svoBaseName  = "terrain_05_s6_d12";
+//  const std::string svoBaseName  = "terrain_05_s6_d12";
 //  const std::string svoBaseName  = "david_face_d10_4";
 //  const std::string svoBaseName  = "venus_s8_d12";
 //  const std::string svoBaseName  = "venus_s8_d12";
@@ -236,7 +236,7 @@ void initCl()
   g_context = new gloost::bencl::ClContext(g_contextGid);
 
 
-  g_context->acquireDevice(g_deviceGid);
+  g_context->createDeviceInstance(g_deviceGid);
   g_context->createContextClFromGlContext();
 
   g_context->loadProgram("../opencl/treeletRenderer_rgba.cl");
