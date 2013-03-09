@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="../../../Source/libsvo/projects/raycast_serialized_opencl/codeblocks/raycast_serialized_opencl.cbp">
+		<Project filename="../../../Source/libsvo/projects/raycast_serialized_opencl/codeblocks/raycast_serialized_opencl.cbp" active="1">
 			<Depends filename="../../../Source/libsvo/libsvo/codeblocks/libsvo_gnulinux.cbp" />
 			<Depends filename="../../../Source/libsvo/projects/octree_builder/codeblocks/octree_builder.cbp" />
 		</Project>
