@@ -402,8 +402,8 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
   // update visibility of treelets allready in the incore buffer
   {
     // decrement visibiliti of all slots
-    omp_set_num_threads(4);
-    #pragma omp parallel for
+//    omp_set_num_threads(4);
+//    #pragma omp parallel for
     for (unsigned i=1; i<_slots.size(); ++i)
     {
       --_slots[i]._visibility;
