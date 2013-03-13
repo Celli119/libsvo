@@ -1,0 +1,24 @@
+     FONT NAME : DIN PRO
+     PUBLISHER : FontFont
+     PRICE     : $356                    TYPE        : OpenType
+
+(RELEASE  NOTES)                                                         
+
+л лл    After re-working and expanding OCR-B to include three weights      лл л
+л лл    for the FF OCR-F, Albert-Jan Pool began working on his second      лл л
+л лл    FontFont, the famous DIN-Mittelschrift. This face has not only     лл л
+л лл    dominated the traffic signs and public buildings in Germany, but   лл л
+л лл    with its technical orientation and straightforwardness it has      лл л
+л лл    also found many friends internationally. FF DIN has been           лл л
+л лл    expanded to a family of five weights. For each weight there is     лл л
+л лл    an Alternate cut with old style figures, circular i-dots and       лл л
+л лл    full points and oblique terminals on some characters.              лл л
+л лл                                                                       лл л
+л лл    The original DIN-Mittelschrift is built up from strokes having     лл л
+л лл    a constant thickness, all curves being drawn with a pair of        лл л
+л лл    compasses. This provides a spotty typeface with quirky letter-     лл л
+л лл    forms, as can especially seen in the characters a, e and s.        лл л
+л лл    Compared with characters with fewer strokes, such as b, d, p, q,   лл л
+л лл    and o and n they appear rather black. For FF DIN, the weight of    лл л
+л лл    the horizontal strokes has been reduced, and the curves were       лл л
+л лл    designed in a more fluent way.                                     

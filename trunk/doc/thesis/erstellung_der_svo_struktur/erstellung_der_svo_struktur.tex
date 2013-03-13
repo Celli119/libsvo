@@ -1,0 +1,58 @@
+\chapter{Erstellung der SVO-Struktur}
+
+
+\section{Ein generalisiertes System zur SVO-Erstellung}
+Das System zur Erstellung der SVO-Struktur ist modular aufgebaut und besteht prinzipiell aus drei Teilen: Dem \textbf{\textit{Build-Manager}} der den Ablauf der SVO-Generierung steuert, einem \textbf{\textit{Treelet-Builder}} der die Treelets erstellt und abhängig vom Typ der Eingabedaten gewählt wird und einem \textbf{\textit{Attributgenerator}} der Abhängig von Eingabedaten und gewünschter Attributkonfiguration der Ausgabedaten gewählt werden kann. Mit dieser Unterteilung des Systems ist es prinzipiell möglich verschiedenste Eingabedaten wie 3D-Objekte aus Dreiecksnetzen oder Punktwolken zu verarbeiten und eine Vielzahl von Attributtkonfigurationen zu erstellen. Durch den modularen Aufbau und der Bereitstellung entsprechender Basisklassen ist es möglich Unterstützung für weitere Eingabeformate zu schaffen.
+
+
+\section{Erzeugung der Treelet Struktur}
+Die SVO-Struktur wird schon bei der Erstellung segmentiert, das heißt, in Treelets unterteilt aufgebaut. Dies bietet die Möglichkeit bereits erzeugte Treelets auf die Festplatte auszulagern, sollte der Arbeitsspeicher nicht aussreichen um die erzeugten Daten zu halten.\\
+Als Eingabe werden zunächst die gewünschte, minimale Tiefe des resultierenden Octrees, die Speichergröße der Treelets und der Pfad zu den Ausgangsdaten benötigt. Der Build-Manager erstellt zunächst ein initiales, leeres Treelet (\textit{Wurzel-Treelet}) und übergibt dieses zusammen mit den Eingabeparametern und den Ausgangsdaten an den Treelet-Builder. Dieser füllt das Treelet anhand der Eingabedaten. Dabei werden alle entstandenen Blatt-Knoten, die noch nicht die gewünschte, minimale Tiefe in der Octree-Struktur aufweisen, notiert. Zu jedem dieser Blattknoten wird unter Anderem seine Tiefe, seine Transformation relativ zum Wurzelknoten und eine Liste der Primitive der Ausgangsdaten gespeichert, die in diesem Blattknoten liegen. Ausserdem wird jeweils der Treelet-Index, der Index des Blattknotens und dessen Elternknotens gespeichert um die Verknüpfung der folgenden Treelets realisieren zu können (vgl. Segmentierung !!!).\\
+Der Build-Manager speichert diese Informationen in einer Queue und erzeugt für jeden Eintrag ein neues Treelet (\textit{Top-Down}). Diese werden durch die gespeicherten Treelet- und Blattknotenindices des Wurzel-Treelets initialisiert und sind so logisch mit diesem verbunden. Jedes dieser Treelets wird wiederum dem Treelet-Builder übergeben, der sie anhand der jeweiligen Untermenge der Primitive und der gespeicherten Transformation des zugrundeliegenden Blatt\-knotens füllt.\\
+Der Build-Manager erzeugt sukzessiv weitere Treelets für alle Blattknoten bereits erstellter Treelets bis die geforderte minimale Tiefe des Octrees für alle Blattknoten erreicht ist. Für Blattknoten die diese Tiefe erreicht haben, erzeugt ein Attributgenerator anhand deren Transformation und Primitivliste die gewünschten Attribute. Die Liste der jeweils beteiligten Primitive und alle weiteren Informationen die zur Erstellung weiterer Treelets benötigt würden können an dieser Stelle gelöscht werden.\\
+Ist die Erstellung der Treelets abgeschlossen werden die Attribute der inneren Knoten durch Mitteln der Attribute ihrer Untergeordneten Knoten erstellt. Dies geschiet für alle Treelets in umgekehrter Reihenfolge ihrer Erstellung (\textit{Bottom-Up}). So wird sichergestellt, dass der Wurzelknoten eines Untergeordneten Treelets bereits Attributinformation enthält wenn sein Übergeordnetes Treelet diese zur Generierung seiner Attribute in seinen Blattknoten benötigt.\\
+Ist die Erstellung der Attribute bis in den Wurzelknoten des Wurzel-Treelets vorangeschritten ist die Erstellung des Octrees abgeschlossen. 
+
+
+\section{Funktionsweise des Treelet-Builders}
+Der Treelet-Builder erstellt die Knoten in der Breite (\textit{Breadth-First}) und arbeitet daher intern auf einem FIFO-Kontainer (\textit{Queue}). Der Aufbau eines Elementes dieses Queue ist im Listing \ref{lst:queueelement} zu sehen. Jedes Element der Queue entspricht einem Knoten in der SVO-Struktur und enthält einerseits alle Informationen die nötig sind diesen Knoten seinem übergeordneten Knoten mitzuteilen und andererseits die Erzeugung weiterer Unterknoten zu ermöglichen.\\
+Initial wird ein Queue-Element stellvertretend für den Wurzelknoten des aktuellen Treelets erstellt. Dieses enhält die relative Transformation dieses Knotens in der SVO-Struktur sowie alle Primitive die in diesen Knoten fallen. Für jeden potentiellen Kind-Knoten wird ein Queue-Element mit entsprechenden Parametern erzeugt und dessen \textit{Bounding Box} mit den Primitiven des aktuellen Queue-Elementes zum Schnitt gebracht. Dabei wird für jedes Kind die Untermenge an Primitiven notiert die geschnitten wurden. Falls ein Kind keine Primitive enthält, wird es verworfen. Die restlichen Kinder bekommen aufeinanderfolgende Positionen innerhalb des aktuellen Treelets. Der \textit{First-Child-Index} des Knotens des aktuellen Queue-Elementes wird daraufhin auf die Position des ersten Kindes gesetzt. Die Queue-Elemente der Kinder werden nun in die Queue eingereiht.\\
+Vor dem Abarbeiten eines Queue-Elementes wird überprüft, ob noch genügend freie Plätze für die maximal mögliche Anzahl für Unterteilungen in Kind-Knoten im Treelet vorhanden sind. Sind also weniger als acht freie Plätze verfügbar gilt das Treelet als voll.
+
+Da jeder Knoten maximal acht Unterknoten haben kann, wird vor dem Abarbeiten eines Queue-Elementes überprüft ob genügend freie Plätze für die Unterteilung eines weiteren Knoten  einesunterEin Treelet wird als voll  ist voll wenn eines der Kinder einen Knoten-index erhält der mit der Anzahl Ist das Treelet voll, werden die in der Queue enthaltenen Elemente nach ihrer Tiefe in der SVO-Strukture in finale und weiter zu unterteilende Elemente getrennt gespeichert.
+
+
+\begin{lstlisting}[caption={Queue-Element},label={lst:queueelement}]
+struct QueueElement
+{
+  // Knoten-Index des Knotens innerhalb des Treelets
+  unsigned              _localLeafIndex;         
+  // Kind-Index des Knotens innerhalb seines Eltern-Knotens
+  char                  _idx;                    
+  // Knoten-Index des Eltern-Knotens
+  unsigned              _parentLocalNodeIndex;   
+  // Tiefe des Knotens in der SVO-Struktur
+  unsigned              _depth;                  
+  // Transformation des Knotens relativ zum Wurzelknoten
+  gloost::Matrix        _aabbTransform;          
+  // In diesem Knoten enthaltene Primitive der Ausgangsdaten
+  std::vector<unsigned> _primitiveIds;           
+};
+\end{lstlisting}
+
+
+ist treelet voll: Teilung von restlicher queue in finale und nicht-finale queue-elemente
+- zurück zum buildmanager
+
+
+
+
+
+
+
+
+
+
+
+
+
