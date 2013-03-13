@@ -1,0 +1,138 @@
+\documentclass[a4paper,twoside,titlepage, openright, 11pt]{report}
+\usepackage[ngerman]{babel}
+%\usepackage[ansinew]{inputenc}
+\usepackage[ansinew]{inputenc}
+\usepackage[numbers,square]{natbib}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{capt-of}
+\usepackage{setspace}
+\usepackage[font=bf]{caption}
+\usepackage{chngcntr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[bottom=4cm]{geometry}
+
+%\usepackage[automark]{scrpage2}
+\newcommand{\changefont}[3]{
+\fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
+
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{white}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\definecolor{dkgreen}{rgb}{0,0.8,0}
+\definecolor{gray}{rgb}{0.95,0.95,0.95}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+
+\lstset{
+  language=C++,                % choose the language of the code
+  basicstyle=\tiny\ttfamily, 
+  numbers=left,                   % where to put the line-numbers
+  stepnumber=1,                   % the step between two line-numbers.        
+  numbersep=2pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{gray},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=t,                   % sets the caption-position to bottom
+  breaklines=false,               % sets automatic line breaking
+  breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+ % title=\lstname,                % show the filename of files included with \lstinputlisting;
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{dkgreen},   % comment style
+  stringstyle=\color{mauve},      % string literal style
+}
+
+
+\counterwithin{figure}{chapter}
+\onehalfspacing
+\setlength{\headheight}{15pt}
+
+\newcommand{\blankpage}{
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+}
+ 
+ \raggedbottom
+\begin{document}
+
+
+%\changefont{ptm}{m}{n}
+\nocite{*}
+\bibliographystyle{plain}
+\renewcommand{\thepage}{\Roman{page}}
+\setcounter{secnumdepth}{-2}
+
+\input{title/titel.tex}
+\blankpage
+\input{title/erklaerung.tex}
+\blankpage
+\input{title/danksagung.tex}
+\blankpage
+\input{einleitung/kurzfassung.tex}
+\blankpage
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+\tableofcontents
+\thispagestyle{empty}
+\listoffigures
+\blankpage
+\thispagestyle{empty}
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{secnumdepth}{2}
+
+
+%\pagestyle{scrheadings} 
+%\clearscrheadfoot 
+%\ihead{\headmark} 
+%\ohead{Name} 
+%\renewcommand*{\chapterpagestyle}{chapter}
+
+\newpage
+\renewcommand{\sectionmark}[1]{}
+\setcounter{page}{1}
+
+\fancyhf{} % clear all header and footer fields
+%\fancyfoot[C]{\thepage} % except the center
+%\fancyhead[EL]{\nouppercase{\leftmark}}
+%\fancyhead[OL]{\nouppercase{\rightmark}}
+
+
+\fancyfoot[LE,RO]{\thepage}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+%\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\space#1}{}}
+
+\renewcommand{\chaptermark}[1]{\markright{#1}{}}
+  \makeatletter
+ \let\ps@plain\ps@fancy
+ \makeatother
+\input{einleitung/motivation_zielsetzung.tex}
+%\newpage
+\input{verwendete_infrastruktur/verwendete_infrastruktur.tex}
+%\newpage
+\input{grundlagen/grundlagen.tex}
+%\newpage
+\input{out-of-core-ansatz/out-of-core-ansatz.tex}
+%\newpage
+\input{erstellung_der_svo_struktur/erstellung_der_svo_struktur.tex}
+%\newpage
+\input{sichtabhaengige_veraenderung_des_octrees/sichtabhaengige_veraenderung_des_octrees.tex}
+\newpage
+\input{ergebnisse/ergebnisse.tex}
+%\newpage
+%\input{Ausblick/Ausblick.tex}
+%\newpage
+%\addcontentsline{toc}{chapter}{Literatur}
+%\bibliography{literatur}
+%\newpage
+%\input{Appendix/Appendix.tex}
+\end{document}
