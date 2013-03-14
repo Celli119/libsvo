@@ -16,6 +16,9 @@ Ist die Erstellung der Attribute bis in den Wurzelknoten des Wurzel-Treelets vor
 
 \section{Arbeitsweise des Treelet-Builders}
 Der Treelet-Builder erstellt die Knoten in der Breite (\textit{Breadth-First}) und arbeitet daher intern auf einem FIFO-Kontainer (\textit{Queue}). Der Aufbau eines Elementes dieses Queue ist im Listing \ref{lst:queueelement} zu sehen. Jedes Element der Queue entspricht einem Knoten in der SVO-Struktur und enthält einerseits alle Informationen die nötig sind diesen Knoten seinem übergeordneten Knoten mitzuteilen und andererseits die Erzeugung weiterer Unterknoten zu ermöglichen.
+
+%\begin{figure}[position=h width=0.75\textwidth]
+%  \centering
 \begin{lstlisting}[caption={Queue-Element},label={lst:queueelement}]
 struct QueueElement
 {
@@ -33,6 +36,7 @@ struct QueueElement
   std::vector<unsigned> _primitiveIds;           
 };
 \end{lstlisting}
+%\end{figure}
 Initial wird ein Queue-Element stellvertretend für den Wurzelknoten des aktuellen Treelets erstellt. Dieses enhält die relative Transformation dieses Knotens in der SVO-Struktur sowie alle Primitive die in diesen Knoten fallen. Für jeden potentiellen Kind-Knoten wird ein Queue-Element mit entsprechenden Parametern erzeugt und dessen \textit{Bounding Box} mit den Primitiven des aktuellen Queue-Elementes zum Schnitt gebracht. Dabei wird für jedes Kind die Untermenge an Primitiven notiert die geschnitten wurden. Falls ein Kind keine Primitive enthält, wird es verworfen. Die restlichen Kinder bekommen aufeinanderfolgende Positionen innerhalb des aktuellen Treelets. Der \textit{First-Child-Index} des Knotens des aktuellen Queue-Elementes wird daraufhin auf die Position des ersten Kindes gesetzt. Die Queue-Elemente der Kinder werden nun in die Queue eingereiht.\\
 Vor dem Abarbeiten eines Queue-Elementes wird überprüft, ob noch genügend freie Plätze für die maximal mögliche Anzahl für Unterteilungen in Kind-Knoten im Treelet vorhanden sind. Sind also weniger als acht freie Plätze verfügbar gilt das Treelet als voll. 
 Ist dies der Fall werden die in der Queue enthaltenen Elemente, nach ihrer Tiefe in der SVO-Struktur, in finale und weiter zu unterteilende Elemente getrennt und in zwei Kontainern im Treelet gespeichert. Nachdem die finalen Knoten in ihren Eltern-Knoten als solche markiert wurden, wird das Treelet an den Build-Manager zurückgegeben.\\
