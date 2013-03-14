@@ -2,9 +2,9 @@
 
 \section{Übersicht} 
 
-Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumestruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Feedback-Buffer gerendert (\textit{Analyse-Pass}). Nach diesem Schritt enthält dieses Buffer für jeden Strahl u.A. die Position des getroffenen Knoten im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.\\
-Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Kontainer verarbeitet (\textit{Vorsortierung}). Der eine enthält die Treelet-Indices aller Knoten die getroffen wurden und zusätzlich die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Kontainer enhält Anfragen nach Verfeinerung in Form der Treelet-Indices der anzuhängen Treelets. Die Fehlerinformation bleibt dabei in beiden Kontainern erhalten.\\
-Jetzt werden beide Kontainer dem Speichermanagement übergeben (\textit{clientseitige Aktualisierung}). Dort werden zunächst die Sichtbarkeitsinformation aller im letzten Zyklus gesehenden Treelets aktuallisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Dabei werden nicht sichtbare Treelets entfernt falls im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung stehen. Geänderte Slots werden markiert. Abschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textit{serverseitige Aktualisierung}).\\
+Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumestruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Feedback-Buffer gerendert (\textbf{\textit{Analyse-Pass}}). Nach diesem Schritt enthält dieses Buffer für jeden Strahl u.A. die Position des getroffenen Knoten im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.\\
+Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Kontainer verarbeitet (\textbf{\textit{Vorsortierung}}). Der eine enthält die Treelet-Indices aller Knoten die getroffen wurden und zusätzlich die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Kontainer enhält Anfragen nach Verfeinerung in Form der Treelet-Indices der anzuhängen Treelets. Die Fehlerinformation bleibt dabei in beiden Kontainern erhalten.\\
+Jetzt werden beide Kontainer dem Speichermanagement übergeben(\textit{\textbf{clientseitige\- Aktualisierung}}). Dort werden zunächst die Sichtbarkeitsinformation aller im letzten Zyklus gesehenden Treelets aktuallisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Dabei werden nicht sichtbare Treelets entfernt falls im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung stehen. Geänderte Slots werden markiert. Abschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textbf{\textit{serverseitige Aktualisierung}}).\\
 Die folgenden Abschnitte werden diese Schritte genauer betrachten.
 
 \section{Der Analyse Pass}
@@ -48,40 +48,13 @@ Für das Einfügen eines Treelts aus dem in der Vorsortierung erstellten Kontainer
   \item die Position des Blattes in seinem Eltern-Knoten
 \end{enumerate}
 Damit wird nun die Position des ensprechneden Blattknotens des Eltern-Treelets im Incore-Buffer ermittelt und durch den Wurzelknoten des anzuhängenden Treelets ersetzt. Dadurch muss dessen relative Index zu seinem ersten Kindknoten angepasst werden. Der erste Kindknoten des neuen inneren Knotens findet sich immer an zweiter Position innerhalb des angehängten Treelets im Incore-Buffer. Der Blattknoten wird damit zu einem inneren Knoten, was wiederum in seinem Elternknoten an der ensprechenden Stelle in der \textit{Childmask} markiert wird. In einem weiteren Kontainer wird vermerkt, dass das Parent-Treelet nun ein neues Kind-Treelet im Incore-Buffer besitzt. Abschließend wird der Slot-Index des Parent-Treelets zur späteren serverseitigen Aktualisierung vorgemerkt. 
+\newpage
 
-\begin{lstlisting}[caption={Einfügen eines Treelets},label={lst:insert_treelet}]
- ...
- Treelet* treelet = _treelets[tve._treeletGid];
- gloostId parentTreeletGid                = treelet->getParentTreeletGid();
- gloostId parentTreeletLeafPosition       = treelet->getParentTreeletLeafPosition();
- gloostId parentTreeletLeafParentPosition = treelet->getParentTreeletLeafsParentPosition();
- gloostId parentTreeletLeafIdx            = treelet->getParentTreeletLeafIdx();
-
- Treelet* parentTreelet = _treelets[parentTreeletGid];
- unsigned leafPositionInIncoreBuffer       = parentTreelet->getSlotGid()
-                                           * _numNodesPerTreelet+parentTreeletLeafPosition;
- unsigned leafParentPositionInIncoreBuffer = parentTreelet->getSlotGid()
-                                           * _numNodesPerTreelet+parentTreeletLeafParentPosition;
-
- // copy root node of new Treelet to the leaf of parents Treelet
- _incoreBuffer[leafPositionInIncoreBuffer] = _incoreBuffer[incoreNodePosition];
-
- // update leaf mask of leafs parent so that the leaf is no leaf anymore
- _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, false);
-
- // update first child position within leaf/root (relative value within the incore buffer)
- _incoreBuffer[leafPositionInIncoreBuffer].setFirstChildIndex( (int)(incoreNodePosition+1)
-                                                              -(int)leafPositionInIncoreBuffer);
-
- // mark incore slot of parent to be uploaded to device memory
- markIncoreSlotForUpload(parentTreelet->getSlotGid());
-
- // note treeletGid to parent position within the _childTreeletsInIncoreBuffer
- _childTreeletsInIncoreBuffer[parentTreeletGid].insert(tve._treeletGid);
-
- return true;
-}
-\end{lstlisting}
+\lstinputlisting
+    [caption={Einfügen eines Treelets}
+       \label{lst:insert_treelet},
+       captionpos=t,language=C++]
+ {sichtabhaengige_veraenderung_des_octrees/insert_treelet.cpp}
 
 
 \subsection{Entfernen eines Treelets}
@@ -89,44 +62,12 @@ Ist für das Einfügen eines Treelets kein Slot mehr verfügbar muss zunächst ein S
 Alle Slots von im Incore-Buffer gespeicherten Treelts die sich unterhalb des zu entfernenden Treelts befinden können sofort freigegeben werden. Dazu wird die Kind-im-Incore-Buffer-Information des Kandidaten-Treelets und rekursiv die aller untergeordneten Treelets traversiert. So werden im günstigen Fall gleich mehrere Slots freigegeben.\\
 Die Manipulation des Incore-Buffers zum Entfernen des Kandidaten-Treelets läuft weitestgehens analog zum Einfügen ab. Die folgenden Schritte können im Listing \ref{lst:remove_treelet} nachvollzogen werden. Wieder wird das Eltern-Treelet, die Position des entsprechenden Blatt-Knoten und dessen Eltern-Knotens ermittelt. Dann wird der Blatt-Knoten durch sein Original aus dem Eltern-Treelet überschrieben. Aus dem inneren Knoten wird so wieder ein Blatt-Knoten mit Verweis auf ein mögliches anhängbares Treelet. Dies wird im Eltern-Knoten des Blatt-Knotens an der entsprechenden Stelle in der \textit{Childmask} markiert. Da sich damit das Eltern-Treelet im Client-seitigen Incore-Buffer geändert hat muss dessen Slot zur serverseitigen Aktuallisierung vorgemerkt werden.
 %Ist der Incore-Buffer zu klein um den benötigten Schnitt durch den Baum der Treelets zu halten, stehen keine Kandidaten zum Entfernen zur Verfügung. In diesem Fall wird für jedes Treelet im Incore-Buffer
-\begin{lstlisting}[caption={Entfernen eines Treelets},label={lst:remove_treelet}]
-  ...  
-  gloostId parentTreeletGid                = treelet->getParentTreeletGid();
-  gloostId parentTreeletLeafPosition       = treelet->getParentTreeletLeafPosition();
-  gloostId parentTreeletLeafParentPosition = treelet->getParentTreeletLeafsParentPosition();
-  gloostId parentTreeletLeafIdx            = treelet->getParentTreeletLeafIdx();
 
-  gloost::gloostId slotGid       = treelet->getSlotGid();
-  gloost::gloostId parentSlotGid = _treelets[parentTreeletGid]->getSlotGid();
-
-  unsigned leafPositionInIncoreBuffer       = parentSlotGid
-                                              *_numNodesPerTreelet + parentTreeletLeafPosition;
-  unsigned leafParentPositionInIncoreBuffer = parentSlotGid
-                                              *_numNodesPerTreelet + parentTreeletLeafParentPosition;
-
-  // copy original node/leaf to incore leaf position
-  _incoreBuffer[leafPositionInIncoreBuffer] = getTreelet(parentTreeletGid)->getNodeForIndex(parentTreeletLeafPosition);
-
-  // update leaf mask of leafs parent so that the leaf is a leaf again
-  _incoreBuffer[leafParentPositionInIncoreBuffer].setLeafMaskFlag(parentTreeletLeafIdx, true);
-
-  // mark incore slot of parent to be uploaded to device memory
-  markIncoreSlotForUpload(parentSlotGid);
-
-  // clear slot info
-  _slots[slotGid] = SlotInfo();
-
-  // add slots to available/free slots
-  _freeIncoreSlots.push(slotGid);
-
-  // remove assoziation from treelet gid to slot
-  treelet->setSlotGid(-1);
-
-  _childTreeletsInIncoreBuffer[parentTreeletGid].erase(treeletGid);
-
-  return true;
-}
-\end{lstlisting}
+\lstinputlisting
+    [caption={Entfernen eines Treelets}
+       \label{lst:remove_treelet},
+       captionpos=t,language=C++]
+ {sichtabhaengige_veraenderung_des_octrees/remove_treelet.cpp}
 
 
 \section{Serverseitige Aktualisierung}
