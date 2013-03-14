@@ -73,14 +73,12 @@ class TreeletBuildManager
 	  void buildFromFaces(unsigned treeletSizeInByte,
                         unsigned maxSvoDepth,
                         unsigned numBuildingThreads,
-                        gloost::Mesh* mesh);
+                        gloost::Mesh* mesh,
+                        const std::string& outFilePath);
 
 
     // writes svo/Treelet structure to file
     bool writeToFile(const std::string& filePath) const;
-
-
-    // inits the incore buffer
 
 
     // returns a Treelet for a given Gid

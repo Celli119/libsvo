@@ -73,13 +73,7 @@ class Treelet
         _depth(0u),
         _aabbTransform(),
         _primitiveIds()
-      {
-      }
-
-//      void clearPrimitiveIds()
-//      {
-//        std::vector<unsigned>().swap(_primitiveIds);
-//      }
+      {}
 
       unsigned              _localLeafIndex;         // absolute local index of the node within the serial structure
       char                  _idx;                    // index 0...7 of the node within its parent

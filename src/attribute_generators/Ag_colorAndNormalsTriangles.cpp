@@ -119,9 +119,9 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
     gloost::Vector3 color(0.0,0.0,0.0);
     gloost::Vector3 normal(0.0,0.0,0.0);
 
-    for (unsigned i=0; i!=queueElement._primitiveIds.size(); ++i)
+    for (unsigned p=0; p!=queueElement._primitiveIds.size(); ++p)
     {
-      BuilderTriangleFace triangle(mesh, queueElement._primitiveIds[i]);
+      BuilderTriangleFace triangle(mesh, queueElement._primitiveIds[p]);
 
       gloost::Point3 voxelCenter = queueElement._aabbTransform * gloost::Point3(0.0,0.0,0.0);
 
