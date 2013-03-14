@@ -228,7 +228,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   clFinish( device->getClCommandQueue() );
 
 //  std::cerr << std::endl << "numCopyCalls: " << numCopyCalls;
-  std::cerr << std::endl << "            : " << (float)numCopyCalls/_incoreSlotsToUpload.size() * 100.0 << " %";
+//  std::cerr << std::endl << "            : " << (float)numCopyCalls/_incoreSlotsToUpload.size() * 100.0 << " %";
 
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
 }

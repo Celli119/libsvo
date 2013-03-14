@@ -102,7 +102,8 @@ void
 TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                     unsigned maxSvoDepth,
                                     unsigned numBuildingThreads,
-                                    gloost::Mesh* mesh)
+                                    gloost::Mesh* mesh,
+                                    const std::string& outFilePath)
 {
 
   _treeletSizeInByte = treeletSizeInByte;
@@ -146,7 +147,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 
-  /**
+  /*
     Build Treelets as long as there are leafes that have not maxDepth within the svo
   */
   std::queue<Treelet*> treeletsWithSubTreeletsQueue;
@@ -172,7 +173,6 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
   while(treeletsWithSubTreeletsQueue.size())
   {
-
     Treelet* parentTreelet = treeletsWithSubTreeletsQueue.front();
     treeletsWithSubTreeletsQueue.pop();
 
@@ -270,8 +270,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 
-  writeToFile( "/home/otaco/Desktop/SVO_DATA/"
-               + std::string("TreeletBuildManager_out"));
+  writeToFile( outFilePath + std::string("TreeletBuildManager_out"));
 }
 
 

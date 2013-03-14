@@ -85,8 +85,6 @@ void idle(void);
 void init()
 {
 
-
-
   // merge files of a directory
   if (gloost::pathToBasename(g_inputPath).length() == 0)
   {
@@ -165,7 +163,8 @@ void init()
   g_treeletBuildManager.buildFromFaces(g_treeletSizeInByte,
                                        g_maxSvoDepth,
                                        g_numBuildingThreads,
-                                       g_mesh);
+                                       g_mesh,
+                                       g_outputPath);
 
   std::cerr << std::endl;
   std::cerr << std::endl;

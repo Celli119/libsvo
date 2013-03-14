@@ -14,14 +14,8 @@ Ist die Erstellung der Treelets abgeschlossen werden die Attribute der inneren K
 Ist die Erstellung der Attribute bis in den Wurzelknoten des Wurzel-Treelets vorangeschritten ist die Erstellung des Octrees abgeschlossen. 
 
 
-\section{Funktionsweise des Treelet-Builders}
-Der Treelet-Builder erstellt die Knoten in der Breite (\textit{Breadth-First}) und arbeitet daher intern auf einem FIFO-Kontainer (\textit{Queue}). Der Aufbau eines Elementes dieses Queue ist im Listing \ref{lst:queueelement} zu sehen. Jedes Element der Queue entspricht einem Knoten in der SVO-Struktur und enthält einerseits alle Informationen die nötig sind diesen Knoten seinem übergeordneten Knoten mitzuteilen und andererseits die Erzeugung weiterer Unterknoten zu ermöglichen.\\
-Initial wird ein Queue-Element stellvertretend für den Wurzelknoten des aktuellen Treelets erstellt. Dieses enhält die relative Transformation dieses Knotens in der SVO-Struktur sowie alle Primitive die in diesen Knoten fallen. Für jeden potentiellen Kind-Knoten wird ein Queue-Element mit entsprechenden Parametern erzeugt und dessen \textit{Bounding Box} mit den Primitiven des aktuellen Queue-Elementes zum Schnitt gebracht. Dabei wird für jedes Kind die Untermenge an Primitiven notiert die geschnitten wurden. Falls ein Kind keine Primitive enthält, wird es verworfen. Die restlichen Kinder bekommen aufeinanderfolgende Positionen innerhalb des aktuellen Treelets. Der \textit{First-Child-Index} des Knotens des aktuellen Queue-Elementes wird daraufhin auf die Position des ersten Kindes gesetzt. Die Queue-Elemente der Kinder werden nun in die Queue eingereiht.\\
-Vor dem Abarbeiten eines Queue-Elementes wird überprüft, ob noch genügend freie Plätze für die maximal mögliche Anzahl für Unterteilungen in Kind-Knoten im Treelet vorhanden sind. Sind also weniger als acht freie Plätze verfügbar gilt das Treelet als voll.
-
-Da jeder Knoten maximal acht Unterknoten haben kann, wird vor dem Abarbeiten eines Queue-Elementes überprüft ob genügend freie Plätze für die Unterteilung eines weiteren Knoten  einesunterEin Treelet wird als voll  ist voll wenn eines der Kinder einen Knoten-index erhält der mit der Anzahl Ist das Treelet voll, werden die in der Queue enthaltenen Elemente nach ihrer Tiefe in der SVO-Strukture in finale und weiter zu unterteilende Elemente getrennt gespeichert.
-
-
+\section{Arbeitsweise des Treelet-Builders}
+Der Treelet-Builder erstellt die Knoten in der Breite (\textit{Breadth-First}) und arbeitet daher intern auf einem FIFO-Kontainer (\textit{Queue}). Der Aufbau eines Elementes dieses Queue ist im Listing \ref{lst:queueelement} zu sehen. Jedes Element der Queue entspricht einem Knoten in der SVO-Struktur und enthält einerseits alle Informationen die nötig sind diesen Knoten seinem übergeordneten Knoten mitzuteilen und andererseits die Erzeugung weiterer Unterknoten zu ermöglichen.
 \begin{lstlisting}[caption={Queue-Element},label={lst:queueelement}]
 struct QueueElement
 {
@@ -39,17 +33,17 @@ struct QueueElement
   std::vector<unsigned> _primitiveIds;           
 };
 \end{lstlisting}
+Initial wird ein Queue-Element stellvertretend für den Wurzelknoten des aktuellen Treelets erstellt. Dieses enhält die relative Transformation dieses Knotens in der SVO-Struktur sowie alle Primitive die in diesen Knoten fallen. Für jeden potentiellen Kind-Knoten wird ein Queue-Element mit entsprechenden Parametern erzeugt und dessen \textit{Bounding Box} mit den Primitiven des aktuellen Queue-Elementes zum Schnitt gebracht. Dabei wird für jedes Kind die Untermenge an Primitiven notiert die geschnitten wurden. Falls ein Kind keine Primitive enthält, wird es verworfen. Die restlichen Kinder bekommen aufeinanderfolgende Positionen innerhalb des aktuellen Treelets. Der \textit{First-Child-Index} des Knotens des aktuellen Queue-Elementes wird daraufhin auf die Position des ersten Kindes gesetzt. Die Queue-Elemente der Kinder werden nun in die Queue eingereiht.\\
+Vor dem Abarbeiten eines Queue-Elementes wird überprüft, ob noch genügend freie Plätze für die maximal mögliche Anzahl für Unterteilungen in Kind-Knoten im Treelet vorhanden sind. Sind also weniger als acht freie Plätze verfügbar gilt das Treelet als voll. 
+Ist dies der Fall werden die in der Queue enthaltenen Elemente, nach ihrer Tiefe in der SVO-Struktur, in finale und weiter zu unterteilende Elemente getrennt und in zwei Kontainern im Treelet gespeichert. Nachdem die finalen Knoten in ihren Eltern-Knoten als solche markiert wurden, wird das Treelet an den Build-Manager zurückgegeben.\\
+Der Build-Manager erzeugt für jedes nicht finale Queue-Element ein weiteres Treelet. Der Index jedes Treelets wird im \textit{First-Child-Index} des zugehörigen Blattknotens im übergeordneten Treelet gespeichert. Dann werden die Treelets entsprechned parametrisiert in einer eigenen Queue eingereiht um sie in entsprechender Reihenvolge an den Treelet-Builder weitergeben zu können. Der oben beschriebene Ablauf wiederholt sich daraufhin für jedes Treelet in der Queue. Liefert der Treelet-Builder nur noch Treelets mit finalen Blattknoten, leert sich die Queue und das Erstellen der SVO-Struktur ist abgeschlossen. 
 
 
-ist treelet voll: Teilung von restlicher queue in finale und nicht-finale queue-elemente
-- zurück zum buildmanager
-
-
-
-
-
-
-
+\section{Attribut-Generation}
+Zu jedem Treelet werden parallel ein oder mehrere Buffer mit verschachtelten (\textit{interleaved}) Attributinformationen erstellt (!!! BILD interleaved Attributes). Anzahl und Layout der Attribut-Buffer sind abhängig vom gewählten Attribut-Generator.\\
+Für jeden finalen Blatt-Knoten wird mit Hilfe der gespeicherten Primitiven und Transformation eine Menge von Attributen erzeugt. Dieser Vorgang soll im Folgenden anhand von Dreiecksprimitiven erläutert werden. Für jedes Dreieck innerhalb eines Blatt-Knotens wird ein Strahl erzeugt, der durch die Voxelmitte und senkrecht zum Dreieck verläuft (!!! siehe Hennings grafik). Nun kann jeweils eine UV-Koordinate ermittelt werden indem der Strahl mit dem jeweiligen Dreick geschnitten wird. Durch die Wahl der Richtung ist gewährleistet, dass der Winkel zwischen Strahl und Dreicksnormale maximal ist, so dass die Wahrscheinlichkeit eines Schnittes erhöht wird. Trotzdem ist es möglich, dass der Strahl das Dreieck verfehlt, da das Dreick den Voxel beispielsweise nur in einer Ecke schneidet. Dabei treten für U und V Werte auf, die negativ oder größer als eins sind. In diesem Fall werden die Werte künstlich auf den zulässigen Bereich beschränkt. Dieser Trick erzeugt ein Rauschen in den Daten das aber angesichts der geringen Größe der Blatt-Knoten und des daraus resultierenden geringen Fehlers nicht sichtbar ist.\\
+Mit Hilfe der ermittelten UV-Koordinaten können nun Attribute wie Farbe, Normale oder Texturekoordinate aus den Vertexattributen des Dreiecks trilinear interpoliert werden. Die erhaltenen Werte werden über alle am Voxel beteiligten Dreiecke hinweg gemittelt.  
+Die daraus resultierenden Farb- und Normalenwerte werden auf 8 bit pro Komponente quantisiert bevor sie in den Attributbuffer gespeichert werden. 
 
 
 

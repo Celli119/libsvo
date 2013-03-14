@@ -64,7 +64,7 @@ float                        g_tScaleRatioMultiplyer = 1.0f;
 
 
 gloost::Point3 g_modelOffset;
-float          g_cameraRotateY  = 0.0f;
+float          g_cameraRotateY  = gloost::PI;
 float          g_cameraRotateX  = 0.0f;
 float          g_cameraDistance = 1.0f;
 
@@ -129,24 +129,20 @@ void showTreeletCounters();
 
 void init()
 {
-  const unsigned screenDivide           = 4;
-  const unsigned incoreBufferSizeInByte = 320/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
 
   // load svo
-  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
+  const std::string svo_dir_path = "/home/fweissig/Desktop/SVO_DATA/";
 
 
-//  const std::string svoBaseName  = "TreeletBuildManager_out";
-  const std::string svoBaseName  = "Decimated_Head_s2_d10";
-//  const std::string svoBaseName  = "terrain_05_s6_d12";
-//  const std::string svoBaseName  = "david_face_d10_4";
-//  const std::string svoBaseName  = "venus_s8_d12";
-//  const std::string svoBaseName  = "venus_s8_d12";
-//  const std::string svoBaseName  = "xyzrgb_dragon_s8_d12";
-//  const std::string svoBaseName  = "xyzrgb_dragon_s4_d11";
+  const std::string svoBaseName  = "TreeletBuildManager_out";
+//  const std::string svoBaseName  = "david_2mm_final_ao_s4_d11";
+//  const std::string svoBaseName  = "david_2mm_final_ao_s4_d12";
+//  const std::string svoBaseName  = "Decimated_Head_s4_d11";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -293,7 +289,7 @@ void frameStep()
 
 
   static gloost::Vector3 camSpeed(0.0f, 0.0f, 0.0f);
-  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f, -1.0f);
+  static gloost::Point3  camPos = gloost::Vector3(0.0f,0.0f, 1.0f);
   camSpeed *= 0.8;
 
   gloost::Point3 camDir = camPos + gloost::Vector3(-sin(g_cameraRotateY),

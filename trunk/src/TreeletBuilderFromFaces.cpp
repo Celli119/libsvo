@@ -147,7 +147,9 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
 */
 
 void
-TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh, const Treelet::QueueElement& initialQueueElement)
+TreeletBuilderFromFaces::build(Treelet* treelet,
+                               gloost::Mesh* mesh,
+                               const Treelet::QueueElement& initialQueueElement)
 {
   _treelet  = treelet;
   _mesh     = mesh;
