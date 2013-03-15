@@ -23,10 +23,9 @@ Die Unterteilung der SVO-Struktur erfolgt in Unterbäumen fester Größe die in die
 \end{figure}
 \\
 Die Verbindung zum übergeordneten Treelet (\textit{Eltern-Treelet}) ist wichtig, da aufgrund der zugrundeliegenden Baumstruktur die Verarbeitung eines Treelets das Vorhandensein des Eltern-Treelets voraussetzt. In jedem Treelet ist die Position des entsprechenden Blattknotens im Eltern-Treelet und die Position dessen Elternknoten gespeichert. Die Verbindungen nach unten sind im Erstes-Kind-Index der Blattknoten gespeichert, sind damit Teil der SVO-Daten und somit für alle Operationen auf auf dem SVO verfügbar.\\
+Die Speichergröße eines Treelets ist variable und bewegt sich für die Tests in diese Arbeit zwischen einem und zehn Kilobyte. Um eine hohe Granularität und damit die Möglichkeit einer sehr feinen Anpassung der gewählten Untermenge an Segmenten zu gewährleisten sollte die Größe der Treelets eher klein gewählt werden. Sind die Treelets jedoch zu klein können für einen gegebenen Octree schnell mehrere Millionen Treelets entstehen, was das Out-Of-Core-System belastet. Deshalb ist es nötig für jeden als Treelet-Struktur abzubildende Datensatz eine geeignete Treelet-Göße zu wählen.
 
-!!!
-- Größe eines Treelets -> Anzahl von Knoten Beispiel
-- Verweis zu Untergeordneten Treelets in Blattknoten FirstChildIndex
+!!! Verweis zu Untergeordneten Treelets in Blattknoten FirstChildIndex
  
 
 % /////////////////////////////////////////////////////////////////////////////
