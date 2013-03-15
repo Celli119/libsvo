@@ -21,9 +21,9 @@
 \fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
 
 
-\DeclareCaptionFont{white}{\color{white}}
+%\DeclareCaptionFont{white}{\color{white}}
 \DeclareCaptionFormat{listing}{\colorbox{white}{\parbox{\textwidth}{#1#2#3}}}
-\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+%\captionsetup[lstlisting]{format=listing,labelfont=black,textfont=white}
 \definecolor{dkgreen}{rgb}{0,0.8,0}
 \definecolor{gray}{rgb}{0.95,0.95,0.95}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -117,6 +117,8 @@
  \let\ps@plain\ps@fancy
  \makeatother
 \input{einleitung/motivation_zielsetzung.tex}
+%\newpage
+\input{verwante_arbeiten/verwante_arbeiten.tex}
 %\newpage
 \input{verwendete_infrastruktur/verwendete_infrastruktur.tex}
 %\newpage
