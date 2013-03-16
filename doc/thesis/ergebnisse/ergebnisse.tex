@@ -1,0 +1,12 @@
+\chapter{Ergebnisse}
+
+
+\section{Out-Of-Core-Ansatz}
+
+
+\section{Serverseitige Aktualisierung}
+Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
+Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
+
+\section{Verbesserungen}
+...
