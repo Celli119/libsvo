@@ -1,11 +1,23 @@
 \chapter{Sichtabhängige Veränderung des Octrees}
 
-\section{Übersicht} 
 
-Im Folgendem soll der Ablauf zur Veränderung der SVO-Struktur im Incore-Buffer, abhängig von der Kameraposition erläutert werden. In den folgenden Kapiteln wird auf die einzelnen Schritte genauer eingegangen.\\
+\section{Prinzipieller Aufbau}
+
+Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vier Teilen (Abbildung \ref{out-of-core_setup}): Einem großen, clientseitigen \textbf{Segmentpool} der die gesamte SVO-Struktur vorhält, einem vergleichsweise kleinen Buffer der eine Untermenge der SVO-Struktur halten kann und auf Server- und Clientseite existiert (\textbf{\textit{Incore-Buffer}}), einer \textbf{Speicherverwaltung} die den server-seitigen Buffer pflegt und einem \textbf{Analysesystem} das entscheidet welche Segmente benötigt werden.
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{sichtabhaengige_veraenderung_des_octrees/figures/out-of-core_setup.pdf}
+  \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out-of-core_setup}}
+\end{figure}
+Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie der SVO in Segmente gleicher Größe (\textbf{\textit{Slots}}) aufgeteilt von denen jeder ein Treelet aufnehmen kann. Die Wahl einer einheitliche Treelet- und Größe verhindert somit Fragmentierung des Incore-Buffer und entsprechenden Aufwand zu Defragmentierung. Die Analyse arbeitet serverseitig auf den im Incore-Buffer vorhandenen Treelets. (!!! WEITER)
+
+
+\section{Ablauf} 
+
+Im Folgendem soll der Ablauf der dynamischen Veränderung der SVO-Struktur im Incore-Buffer, abhängig von der Kameraposition erläutert werden. In den folgenden Kapiteln wird auf die einzelnen Schritte genauer eingegangen.\\
 Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumstruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Feedback-Buffer gerendert (\textbf{\textit{Analyse-Pass}}). Nach diesem Schritt enthält dieses Buffer für jeden Strahl u.A. die Position des getroffenen Knoten im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.\\
 Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Container verarbeitet (\textbf{\textit{Vorsortierung}}). Der eine enthält die Treelet-Indices aller Knoten die getroffen wurden und zusätzlich die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Container enhält Anfragen nach Verfeinerung in Form der Treelet-Indices der anzuhängen Treelets. Die Fehlerinformation bleibt dabei in beiden Containern erhalten.\\
-Jetzt werden beide Container dem Speichermanagement übergeben(\textit{\textbf{client\-seitige Aktualisierung}}). Dort werden zunächst die Sichtbarkeitsinformation aller im letzten Zyklus gesehenden Treelets aktuallisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Dabei werden nicht sichtbare Treelets entfernt falls im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung stehen. Geänderte Slots werden markiert. Abschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textbf{\textit{serverseitige Aktualisierung}}).\\
+Jetzt werden beide Container dem Speichermanagement übergeben(\textit{\textbf{clientseitige Aktualisierung}}). Dort werden zunächst die Sichtbarkeitsinformation aller im letzten Zyklus gesehenden Treelets aktuallisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Dabei werden nicht sichtbare Treelets entfernt falls im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung stehen. Geänderte Slots werden markiert. Abschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textbf{\textit{serverseitige Aktualisierung}}).\\
 Die folgenden Abschnitte werden diese Schritte genauer betrachten.
 
 \section{Der Analyse Pass}
@@ -19,7 +31,6 @@ Das Füllen des Feedback-Buffers erfolgt analog zum bilderzeugenden Raycasting in
   \item der Strahl trifft ein Blatt
 \end{enumerate}
 Im ersten Fall wird nichts zurückgegeben, im Zweiten nur die Position des Voxels im Incore-Buffer und die Länge des Strahles. Im dritten Fall wird zusätzlich der Verweis auf ein evt. vorhandenes Sub-Treelet und die Differenz zwischen vorgefundener Voxelgröße und der für die Länge des Strahles idealen Voxelgröße als Fehlerwert gespeichert.
-\newpage
 
 \begin{lstlisting}[caption=Struktur eines Feedback-Elementes]{structFeedBackDataElement}
   struct FeedBackDataElement
@@ -54,15 +65,12 @@ Für das Einfügen eines Treelts aus dem in der Vorsortierung erstellten Container
   \item die Position des Blattes in seinem Eltern-Knoten
 \end{enumerate}
 Damit wird nun die Position des entsprechenden Blatt\-knotens des Eltern-Treelets im Incore-Buffer ermittelt und durch den Wurzel\-knoten des anzuhängenden Treelets ersetzt. Dadurch muss dessen relative Index zu seinem ersten Kindknoten angepasst werden. Der erste Kindknoten des neuen inneren Knotens findet sich immer an zweiter Position innerhalb des angehängten Treelets im Incore-Buffer. Der Blattknoten wird damit zu einem inneren Knoten, was wiederum in seinem Elternknoten an der ensprechenden Stelle in der \textit{Childmask} markiert wird. In einem weiteren Container wird vermerkt, dass das Parent-Treelet nun ein neues Kind-Treelet im Incore-Buffer besitzt. Abschließend wird der Slot-Index des Parent-Treelets zur späteren serverseitigen Aktualisierung vorgemerkt. 
-\newpage
-
 \lstinputlisting
     [caption={Einfügen eines Treelets}
        \label{lst:insert_treelet},
        captionpos=t,language=C++]
  {sichtabhaengige_veraenderung_des_octrees/insert_treelet.cpp}
-
-
+ 
 \subsection{Entfernen eines Treelets}
 Ist für das Einfügen eines Treelets kein Slot mehr verfügbar muss zunächst ein Slot dessen Treelet nicht sichbar war wieder frei gegeben werden. Dazu wird der Baum der Treelets in einem Thread durchsucht und eine Menge von Kandidaten für das Entfernen vorgehalten. Da diese Suche nebenläufig geschiet ist nicht sichergestellt, dass dieser Kaditat zum Zeitpunkt des Entfernens noch valide ist. Deshalb muss vor dem eigentlichen Entfernen der Sichtbarkeitswert des Slots zunächst erneut überprüft werden. Ausserdem ist es möglich, dass zwar das entsprechende Treelet selbst nicht sichtbar war, jedoch im Falle des Entfernens der entsprechende Blatt-Knoten des Eltern-Treelts. Bild (!!!BILD EINFÜGEN) illustriert diesen Fall der ausnahmslos an den Rändern der Geometry auftritt. Im Bild befindet sich ein geladenes Treelet hinter einer konvexen Wölbung der Geometry und kann so nicht vom Analyse-Pass gesehen werden. Wird dieses Treelt jedoch entfernt, ragt der entstehende Blatt-Knoten des Eltern-Treelets über die Wölbung hinaus. Im nächsten Zyklus würde dieses Blatt wieder verfeinert werden wodurch es zu flackernden Artefakten an den Geometrie\-kanten kommt. Um diese Artefaktbildung zu verhindern werden Umgebungsinformationen, sprich die Sichtbarkeit des Eltern-Treelts mitüberprüft. Nur wenn auch das Eltern-Treelet nicht sichtbar ist, kann das Treelet sicher entfernt werden.\\
 Alle Slots von im Incore-Buffer gespeicherten Treelts die sich unterhalb des zu entfernenden Treelts befinden können sofort freigegeben werden. Dazu wird die Kind-im-Incore-Buffer-Information des Kandidaten-Treelets und rekursiv die aller untergeordneten Treelets traversiert. So werden im günstigen Fall gleich mehrere Slots freigegeben.\\
@@ -81,7 +89,10 @@ Wieder wird das Eltern-Treelet, die Position des entsprechenden Blatt-Knoten und
 
 \section{Serverseitige Aktualisierung}\label{sec:serverseitige_aktualisierung}
 Die Slots die beim Einfügen und Entfernen von Treelets markiert wurden werden in diesem Schritt auf den Server übertragen. Dabei kann im einfachsten Fall jeder Slot innerhalb des Incore-Buffers einzeln übertragen werden. Dies führt jedoch zu vielen Einzelübertragungen von geringer Größe. Dies ist sehr ungünstig da für jede Kopieroperation ein nicht unerheblicher Verwaltungsaufwand innerhalb der OpenCL-API anfällt. Handelt es sich beim verwendeten Server um eine GPU müssen die Daten zusätzlich über den PCI-Express-Bus übertragen werden. Auch hier kann die maximale Übertragungsrate nur durch möglichst große Pakete erreicht werden.\\
-Um die Anzahl der Kopieraufrufe möglichst gering zu halten werden deshalb nahe aneinanderliegende Slots zusammengefasst und gemeinsam kopiert. Dazu werden die Indices der zu aktualisierenden Slots sortiert vorgehalten. Ausgehend vom ersten Slot-Index wird der zu kopierende Speicherbereich so lange bis zum nächsten Slot erweitern bis das Verhältnis zwischen zu aktualisierenden Slots und unveränderten Slots innerhalb dieses Bereiches unter ein festgelegtes Niveau sinkt.\\
-Am effizientesten arbeitet dieser Ansatz wenn der Incore-Buffer anfangs noch leer ist da die Slots-Indices aufeinanderfolgend herausgegeben werden und die entsprechenden Speicherbereiche damit an einem Stück auf den Server transferiert werden können.
-
-Das Zusammenfassen der Slots kann in einem Thread ausgelagert werden damit sich der entstehende Zeitaufwand nicht auf die Bildrate auswirkt. \\
+Um die Anzahl der Kopieraufrufe möglichst gering zu halten werden deshalb nahe aneinanderliegende Slots zusammengefasst und gemeinsam kopiert. Dazu werden die Indices der zu aktualisierenden Slots sortiert vorgehalten. Ausgehend vom ersten Slot-Index wird der zu kopierende Speicherbereich so lange bis zum nächsten Slot erweitern bis das Verhältnis zwischen zu aktualisierenden Slots und unveränderten Slots innerhalb dieses Bereiches unter ein festgelegtes Niveau sinkt. Abbildung \ref{zusammenfassung_der_slots} zeigt das Ergebnis dieser Zusammenfassung für ein Verhältis von 50\% zwischen veränderten und unveränderten Slot-Bereichen.
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{sichtabhaengige_veraenderung_des_octrees/figures/zusammenfassung_der_slots.pdf}
+  \caption{Zusammenfassen von Slot-Bereichen zur Übertragung\label{zusammenfassung_der_slots}}
+\end{figure}
+Am effizientesten arbeitet dieser Ansatz wenn der Incore-Buffer anfangs noch leer ist da die Slots-Indices aufeinanderfolgend herausgegeben werden und die entsprechenden Speicherbereiche damit an einem Stück auf den Server transferiert werden können. Das Zusammenfassen der Slots kann in einem Thread ausgelagert werden damit sich der entstehende Zeitaufwand nicht auf die Bildrate auswirkt. \\
