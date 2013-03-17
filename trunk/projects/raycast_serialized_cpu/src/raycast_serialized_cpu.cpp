@@ -174,7 +174,7 @@ void init()
 
 //  const std::string svoBaseName = "dragon_vrip_9";
 //  const std::string svoBaseName = "frog2_seperated_11";
-  const std::string svoBaseName = "david_2mm_final_ao_12";
+//  const std::string svoBaseName = "david_2mm_final_ao_12";
 //  const std::string svoBaseName = "alligator_head_11";
 //  const std::string svoBaseName = "dental_scan_11";
 //  const std::string svoBaseName = "wacky_planet_11";

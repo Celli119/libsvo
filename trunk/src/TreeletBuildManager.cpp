@@ -270,7 +270,7 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
   }
 
 
-  writeToFile( outFilePath + std::string("TreeletBuildManager_out"));
+  writeToFile( outFilePath + std::string("/TreeletBuildManager_out"));
 }
 
 
@@ -328,7 +328,6 @@ TreeletBuildManager::writeToFile(const std::string& filePath) const
     return false;
   }
 
-  // write svo header
   outFile.writeUInt32(_attributeBuffers.size());
 
   for (unsigned i=0; i!=_treelets.size(); ++i)

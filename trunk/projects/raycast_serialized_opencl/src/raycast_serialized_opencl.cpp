@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDivide = 8.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 4.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -129,20 +129,21 @@ void showTreeletCounters();
 
 void init()
 {
-  const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 4;
+  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
 
   // load svo
-  const std::string svo_dir_path = "/home/fweissig/Desktop/SVO_DATA/";
+//  const std::string svo_dir_path = "/home/fweissig/Desktop/SVO_DATA/";
+  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
   const std::string svoBaseName  = "TreeletBuildManager_out";
 //  const std::string svoBaseName  = "david_2mm_final_ao_s4_d11";
 //  const std::string svoBaseName  = "david_2mm_final_ao_s4_d12";
-//  const std::string svoBaseName  = "Decimated_Head_s4_d11";
+//  const std::string svoBaseName  = "Decimated_Head_s2_d10";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
