@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="846px" height="459px" viewBox="0 0 846 459" enable-background="new 0 0 846 459" xml:space="preserve">
+<font horiz-adv-x="1000">
+<!-- 2005 Albert-Jan Pool published by FSI Fonts und Software GmbH -->
+<!-- Copyright: Copyright 2013 Adobe System Incorporated. All rights reserved. -->
+<font-face font-family="DINPro-Medium" units-per-em="1000" underline-position="-135" underline-thickness="51"/>
+<missing-glyph horiz-adv-x="568" d="M81,0l406,0l0,712l-406,0M151,70l0,572l266,0l0,-572z"/>
+<glyph unicode="R" horiz-adv-x="655" d="M612,0l-164,315C528,337 590,402 590,504C590,625 504,712 369,712l-276,0l0,-712l108,0l0,300l135,0l150,-300M482,503C482,433 433,392 361,392l-160,0l0,223l160,0C433,615 482,573 482,503z"/>
+<glyph unicode="c" horiz-adv-x="485" d="M448,66l-70,67C346,98 321,85 281,85C242,85 209,101 187,130C165,158 157,195 157,254C157,313 165,349 187,377C209,406 242,422 281,422C321,422 346,409 378,374l70,68C400,493 351,513 281,513C167,513 55,444 55,254C55,64 167,-6 281,-6C351,-6 400,15 448,66z"/>
+<glyph unicode="e" horiz-adv-x="539" d="M485,224l0,45C485,413 406,513 270,513C140,513 55,418 55,254C55,61 156,-6 283,-6C372,-6 421,21 473,73l-65,61C372,98 342,82 285,82C202,82 156,137 156,224M384,295l-228,0C157,326 159,341 169,364C185,402 222,428 270,428C318,428 354,402 370,364C380,341 383,326 384,295z"/>
+<glyph unicode="g" horiz-adv-x="549" d="M468,3l0,504l-99,0l0,-54C331,499 290,513 236,513C185,513 142,497 114,469C65,420 57,349 57,263C57,177 65,106 114,57C142,29 184,12 235,12C287,12 329,26 366,70l0,-65C366,-63 333,-124 247,-124C197,-124 169,-109 137,-79l-65,-65C125,-193 174,-211 251,-211C386,-211 468,-121 468,3M366,263C366,183 355,104 263,104C171,104 159,183 159,263C159,343 171,422 263,422C355,422 366,343 366,263z"/>
+<glyph unicode="k" horiz-adv-x="548" d="M526,0l-198,308l176,199l-124,0l-197,-234l0,439l-102,0l0,-712l102,0l0,149l75,85l142,-234z"/>
+<glyph unicode="l" horiz-adv-x="311" d="M280,0l0,87l-45,0C194,87 180,107 180,146l0,566l-102,0l0,-572C78,65 120,0 217,0z"/>
+<glyph unicode="m" horiz-adv-x="877" d="M801,0l0,324C801,381 786,429 747,467C717,496 671,513 619,513C552,513 501,489 460,439C428,488 379,513 316,513C265,513 215,493 181,456l0,51l-100,0l0,-507l102,0l0,309C183,387 231,422 288,422C345,422 390,388 390,309l0,-309l102,0l0,314C492,387 542,422 597,422C654,422 699,388 699,309l0,-309z"/>
+<glyph unicode="n" horiz-adv-x="568" d="M492,0l0,324C492,381 480,429 441,467C411,496 368,513 316,513C265,513 216,494 181,456l0,51l-100,0l0,-507l102,0l0,309C183,387 231,422 288,422C345,422 390,388 390,309l0,-309z"/>
+<glyph unicode="o" horiz-adv-x="537" d="M480,254C480,339 468,403 420,453C387,487 337,513 268,513C199,513 150,487 117,453C69,403 57,339 57,254C57,168 69,104 117,54C150,20 199,-6 268,-6C337,-6 387,20 420,54C468,104 480,168 480,254M378,254C378,199 374,146 343,115C324,96 298,85 268,85C238,85 213,96 194,115C163,146 159,199 159,254C159,309 163,362 194,393C213,412 238,422 268,422C298,422 324,412 343,393C374,362 378,309 378,254z"/>
+<glyph unicode="p" horiz-adv-x="553" d="M496,254C496,331 490,417 439,468C411,496 366,513 315,513C260,513 219,499 181,453l0,54l-100,0l0,-712l102,0l0,257C220,8 262,-6 316,-6C367,-6 411,11 439,39C490,90 496,177 496,254M394,254C394,164 381,85 289,85C197,85 183,164 183,254C183,344 197,422 289,422C381,422 394,344 394,254z"/>
+<glyph unicode="s" horiz-adv-x="499" d="M456,155C456,245 400,290 305,298l-80,7C171,310 155,333 155,363C155,401 186,428 247,428C295,428 340,418 372,391l64,65C389,497 324,513 248,513C142,513 57,457 57,358C57,269 112,226 207,218l81,-7C337,207 356,185 356,151C356,103 307,81 245,81C195,81 140,92 99,134l-67,-67C92,8 162,-6 245,-6C366,-6 456,49 456,155z"/>
+<glyph unicode="t" horiz-adv-x="342" d="M293,0l0,87l-42,0C213,87 195,109 195,146l0,274l98,0l0,78l-98,0l0,154l-102,0l0,-154l-58,0l0,-78l58,0l0,-279C93,68 137,0 232,0z"/>
+<glyph unicode="u" horiz-adv-x="568" d="M487,0l0,507l-102,0l0,-309C385,120 337,85 280,85C223,85 178,119 178,198l0,309l-102,0l0,-324C76,126 88,78 127,40C157,11 200,-6 252,-6C303,-6 352,13 387,51l0,-51z"/>
+<glyph unicode="&#xFC;" horiz-adv-x="568" d="M487,0l0,507l-102,0l0,-309C385,120 337,85 280,85C223,85 178,119 178,198l0,309l-102,0l0,-324C76,126 88,78 127,40C157,11 200,-6 252,-6C303,-6 352,13 387,51l0,-51M434,604l0,108l-92,0l0,-108M218,604l0,108l-92,0l0,-108z"/>
+<glyph unicode="y" horiz-adv-x="468" d="M464,507l-109,0l-118,-357l-121,357l-108,0l177,-483l-28,-79C142,-96 127,-109 84,-109l-26,0l0,-92l41,0C138,-201 175,-192 203,-164C218,-149 230,-129 240,-101z"/>
+</font>
+
+	<font horiz-adv-x="1000">
+<!-- 2005 Albert-Jan Pool published by FSI Fonts und Software GmbH -->
+<!-- Copyright: Copyright 2013 Adobe System Incorporated. All rights reserved. -->
+<font-face font-family="DINPro-Regular" units-per-em="1000" underline-position="-135" underline-thickness="51"/>
+<missing-glyph horiz-adv-x="562" d="M90,0l382,0l0,712l-382,0M141,51l0,610l280,0l0,-610z"/>
+<glyph unicode="A" horiz-adv-x="611" d="M599,0l-261,712l-64,0l-262,-712l81,0l57,161l311,0l57,-161M439,227l-266,0l134,376z"/>
+<glyph unicode="B" horiz-adv-x="668" d="M592,197C592,282 544,341 476,366C536,388 581,447 581,522C581,641 495,712 371,712l-268,0l0,-712l277,0C506,0 592,68 592,197M516,199C516,119 461,68 373,68l-194,0l0,261l194,0C461,329 516,279 516,199M505,521C505,436 444,397 365,397l-186,0l0,247l186,0C444,644 505,606 505,521z"/>
+<glyph unicode="C" horiz-adv-x="637" d="M572,206l-76,0C477,119 414,62 325,62C278,62 233,80 202,112C157,158 152,207 152,356C152,505 157,554 202,600C233,632 278,650 325,650C414,650 475,593 494,506l78,0C548,640 453,718 325,718C255,718 191,692 143,644C76,577 76,507 76,356C76,205 76,135 143,68C191,20 255,-6 325,-6C452,-6 549,72 572,206z"/>
+<glyph unicode="I" horiz-adv-x="282" d="M179,0l0,712l-76,0l0,-712z"/>
+<glyph unicode="S" horiz-adv-x="588" d="M532,196C532,255 511,304 472,337C442,363 409,377 342,387l-78,12C227,405 190,419 168,438C146,457 136,485 136,520C136,599 191,652 286,652C361,652 408,631 452,591l49,49C440,695 380,718 289,718C148,718 61,638 61,517C61,460 79,416 115,384C146,357 190,339 246,330l83,-13C381,309 399,303 422,283C445,263 456,231 456,194C456,111 392,62 288,62C208,62 153,81 94,140l-52,-52C109,21 179,-6 286,-6C434,-6 532,71 532,196z"/>
+<glyph unicode="a" horiz-adv-x="526" d="M441,0l0,334C441,441 376,498 244,498C164,498 114,482 70,425l49,-45C148,421 180,436 243,436C333,436 369,400 369,328l0,-47l-148,0C111,281 51,225 51,139C51,100 64,63 88,39C119,7 159,-6 227,-6C293,-6 329,7 369,47l0,-47M369,174C369,133 361,105 344,89C313,59 276,56 234,56C156,56 121,83 121,140C121,197 157,227 231,227l138,0z"/>
+<glyph unicode="c" horiz-adv-x="490" d="M443,67l-49,47C357,73 328,58 281,58C233,58 193,77 167,114C144,146 135,184 135,246C135,308 144,346 167,378C193,415 233,434 281,434C328,434 357,420 394,379l49,46C392,480 349,498 281,498C157,498 63,414 63,246C63,78 157,-6 281,-6C349,-6 392,12 443,67z"/>
+<glyph unicode="d" horiz-adv-x="545" d="M455,0l0,712l-72,0l0,-277C343,486 298,498 244,498C194,498 150,481 124,455C74,405 64,323 64,246C64,169 74,87 124,37C150,11 194,-6 244,-6C298,-6 344,7 384,59l0,-59M383,246C383,150 367,58 260,58C153,58 136,150 136,246C136,342 153,434 260,434C367,434 383,342 383,246z"/>
+<glyph unicode="e" horiz-adv-x="530" d="M467,227l0,33C467,406 392,498 265,498C140,498 63,405 63,246C63,72 148,-6 278,-6C362,-6 408,20 458,70l-49,43C370,74 337,57 280,57C186,57 135,119 135,227M395,281l-260,0C137,321 139,336 150,363C169,408 213,437 265,437C317,437 361,408 380,363C391,336 393,321 395,281z"/>
+<glyph unicode="f" horiz-adv-x="314" d="M283,434l0,55l-105,0l0,91C178,625 198,652 244,652l39,0l0,62l-52,0C147,714 106,655 106,582l0,-93l-63,0l0,-55l63,0l0,-434l72,0l0,434z"/>
+<glyph unicode="g" horiz-adv-x="543" d="M453,-15l0,507l-71,0l0,-58C342,486 298,498 244,498C194,498 150,481 124,455C75,406 64,330 64,250C64,170 75,94 124,45C150,19 193,1 243,1C296,1 341,14 381,65l0,-77C381,-96 341,-163 246,-163C189,-163 164,-146 128,-114l-47,-46C133,-207 174,-226 248,-226C377,-226 453,-137 453,-15M381,250C381,158 366,66 259,66C152,66 136,158 136,250C136,342 152,434 259,434C366,434 381,342 381,250z"/>
+<glyph unicode="h" horiz-adv-x="562" d="M477,0l0,316C477,427 411,498 300,498C245,498 198,479 162,438l0,274l-72,0l0,-712l72,0l0,304C162,389 211,434 285,434C359,434 405,390 405,304l0,-304z"/>
+<glyph unicode="-" horiz-adv-x="426" d="M350,236l0,67l-274,0l0,-67z"/>
+<glyph unicode="i" horiz-adv-x="253" d="M162,0l0,492l-72,0l0,-492M167,632l0,81l-81,0l0,-81z"/>
+<glyph unicode="l" horiz-adv-x="297" d="M265,0l0,62l-39,0C176,62 160,86 160,134l0,578l-72,0l0,-581C88,56 127,0 213,0z"/>
+<glyph unicode="m" horiz-adv-x="879" d="M794,0l0,315C794,372 776,418 741,452C711,481 667,498 614,498C545,498 490,470 452,416C422,470 369,498 301,498C246,498 197,478 162,438l0,54l-72,0l0,-492l72,0l0,303C162,389 211,434 285,434C359,434 406,390 406,303l0,-303l72,0l0,311C478,389 529,434 601,434C675,434 722,390 722,303l0,-303z"/>
+<glyph unicode="n" horiz-adv-x="562" d="M477,0l0,315C477,372 461,418 426,452C396,482 353,498 300,498C245,498 197,478 162,438l0,54l-72,0l0,-492l72,0l0,303C162,389 210,434 284,434C358,434 405,390 405,303l0,-303z"/>
+<glyph unicode="o" horiz-adv-x="530" d="M466,246C466,322 456,391 406,442C372,476 325,498 265,498C205,498 158,476 124,442C74,391 64,322 64,246C64,170 74,101 124,50C158,16 205,-6 265,-6C325,-6 372,16 406,50C456,101 466,170 466,246M394,246C394,191 391,130 355,94C332,71 300,58 265,58C230,58 199,71 176,94C140,130 136,191 136,246C136,301 140,362 176,398C199,421 230,434 265,434C300,434 332,421 355,398C391,362 394,301 394,246z"/>
+<glyph unicode="p" horiz-adv-x="545" d="M481,246C481,323 471,405 421,455C395,481 351,498 301,498C247,498 202,486 162,434l0,58l-72,0l0,-712l72,0l0,278C202,7 247,-6 301,-6C351,-6 395,11 421,37C471,87 481,169 481,246M409,246C409,150 393,58 286,58C179,58 162,150 162,246C162,342 179,434 286,434C393,434 409,342 409,246z"/>
+<glyph unicode="r" horiz-adv-x="421" d="M418,452C383,487 347,498 300,498C243,498 189,473 162,432l0,60l-72,0l0,-492l72,0l0,302C162,377 208,434 280,434C318,434 338,425 365,398z"/>
+<glyph unicode="s" horiz-adv-x="496" d="M445,144C445,236 386,269 300,277l-79,7C159,289 135,314 135,356C135,406 173,437 245,437C296,437 341,425 376,398l47,47C379,481 316,498 246,498C141,498 65,444 65,354C65,273 116,230 212,222l81,-7C350,210 375,186 375,143C375,85 325,56 244,56C183,56 130,72 91,113l-48,-48C97,13 162,-6 245,-6C364,-6 445,49 445,144z"/>
+<glyph unicode="t" horiz-adv-x="332" d="M279,0l0,62l-38,0C195,62 174,89 174,134l0,300l105,0l0,55l-105,0l0,154l-72,0l0,-154l-62,0l0,-55l62,0l0,-302C102,59 144,0 228,0z"/>
+<glyph unicode="u" horiz-adv-x="562" d="M472,0l0,492l-72,0l0,-303C400,103 351,58 277,58C203,58 157,102 157,189l0,303l-72,0l0,-314C85,121 100,74 135,40C165,10 209,-6 262,-6C317,-6 366,15 401,55l0,-55z"/>
+<glyph unicode="v" horiz-adv-x="447" d="M436,492l-78,0l-135,-395l-134,395l-78,0l180,-492l64,0z"/>
+<glyph unicode="w" horiz-adv-x="724" d="M713,492l-78,0l-112,-395l-130,395l-62,0l-129,-395l-113,395l-78,0l156,-492l67,0l128,382l129,-382l67,0z"/>
+<glyph unicode="y" horiz-adv-x="447" d="M436,492l-78,0l-134,-395l-135,395l-78,0l177,-482l-35,-96C137,-131 122,-147 72,-147l-22,0l0,-64l31,0C116,-211 151,-202 177,-177C191,-164 202,-146 212,-119z"/>
+</font>
+
+	<g>
+	<path fill="#FFFFFF" d="M549,161c0,5.5-4.5,10-10,10H343c-5.5,0-10-4.5-10-10V28c0-5.5,4.5-10,10-10h196c5.5,0,10,4.5,10,10V161z"
+		/>
+	<path fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" d="M549,161c0,5.5-4.5,10-10,10H343
+		c-5.5,0-10-4.5-10-10V28c0-5.5,4.5-10,10-10h196c5.5,0,10,4.5,10,10V161z"/>
+</g>
+<line fill="none" stroke="#000000" stroke-miterlimit="10" stroke-dasharray="8" x1="18" y1="225" x2="828" y2="225"/>
+<text transform="matrix(1 0 0 1 351.1084 207)" font-family="'DINPro-Regular'" font-size="18">Segmente</text>
+<text transform="matrix(1 0 0 1 243 346.5)" font-family="'DINPro-Regular'" font-size="18">Segmente</text>
+<text transform="matrix(1 0 0 1 594 418)" font-family="'DINPro-Regular'" font-size="18">Anfrage</text>
+<text transform="matrix(1 0 0 1 594 54)" font-family="'DINPro-Regular'" font-size="18">Samples</text>
+<rect x="99" y="324" fill="#FFFFFF" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="126" y="324" fill="#321700" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="153" y="324" fill="#295F99" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="153" y="351" fill="#14A833" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="126" y="351" fill="#7F007F" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="99" y="351" fill="#FFFF00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="99" y="378" fill="#94AFCC" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="126" y="378" fill="#994B00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="153" y="378" fill="#FFFF7F" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="153" y="405" fill="#BF023E" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="126" y="405" fill="#7FD21B" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="99" y="405" fill="#FD3F00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="180" y="324" fill="#FE7F00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="180" y="351" fill="#FD0900" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="180" y="378" fill="#590B3F" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<rect x="180" y="405" fill="#138366" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="18"/>
+<text transform="matrix(1 0 0 1 86.9072 297)" font-family="'DINPro-Regular'" font-size="21">Segmentpool</text>
+<text transform="matrix(1 0 0 1 18 216)" font-family="'DINPro-Regular'" font-size="21">Server-Seite</text>
+<text transform="matrix(1 0 0 1 18 249)" font-family="'DINPro-Regular'" font-size="21">Client-Seite</text>
+<g>
+	<path fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" d="M234,431c0,5.5-4.5,10-10,10H73
+		c-5.5,0-10-4.5-10-10V280c0-5.5,4.5-10,10-10h151c5.5,0,10,4.5,10,10V431z"/>
+</g>
+<g>
+	<path fill="#FFFFFF" d="M549,422c0,5.5-4.5,10-10,10H343c-5.5,0-10-4.5-10-10V289c0-5.5,4.5-10,10-10h196c5.5,0,10,4.5,10,10V422z"
+		/>
+	<path fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" d="M549,422c0,5.5-4.5,10-10,10H343
+		c-5.5,0-10-4.5-10-10V289c0-5.5,4.5-10,10-10h196c5.5,0,10,4.5,10,10V422z"/>
+</g>
+<g>
+	<path fill="#FFFFFF" d="M801,332c0,5.5-4.5,10-10,10H640c-5.5,0-10-4.5-10-10V127c0-5.5,4.5-10,10-10h151c5.5,0,10,4.5,10,10V332z"
+		/>
+	<path fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" d="M801,332c0,5.5-4.5,10-10,10H640
+		c-5.5,0-10-4.5-10-10V127c0-5.5,4.5-10,10-10h151c5.5,0,10,4.5,10,10V332z"/>
+</g>
+<text transform="matrix(1 0 0 1 18 54)" font-family="'DINPro-Medium'" font-size="24">Rückkopplungssystem</text>
+<text transform="matrix(1 0 0 1 679.0762 144)" font-family="'DINPro-Regular'" font-size="21">Analyse</text>
+<text transform="matrix(1 0 0 1 347.9395 306)" font-family="'DINPro-Regular'" font-size="21">Speicherverwaltung</text>
+<text transform="matrix(1 0 0 1 380.9619 45)" font-family="'DINPro-Regular'" font-size="21">Bildsynthese</text>
+<g>
+	<rect x="648" y="189" width="135" height="135.006"/>
+	<polygon fill="#FE7F00" points="707.063,205.879 698.625,205.879 698.625,214.316 690.188,214.316 690.188,239.629 
+		707.063,239.629 	"/>
+	<polygon fill="#295F99" points="707.063,197.441 723.938,197.441 723.938,205.879 732.376,205.879 732.376,222.754 
+		715.501,222.754 715.501,231.191 707.063,231.191 	"/>
+	<polygon fill="#7FD21B" points="732.376,256.505 723.938,256.505 723.938,273.38 715.501,273.38 715.501,256.505 715.501,248.066 
+		707.063,248.066 707.063,231.191 715.501,231.191 715.501,222.754 732.376,222.754 	"/>
+	<polygon fill="#FD0900" points="715.497,281.816 715.497,273.38 715.497,248.066 707.06,248.066 707.06,239.629 698.622,239.629 
+		698.622,264.942 681.747,264.942 681.747,273.38 664.872,273.38 664.872,298.692 673.31,298.692 673.31,307.13 681.747,307.13 
+		681.747,298.692 681.747,290.255 707.06,290.255 707.06,281.816 	"/>
+	<polygon fill="#FFFF00" points="681.751,307.13 723.938,307.13 723.938,298.692 740.814,298.692 740.814,281.816 749.252,281.816 
+		749.252,273.38 740.814,273.38 740.814,264.942 723.938,264.942 723.938,273.38 715.501,273.38 715.501,281.816 707.063,281.816 
+		707.063,290.255 681.751,290.255 	"/>
+</g>
+<g>
+	<rect x="387" y="378" fill="#7F007F" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<rect x="405" y="378" fill="#FD0900" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<rect x="423" y="378" fill="#295F99" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<rect x="441" y="378" fill="#FFFF00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<rect x="459" y="378" fill="#7FD21B" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<rect x="477" y="378" fill="#FE7F00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	<text transform="matrix(1 0 0 1 383.833 342)"><tspan x="0" y="0" font-family="'DINPro-Regular'" font-size="18">clientseiteiger</tspan><tspan x="2.717" y="21.601" font-family="'DINPro-Regular'" font-size="18">Incore-Buffer</tspan></text>
+</g>
+<g>
+	<g>
+		<rect x="387" y="117" fill="#7F007F" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+		<rect x="405" y="117" fill="#FD0900" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+		<rect x="423" y="117" fill="#295F99" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+		<rect x="441" y="117" fill="#FFFF00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+		<rect x="459" y="117" fill="#7FD21B" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+		<rect x="477" y="117" fill="#FE7F00" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="18" height="36"/>
+	</g>
+	<text transform="matrix(1 0 0 1 379.4985 81)"><tspan x="0" y="0" font-family="'DINPro-Regular'" font-size="18">serverseiteiger</tspan><tspan x="6.146" y="21.6" font-family="'DINPro-Regular'" font-size="18">Incore-Buffer</tspan></text>
+</g>
+<text transform="matrix(1 0 0 1 656.1006 171)" font-family="'DINPro-Regular'" font-size="18">Sample-Buffer</text>
+<g>
+	<rect x="441" y="171" fill="#FFFFFF" width="0" height="108"/>
+	<g>
+		<polyline fill="none" stroke="#000000" stroke-miterlimit="10" points="441,171 441,279 441,178.176 		"/>
+		<g>
+			<polygon points="445.986,179.635 441,171 436.014,179.635 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<g>
+		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="234" y1="355.5" x2="325.824" y2="355.5"/>
+		<g>
+			<polygon points="324.365,360.486 333,355.5 324.365,350.514 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<g>
+		<path fill="none" stroke="#000000" stroke-miterlimit="10" d="M549,63h146.497c11,0,20,9,20,20v26.824"/>
+		<g>
+			<polygon points="710.511,108.365 715.497,117 720.483,108.365 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<g>
+		<path fill="none" stroke="#000000" stroke-miterlimit="10" d="M715.497,342v34c0,11-9,20-20,20H556.176"/>
+		<g>
+			<polygon points="557.635,391.014 549,396 557.635,400.986 			"/>
+		</g>
+	</g>
+</g>
+</svg>
