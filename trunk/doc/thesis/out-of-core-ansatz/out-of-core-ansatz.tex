@@ -3,7 +3,7 @@
 Out-of-Core-Strategien ermöglichen einer Anwendung oder einem System die Verwendung von Datenmengen, welche die lokale Speicherkapazität übersteigen. Voraussetzung dafür ist die Segmentierbarkeit der Daten. Ausserdem muss die lokal gespeicherte Untermenge der segmentierten Daten zu jedem Zeitpunkt zur Verarbeitung genügen.
 \begin{figure}[position=h]
   \centering
-  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/out_of_core_pricipe.png}
+  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/out_of_core_pricipe.pdf}
   \caption{Out-Of-Core-Prinzip\label{out_of_core_pricipe}}
 \end{figure}
 \\
@@ -12,16 +12,16 @@ Die endliche Menge lokalen Speichers der GPU begrenzt die maximale Auflösungen d
 
 % /////////////////////////////////////////////////////////////////////////////
 
-
 \section{Segmentierung}
 
-Die Unterteilung der SVO-Struktur erfolgt in Unterbäumen fester Größe die in dieser Arbeit als \textit{Treelets} (Bäumchen) bezeichnet werden. (!!! etwas über die Größe der Treelets sagen) Ein Treelet hat eine eindeutige Kennung (\textit{Treelet-Id}) und hält unter Anderem Informationen über sein übergeordnetes Treelet und seine untergeordneten Treeles wodurch eine zusätzliche, bidirektionale Baumstruktur über dem eigentlichen Octree entsteht. Dabei entspricht jeder Blattknoten eines Eltern-Treelets dem Wurzelknoten eines Kind-Treelets.
+Die Unterteilung der SVO-Struktur erfolgt in Unterbäumen fester Größe die in dieser Arbeit als \textit{Treelets} (Bäumchen) bezeichnet werden. Ein Treelet hat eine eindeutige Kennung (\textit{Treelet-Id}) und hält unter Anderem Informationen über sein übergeordnetes Treelet und seine untergeordneten Treeles wodurch eine zusätzliche, bidirektionale Baumstruktur über dem eigentlichen Octree entsteht. Dabei entspricht jeder Blattknoten eines Eltern-Treelets dem Wurzelknoten eines Kind-Treelets.
+
 \begin{figure}[position=h]
   \centering
-  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/fixed_size_treelets.png}
+  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/fixed_size_treelets.pdf}
   \caption{Treelet-Struktur mit 6 Knoten pro Treelet \label{fixed_size_treelets}}
 \end{figure}
-\\
+
 Die Verbindung zum übergeordneten Treelet (\textit{Eltern-Treelet}) ist wichtig, da aufgrund der zugrundeliegenden Baumstruktur die Verarbeitung eines Treelets das Vorhandensein des Eltern-Treelets voraussetzt. In jedem Treelet ist die Position des entsprechenden Blattknotens im Eltern-Treelet und die Position dessen Elternknoten gespeichert. Die Verbindungen nach unten sind im Erstes-Kind-Index der Blattknoten gespeichert, sind damit Teil der SVO-Daten und somit für alle Operationen auf auf dem SVO verfügbar.\\
 Die Speichergröße eines Treelets ist variable und bewegt sich für die Tests in diese Arbeit zwischen einem und zehn Kilobyte. Um eine hohe Granularität und damit die Möglichkeit einer sehr feinen Anpassung der gewählten Untermenge an Segmenten zu gewährleisten sollte die Größe der Treelets eher klein gewählt werden. Sind die Treelets jedoch zu klein können für einen gegebenen Octree schnell mehrere Millionen Treelets entstehen, was das Out-Of-Core-System belastet. Deshalb ist es nötig für jeden als Treelet-Struktur abzubildende Datensatz eine geeignete Treelet-Göße zu wählen.
 
@@ -34,12 +34,13 @@ Die Speichergröße eines Treelets ist variable und bewegt sich für die Tests in d
 \section{Prinzipieller Aufbau}
 
 Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vier Teilen (Abbildung \ref{four_part_setup}): Einem großen, clientseitigem Buffer der die gesammte SVO-Struktur hält, einem vergleichsweise kleinen, serverseitigen Buffer der eine Untermenge der SVO-Struktur halten kann (\textbf{\textit{Incore-Buffer}}), einer Speicherverwaltung die den serverseitigen Buffer pflegt und einem Analysesystem das entscheidet welche Teile serverseitig benötigt werden.
-\begin{figure}[position=h]
+
+\begin{figure}
   \centering
-  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/four_part_setup.png}
-  \caption{Aufbau des Out-Of-Core-Systems\label{four_part_setup}}
+  \includegraphics[width=0.75\textwidth]{out-of-core-ansatz/figures/four_part_setup.pdf}
+  \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{four_part_setup}}
 \end{figure}
-\\
+
 Der Incore-Buffer, der auf Client- und Serverseite Vorhanden ist, wird wie der SVO in Segmente gleicher Größe (\textbf{\textit{Slots}}) aufgeteilt von denen jeder ein Treelet aufnehmen kann. Die Wahl einer einheitliche Treelet- und Größe verhindert somit Fragmentierung des Incore-Buffer und entsprechenden Aufwand zu Defragmentierung.\\
 Die Analyse arbeitet serverseitig auf den im Incore-Buffer vorhandenen Treelets.
 

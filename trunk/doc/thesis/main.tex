@@ -9,7 +9,8 @@
 \usepackage{setspace}
 \usepackage[font=bf]{caption}
 \usepackage{chngcntr}
-\usepackage[hidelinks]{hyperref}
+%\usepackage[hidelinks=true]{hyperref}
+\usepackage[pdfborder={0 0 0}]{hyperref}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{amsmath}
@@ -17,9 +18,8 @@
 \usepackage[bottom=4cm]{geometry}
 
 %\usepackage[automark]{scrpage2}
-\newcommand{\changefont}[3]{
-\fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
-
+\newcommand{\changefont}[3]{\fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
+\normalfont
 
 %\DeclareCaptionFont{white}{\color{white}}
 \DeclareCaptionFormat{listing}{\colorbox{white}{\parbox{\textwidth}{#1#2#3}}}
@@ -31,7 +31,7 @@
 
 \lstset{
   language=C++,                % choose the language of the code
-  basicstyle=\tiny\ttfamily, 
+  basicstyle=\scriptsize\ttfamily, % fontsize \tiny \scriptsize \small
   numbers=left,                   % where to put the line-numbers
   stepnumber=1,                   % the step between two line-numbers.        
   numbersep=4pt,                  % how far the line-numbers are from the code
@@ -67,6 +67,7 @@
 
 
 \changefont{ptm}{m}{n}
+%\fontfamily{ptm}\fontseries{m} \fontshape{n} \selectfont
 \nocite{*}
 \bibliographystyle{plain}
 \renewcommand{\thepage}{\Roman{page}}
@@ -124,7 +125,9 @@
 %\newpage
 \input{grundlagen/grundlagen.tex}
 %\newpage
-\input{out-of-core-ansatz/out-of-core-ansatz.tex}
+\input{aufbau_der_svo-struktur/aufbau_der_svo-struktur.tex}
+%\newpage
+%\input{out-of-core-ansatz/out-of-core-ansatz.tex}
 %\newpage
 \input{erstellung_der_svo_struktur/erstellung_der_svo_struktur.tex}
 %\newpage
