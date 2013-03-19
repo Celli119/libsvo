@@ -1,0 +1,51 @@
+\chapter{Ergebnisse und Diskussion}
+
+
+\section{Überblick}
+\section{Verwendete Testszenen}
+ 
+
+Zum Testen des Out-of-Core Systems wurden SVO-Strukturen für drei unterschiedliche Geometrien generiert (siehe Tabelle ...). 
+Aus jeder Geometrie wurden zwei verschiedene SVO-Strukturen erstellt. Beide haben jeweils die selbe minimale Tiefe, aber eine unterschiedliche Treelet Größe. Die Tiefe betrug jeweils 12 bei Treelet Größen von 1kb und 4kb. Durch die Verkleinerung der Treelets bei gleicher minimaler SVO-Tiefe entstehen mehr Treelets und damit eine größerer Aufwand bei der Verwaltung. Die beiden Varianten sollen im folgenden verglichen werden, um die Skalierbarkeit des Out-of-Core Systems nach zu vollziehen. In Tabelle ... wird gezeigt... .
+
+
+
+
+\begin{table}
+\centering
+
+\begin{tabular}{ l  r  r  r  r }
+  \hline
+  \textbf{Name} & \textbf{Anzahl Dreiecke} & \textbf{Treelet Größe} & \textbf{Anzahl Treelets} & \textbf{Anzahl Knoten} \\
+  \hline
+  David face & 1000 & 1kb & 12 & 1231561 \\
+  David face & 1000 & 4kb & 12 & 1231561 \\
+  \hline
+  xyz Dragon & 1000 & 1kb & 12 & 1231561 \\
+  xyz Dragon & 1000 & 4kb & 12 & 1231561 \\
+  \hline  
+  Lucy       & 1000 & 1kb & 12 & 1231561 \\
+  Lucy       & 1000 & 4kb & 12 & 1231561 \\
+  \hline
+\end{tabular}
+
+\caption{Math 500 Grades}\label{math500grades}
+\end{table}
+ 
+ 
+ 
+
+
+\section{Laufzeitanalyse}
+Zum Testen wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-Core Systems gemessen. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Anzahl der Treelets auf den Ver\-walt\-ungsaufwandes zu untersuchen. Der SVO wurde über einen Zeitraum von 60 Sekunden aus verschiedenen Perspektiven analysiert und verfeinert. Durch die kontinuierliche Veränderung der Perspektive muss das System permanent neue Teile des Octrees anfordern, während es andere verwerfen muss. Damit bei der Verfeinerung auch Treelets in hohen Octree Tiefen angefordert werden, wird zum testen eine Kamerafahrt verwendet die ein Maß an Kohärenz zwischen den Perspektiven zu gewährleisten.
+
+
+
+\section{Einschränkungen und Verbesserungen}
+
+\subsection{Serverseitige Aktualisierung}
+Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
+Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
+
+\subsection{Verwendung von OpenGL Texturen als Buffer}
+...

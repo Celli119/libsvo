@@ -1,0 +1,74 @@
+
+1 Einleitung
+
+1.1 Motivation
+1.2 Zielsetzung
+(1.3 Struktur der Arbeit)
+
+
+2 Repräsentation und Verwendung von Volumendaten in der Computergrafik -
+Überblick (das ist das Related Work - was Du als Grundlagen in Kap 4 hast)
+
+  2.1 Volumendaten
+    2.1.1 Octrees
+    2.1.2 Verwandte Arbeiten
+    2.2.1 Sparse Voxel Octrees
+    2.1.2 Verwandte Arbeiten
+
+  2.2 Ray Casting von Volumentdaten
+    2.2.1 Verwandte Arbeiten
+
+  2.3 Out-of-Core Datenmanagement
+    2.3.1 Verwandte Arbeiten
+    2.3.2 ...
+
+
+
+3 Systemkonzeption
+
+  3.1 Überblick
+  3.2 Datenstruktur
+  3.3 Aufbau
+  3.4 Out-of-Core Management
+  3.5 Real Time Rendering von SVO
+  - jeweils mit Diskussion
+
+
+
+4 Implementierungsdetails und Umsetzung
+
+  4.1 Überblick
+
+  4.2 Aufbau der SVO Datenstruktur
+    4.2.1 Definition der Knotenstruktur
+    4.2.2 Segementierung?
+    4.2.3 Generalisiertes System zur SVO-Erstellung
+    4.2.4 Erzeugung der Treelet Struktur
+    4.2.5 Treelet Aufbau
+    4.2.6 Attribut Generierung
+
+EVTL 2 Kapitel draus machen.
+
+  4.3 Echtzeitfähiges SVO-Ray Casting
+    4.3.1 Überblick der Verarbeitungsschritte
+    4.3.2 Analyse Pass
+    4.3.3 Vorsortierung
+    4.3.4 Clientseitige Aktualisierung
+    4.3.5 Einfügen eines Treelets
+    4.3.5 Entfernen eines Treelets
+
+
+
+5 Ergebnisse und Diskussion
+
+  5.1 Überblick
+  5.2 Verwendete Testszenen
+  5.3 Laufzeitanalyse
+  5.4 Einschränkungen und Verbesserungen
+
+
+6 Zusammenfassung & Ausblick
+
+6.1 Zusammenfassung
+6.2 Ausblick
+
