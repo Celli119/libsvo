@@ -4,8 +4,8 @@
 
 //
 //__constant float scale = 1.0f;
-#define MAX_STACK_SIZE        14
-#define MAX_SVO_RAYCAST_DEPTH 14
+#define MAX_STACK_SIZE        13
+#define MAX_SVO_RAYCAST_DEPTH 13
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -460,7 +460,7 @@ shade_phong(const SampleResult* result,
     float4 color  = getColor(result->nodeIndex, attribs);
 
     // light
-    const float3 lightDirection = normalize((float3)(25.5f, 55.0f, 55.0f) - result->nodeCenter);
+    const float3 lightDirection = normalize((float3)(-120.0f, 0.0f, 0.0f) - result->nodeCenter);
 
     // diffuse
     float nDotL = max(0.0f, dot(normal, lightDirection));
