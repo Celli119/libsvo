@@ -134,7 +134,7 @@ std::string g_svoBaseName = "";
 void init()
 {
   const unsigned screenDivide           = 1;
-  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
@@ -144,9 +144,9 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  g_svoBaseName  = "TreeletBuildManager_out";
+  g_svoBaseName  = "TreeletBuildManager_out";
 //  g_svoBaseName  = "david_face_s1_D13";
-  g_svoBaseName  = "david_face_s4_D13";
+//  g_svoBaseName  = "david_face_s4_D13";
 
 //  g_svoBaseName  = "lucy_s1_D13";
 //  g_svoBaseName  = "lucy_s4_D13";

@@ -91,10 +91,6 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
                                                                    (unsigned char*)&_hostSideFeedbackBuffer.front(),
                                                                     _hostSideFeedbackBuffer.size()*sizeof(FeedBackDataElement));
 
-  gloostTest::TimerLog::get()->addTimer("analyse.1_enqueueKernel");
-  gloostTest::TimerLog::get()->addTimer("analyse.2_readbackBuffer");
-  gloostTest::TimerLog::get()->addTimer("analyse.3_processBuffer");
-
 
   // test texture, see what the analyser sees
   gloost::Texture* texture = new gloost::Texture( _bufferWidth,
@@ -157,10 +153,10 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                       float                      tScaleRatio,
                                       const gloost::Vector3&     frameBufferFrustumOnePixelWidth,
                                       const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
-                                      unsigned                   frameBufferToFeedbackBufferRatio)
+                                      unsigned                   frameBufferToFeedbackBufferRatio,
+                                      bool drawOnly)
 {
-  _visibleNewTreeletsGids.clear();
-  _visibleOldTreeletsGids.clear();
+
 
 
   // timer for kernel
@@ -209,7 +205,18 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
   timerAnalysePass.stop();
-  gloostTest::TimerLog::get()->putSample("analyse.1_enqueueKernel", timerAnalysePass.getDurationInMicroseconds()/1000.0);
+  gloostTest::TimerLog::get()->putSample("Analyse-01_render_pass", timerAnalysePass.getDurationInMicroseconds()/1000.0);
+
+
+
+  if (drawOnly)
+  {
+    return;
+  }
+
+
+  _visibleNewTreeletsGids.clear();
+  _visibleOldTreeletsGids.clear();
 
 
 
@@ -225,7 +232,7 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
                                                                       true);
 
   timerReadback.stop();
-  gloostTest::TimerLog::get()->putSample("analyse.2_readbackBuffer", timerReadback.getDurationInMicroseconds()/1000.0);
+  gloostTest::TimerLog::get()->putSample("Analyse-02_readback_buffer", timerReadback.getDurationInMicroseconds()/1000.0);
   // analyse buffer
   // use mapsd here to ensure unique treelt ids
 
@@ -314,6 +321,8 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
     ++visibleNewIt;
   }
 
+  gloostTest::TimerLog::get()->putSample("zz_Analyse-visible_new_treelets", _visibleNewTreeletsGids.size());
+
   // copy visible old treelets
   std::map<gloost::gloostId, float>::iterator visibleOldIt    = visibleOldTreeletGidsMap.begin();
   std::map<gloost::gloostId, float>::iterator visibleOldEndIt = visibleOldTreeletGidsMap.end();
@@ -325,7 +334,10 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
   }
 
 
-  static const unsigned maxTreeletsToPropergate = 768;
+  gloostTest::TimerLog::get()->putSample("zz_Analyse-visible_old_treelets", _visibleOldTreeletsGids.size());
+
+
+  static const unsigned maxTreeletsToPropergate = (12.0 /*MB*/ * 1048576.0f)/_memoryManager->getTreeletSizeInByte();
   if (_visibleNewTreeletsGids.size() > maxTreeletsToPropergate)
   {
     std::set<TreeletGidAndError>::iterator vtIt = _visibleNewTreeletsGids.begin();
@@ -345,7 +357,12 @@ RenderPassAnalyse::performAnalysePass(gloost::gloostId           deviceGid,
 
 
   timerProcessBuffer.stop();
-  gloostTest::TimerLog::get()->putSample("analyse.3_processBuffer", timerProcessBuffer.getDurationInMicroseconds()/1000.0);
+  gloostTest::TimerLog::get()->putSample("Analyse-03_process_buffer", timerProcessBuffer.getDurationInMicroseconds()/1000.0);
+
+
+
+
+  gloostTest::TimerLog::get()->putSample("zz_Analyse-visible_new_treelets_propergated", _visibleNewTreeletsGids.size());
 
 
 

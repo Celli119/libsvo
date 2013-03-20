@@ -13,7 +13,7 @@ Die Generalisierung der Renderpipelines und die Einführung von GPGPU-Hochsprache
   \includegraphics[width=0.8\textwidth]{figures/eye_mesh_and_svo.png}
   \caption{Detail: Mesh und Sparse Voxel Octree \label{eye_mesh_and_svo}}
 \end{figure}
-Dennoch gibt es einige Herausforderungen die vor der Verwendung von Sparse Voxe Octrees bewältigt werden müssen. Sparse Voxel Octrees benötigen viel Speicher. Die Menge an Arbeitsspeicher aktueller Grafikkarten genügt, um eine SVO-Struktur in hinreichender Auflösung zu speichern. Will man jedoch möglichst viele Details oder sehr große Strukturen abbilden können leicht mehrere Gigabyte Daten anfallen.\\
+Dennoch gibt es einige Herausforderungen die vor der Verwendung von Sparse Voxe Octrees bewältigt werden müssen. Sparse Voxel Octrees benötigen viel Speicher. Die Menge an Arbeitsspeicher aktueller Grafikkarten genügt, um eine SVO-Struktur in relativ hohen Auflösung zu speichern, die für einige Anwendungen genügt. Benötigt man jedoch höhere Auflösung um möglichst viele Details bzw. sehr große Strukturen abbilden zu können, fallen leicht mehrere Gigabyte an Daten an, die nicht mehr als Ganzes in den GPU-Speicher passen.\\
 Da Sparse Voxel Octrees erst in jüngster Zeit in den Fokus von Wissenschaft und Industrie gerückt sind, sind sie in Programmen zur Erstellung von 3D-Inhalten noch nicht angekommen. Daher ist es zunächst notwendig Sparse-Voxel-Octrees-Strukturen aus anderen Geometrie\-repräsentationen zu erstellen. Dreicksnetze, Punktwolken, Höhenfelder oder Volumen können als Eingabedaten dienen. Um unterschiedliche Repräsentationen von Inhalten, ohne großen Entwicklungsaufwand, unterstützen zu können fehlt ein generisches System das diese Daten verarbeiten kann.
 
 

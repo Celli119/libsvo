@@ -99,8 +99,6 @@ TreeletMemoryManager::TreeletMemoryManager(const std::string& svoFilePath, unsig
   resetIncoreBuffer();
 
 
-  gloostTest::TimerLog::get()->addTimer("memory_manager.update_incore_buffer_host");
-
 }
 
 
@@ -440,7 +438,7 @@ TreeletMemoryManager::updateClientSideIncoreBuffer(RenderPassAnalyse* renderPass
 
   // /timer
   timerupdateIncoreBufferHost.stop();
-  gloostTest::TimerLog::get()->putSample("memory_manager.update_incore_buffer_host", timerupdateIncoreBufferHost.getDurationInMicroseconds()/1000.0);
+  gloostTest::TimerLog::get()->putSample("memory_manager.update_incore_buffer_client", timerupdateIncoreBufferHost.getDurationInMicroseconds()/1000.0);
 
 }
 

@@ -10,8 +10,8 @@
 \section{Verwendete Testszenen}
  
 
-Zum Testen des Out-of-Core Systems wurden SVO-Strukturen für drei unterschiedliche Geometrien generiert (siehe Tabelle ...). 
-Aus jeder Geometrie wurden zwei verschiedene SVO-Strukturen erstellt. Beide haben jeweils die selbe minimale Tiefe, aber eine unterschiedliche Treelet Größe. Die Tiefe betrug jeweils 12 bei Treelet Größen von 1kb und 4kb. Durch die Verkleinerung der Treelets bei gleicher minimaler SVO-Tiefe entstehen mehr Treelets und damit eine größerer Aufwand bei der Verwaltung. Die beiden Varianten sollen im folgenden verglichen werden, um die Skalierbarkeit des Out-of-Core Systems nach zu vollziehen. In Tabelle ... wird gezeigt... .
+Zum Testen des Out-of-Core Systems wurden SVO-Strukturen aus drei unterschiedliche Dreiecksg\-eometrien generiert (siehe Tabelle \ref{verwendete_mesh_modelle}). 
+Aus jedem Modell wurden zwei verschiedene SVO-Strukturen erstellt. Beide haben jeweils die selbe minimale Tiefe von 13, aber eine unterschiedliche Treelet Größe. Die Tiefe betrug jeweils 12 bei Treelet Größen von 1kb und 4kb. Durch die Verkleinerung der Treelets bei gleicher minimaler SVO-Tiefe entstehen mehr Treelets und damit eine größerer Aufwand bei der Verwaltung. Die beiden Varianten sollen im folgenden verglichen werden, um die Skalierbarkeit des Out-of-Core Systems nach zu vollziehen. In Tabelle ... wird gezeigt... .
 
 \begin{table}
 \centering
@@ -19,7 +19,7 @@ Aus jeder Geometrie wurden zwei verschiedene SVO-Strukturen erstellt. Beide habe
   \hline
   \textbf{Name} & \textbf{Anzahl Dreiecke} & \textbf{Dateigröße} \\
   \hline
-  David face       & 52.5 Mio & 14.7 GB \\
+  david face       & 52.5 Mio & 14.7 GB \\
   \hline
   xyzrgb statuette & 10.0 Mio & 270 MB \\
   \hline  
@@ -27,33 +27,35 @@ Aus jeder Geometrie wurden zwei verschiedene SVO-Strukturen erstellt. Beide habe
   \hline
 \end{tabular}
 
-\caption{Verwendete Modelle}\label{verwendete_modelle}
+\caption{Verwendete Dreicksmodelle}\label{verwendete_mesh_modelle}
 \end{table}
-
-
 
 
 \begin{table}
 \centering
-\begin{tabular}{ l  r  r  r  r  r }
+\begin{tabular}{ l  r  r  r  r }
   \hline
-  \textbf{Name} &  & \textbf{Treelet Größe} & \textbf{Anzahl Treelets} & \textbf{Anzahl Knoten} & \textbf{Dateigröße} \\
+  \textbf{Name} & \textbf{Treelet Größe} & \textbf{Anzahl Treelets} & \textbf{Anzahl Knoten} & \textbf{Dateigröße} \\
   \hline
-  David face        & 1kb & 743.277 &  95.139.456  & 000000\\
-                    & 4kb & 484.297 & 247.960.064  & 000000\\
+  david face        & 1kb & 743.277 &  95.139.456 & 1.4 GB \\
+                    & 4kb & 484.297 & 247.960.064 & 3.7 GB \\
   \hline
-  xyzrgb statuette  & 1kb & 13      & 000000      & 000000 \\
-                    & 4kb & 13      & 000000      & 000000 \\
+  xyzrgb statuette  & 1kb & 781.302 & 100.006.656 & 1.5 GB \\
+                    & 4kb & 246.434 & 126.174.208 & 1.9 GB \\
   \hline  
-  Lucy              & 1kb & 13      & 000000      & 000000 \\
-                    & 4kb & 13      & 000000      & 000000 \\
+  Lucy              & 1kb & 588.032  & 75.268.096 & 1.2 GB \\
+                    & 4kb & 131.072  & 67.108.864 & 1.0 GB \\
   \hline
 \end{tabular}
 
-\caption{Verwendete Modelle}\label{verwendete_modelle}
+\caption{Verwendete Sparse Voxel Octrees}\label{verwendete_svo_modelle}
 \end{table}
- 
- 
+
+
+
+% /////////////////////////////////////////////////////////////
+
+
 
 \section{Laufzeitanalyse}
 Zum Testen wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-Core Systems gemessen. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Anzahl der Treelets auf den Ver\-walt\-ungsaufwandes zu untersuchen. Der SVO wurde über einen Zeitraum von 60 Sekunden aus verschiedenen Perspektiven analysiert und verfeinert. Durch die kontinuierliche Veränderung der Perspektive muss das System permanent neue Teile des Octrees anfordern, während es andere verwerfen muss. Damit bei der Verfeinerung auch Treelets in hohen Octree Tiefen angefordert werden, wird zum testen eine Kamerafahrt verwendet die ein Maß an Kohärenz zwischen den Perspektiven zu gewährleisten.
@@ -75,6 +77,11 @@ Zum Testen wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-
   \includegraphics[width=1.0\textwidth]{figures/ratio_0-1.pdf}
   \caption{öfmÖAFJaÖFOJ\label{ratio_0-1}}
 \end{figure}
+
+
+
+% /////////////////////////////////////////////////////////////
+
 
 
 \section{Einschränkungen und Verbesserungen}
