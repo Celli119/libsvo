@@ -53,7 +53,7 @@ Eine solche Volumenrepräsentation eignet sich ebenso zur Darstellung anderer opa
 
 \section{Raycasting von Volumendaten}
 Bei Raycasting wird für jeden Punkt eines Ziel-Buffers ein Strahl erzeugt und mit den Volumendaten geschnitten. 
-Volumen\gitter können dazu beispielsweise in festen Abständen durchschritten werden um Dichtewerte zu ermitteln und über eine Transfer\-funktion abzubilden (!!! ABBILDUNG FRONT-TO-BACK-VOLUME-RAYCASTING). Dabei müssen auch Bereiche des Volumens verarbeitet werden die leer sind und nicht zum Bildinhalt beitragen.\\
+Volumen\-gitter können dazu beispielsweise in festen Abständen durchschritten werden um Dichtewerte zu ermitteln und über eine Transfer\-funktion abzubilden (!!! ABBILDUNG FRONT-TO-BACK-VOLUME-RAYCASTING). Dabei müssen auch Bereiche des Volumens verarbeitet werden die leer sind und nicht zum Bildinhalt beitragen.\\
 In der Octree-Darstellung können große homogen gefüllte Bereiche übersprungen werden. Dies wird erreicht indem  der Strahl mit dem Voxeln geschnitten wird der diesen Bereich umgibt um so ein Eintritts- sowie ein Austrittspunkt zu ermitteln. Der hierarchischeund regulären Aufbau des Octrees ermöglicht es die dazu notwendigen Schnitt\-berechnung zu minimieren und effizient durchzuführen. Durch eine Tiefensuche im Baum kann in jeder Tiefe das Voxel ermittelt werden, das den Strahl zuerst scheidet. Da die Voxel ihre Position und Größe nur implizit über ihrer Lage im Baum speichern müsse diese beim Traversieren für jeden Voxel erzeugt werden.\\
 \\
 Der Strahl kann durch $p_t(t)=p+td$ beschrieben werden. Löst man die Gleichung nach $t$ für eine achsen\-parallele Ebene erhält man $t_x(x) = (\frac{1}{d_x})x+(\frac{-p_x}{d_x})$.
