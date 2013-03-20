@@ -73,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDivide = 4.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 8.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -99,6 +99,10 @@ bool        g_enableDynamicLoading = false;
 bool        g_interaction          = false;
 
 
+bool g_do_benchmark = false;
+
+
+
 //bencl stuff
 #include <CL/opencl.h>
 #include <gloost/bencl/ocl.h>
@@ -121,7 +125,7 @@ void motionFunc(int mouse_h, int mouse_v);
 void idle(void);
 void showTreeletCounters();
 
-
+std::string g_svoBaseName = "";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -129,7 +133,7 @@ void showTreeletCounters();
 
 void init()
 {
-  const unsigned screenDivide           = 4;
+  const unsigned screenDivide           = 1;
   const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
@@ -140,10 +144,15 @@ void init()
   const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  const std::string svoBaseName  = "TreeletBuildManager_out";
-//  const std::string svoBaseName  = "david_2mm_final_ao_s4_d11";
-//  const std::string svoBaseName  = "david_2mm_final_ao_s4_d12";
-//  const std::string svoBaseName  = "Decimated_Head_s2_d10";
+//  g_svoBaseName  = "TreeletBuildManager_out";
+//  g_svoBaseName  = "david_face_s1_D13";
+  g_svoBaseName  = "david_face_s4_D13";
+
+//  g_svoBaseName  = "lucy_s1_D13";
+//  g_svoBaseName  = "lucy_s4_D13";
+
+//  g_svoBaseName  = "xyzrgb_statuette_s1_D13";
+//  g_svoBaseName  = "xyzrgb_statuette_s4_D13";
 
 
   g_texter = new gloost::TextureText(g_gloostFolder + "/data/fonts/gloost_Fixedsys_16_gui.png");
@@ -188,7 +197,7 @@ void init()
   initCl();
 
 
-  g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + svoBaseName,
+  g_clMemoryManager = new svo::TreeletMemoryManagerCl(svo_dir_path + g_svoBaseName,
                                                       incoreBufferSizeInByte,
                                                       g_context);
 
@@ -206,11 +215,7 @@ void init()
                                                    g_bufferHeight/g_fbToAnalyseBufferDivide);
 
 
-  gloostTest::TimerLog::get()->setNumSamples(16);
-  gloostTest::TimerLog::get()->addTimer("render.enqueueKernel");
-  gloostTest::TimerLog::get()->addTimer("memory_manager.update_incore_buffer_server");
-
-
+  gloostTest::TimerLog::get()->setNumSamples(10);
 }
 
 
@@ -363,6 +368,170 @@ void frameStep()
   gloost::Matrix modelMatrix = gloost::Matrix::createTransMatrix(g_modelOffset);
 
 
+ //////////////////////////////////////////////////////////////////////////////
+
+
+  static bool   benchmarkInit                = true;
+  static float  benchmark_camSpeed           = 0.01f;
+  static int    benchmark_time               = 30000;
+  static double benchmark_timeBetweenSamples = 250.0;
+
+  static unsigned benchmark_stepCounter   = 0u;
+  static unsigned benchmark_sampleCounter = 0u;
+  static std::map<std::string, std::vector<double> > sampleAccumMap;
+  static double lastSampleTime            = 0;
+
+
+  static gloostTest::Timer benchmarkTime;
+
+  // benchmark
+  if (g_do_benchmark)
+  {
+
+    static gloost::Point3    camerPos;
+
+
+    if (benchmarkInit)
+    {
+      benchmarkTime = gloostTest::Timer();
+      benchmarkTime.start();
+      lastSampleTime = 0;
+
+      sampleAccumMap = std::map<std::string, std::vector<double> >();
+
+      benchmarkInit          = false;
+      g_enableDynamicLoading = true;
+      g_showRayCastImage     = false;
+      g_showTextInfo         = false;
+    }
+
+    double time = benchmarkTime.getDurationInMilliseconds();
+
+    g_camera->lookAt(gloost::Point3(sin(time*benchmark_camSpeed)*0.75f,
+                                    0.0,
+                                    cos(time*benchmark_camSpeed))*0.75f,
+                     gloost::Point3(0.0,0.0,0.0),
+                     gloost::Vector3(0.0,1.0,0.0));
+
+
+    ++benchmark_stepCounter;
+
+    if (benchmarkTime.getDurationInMilliseconds() - lastSampleTime > benchmark_timeBetweenSamples)
+    {
+      lastSampleTime = benchmarkTime.getDurationInMilliseconds();
+
+
+      std::cerr << std::endl << "sample at: " << benchmarkTime.getDurationInMilliseconds()/1000.0;
+
+      gloostTest::TimerLog::sampleMap::iterator timerIt    = gloostTest::TimerLog::get()->getTimes().begin();
+      gloostTest::TimerLog::sampleMap::iterator timerEndIt = gloostTest::TimerLog::get()->getTimes().end();
+
+      ++benchmark_sampleCounter;
+
+      for (; timerIt!=timerEndIt; ++timerIt)
+      {
+//        std::cerr << std::endl << "timerIt->first: " << timerIt->first;
+        sampleAccumMap[timerIt->first].push_back(gloostTest::TimerLog::get()->getCurrentAverage(timerIt->first));
+      }
+
+//      // reset sample timer
+//      sampleTimer = gloostTest::Timer();
+//      sampleTimer.start();
+    }
+
+
+    // end benchmark
+    if (benchmarkTime.getDurationInMilliseconds() > benchmark_time)
+    {
+      std::map<std::string, std::vector<double> >::iterator timesIt    = sampleAccumMap.begin();
+      std::map<std::string, std::vector<double> >::iterator timesEndIt = sampleAccumMap.end();
+
+
+      std::cerr << std::endl << "sampleAccumMap: " << sampleAccumMap.size();
+
+      gloost::BinaryFile csvOutFile;
+      csvOutFile.openToWrite( g_svoBaseName + ".csv" );
+
+
+      csvOutFile.writeString(g_svoBaseName);
+      csvOutFile.writeChar8('\r');
+      csvOutFile.writeString("Samples:; " + gloost::toString(benchmark_sampleCounter));
+      csvOutFile.writeChar8('\r');
+
+      std::map<std::string, double> averages;
+
+
+      for (; timesIt!=timesEndIt; ++timesIt)
+      {
+        std::vector<double>& timesContainer = timesIt->second;
+        std::cerr << std::endl;
+        std::cerr << std::endl << "Name:;    " << timesIt->first << std::endl;
+        std::cerr << std::endl << "samples:; " << timesContainer.size();
+        std::cerr << std::endl;
+
+        csvOutFile.writeChar8('\r');
+        csvOutFile.writeString(timesIt->first+";");
+
+        for (unsigned i=0; i!=timesContainer.size(); ++i)
+        {
+          std::cerr <<  timesContainer[i] << ";";
+          csvOutFile.writeString(gloost::toString(timesContainer[i]) + ";");
+
+          averages[timesIt->first] += timesContainer[i];
+        }
+
+        averages[timesIt->first] /= benchmark_sampleCounter;
+      }
+
+
+
+      csvOutFile.writeChar8('\r');
+      csvOutFile.writeChar8('\r');
+      csvOutFile.writeString("Averages:");
+      csvOutFile.writeChar8('\r');
+
+      // write averages
+      std::map<std::string, double>::iterator averagesIt    = averages.begin();
+      std::map<std::string, double>::iterator averagesEndIt = averages.end();
+
+
+      for (; averagesIt!=averagesEndIt; ++averagesIt)
+      {
+        csvOutFile.writeChar8('\r');
+        csvOutFile.writeString(averagesIt->first+"_av;");
+        csvOutFile.writeString(gloost::toString(averagesIt->second) + ";");
+      }
+
+
+
+
+      csvOutFile.close();
+
+
+      g_enableDynamicLoading = false;
+      g_showRayCastImage     = true;
+
+      g_do_benchmark = false;
+      benchmarkInit  = true;
+      benchmark_stepCounter   = 0u;
+      benchmark_sampleCounter = 0u;
+      g_showTextInfo = true;
+    }
+
+
+
+  }
+  else
+  {
+    g_do_benchmark = false;
+    benchmarkInit  = true;
+  }
+
+
+
+ //////////////////////////////////////////////////////////////////////////////
+
+
 
   // start raycasting
   const gloost::Frustum& frustum = g_camera->getFrustum();
@@ -377,7 +546,7 @@ void frameStep()
 
   if (g_enableDynamicLoading)
   {
-
+//    g_enableDynamicLoading = false;
 #if 1
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
                                             g_camera,
@@ -388,11 +557,20 @@ void frameStep()
                                             g_fbToAnalyseBufferDivide);
 
 
-
     g_clMemoryManager->updateClientSideIncoreBuffer(g_renderPassAnalyse);
 
-    // disable dynamic dynamic loading
-//    key('B', true);
+  }
+  else
+  {
+
+    g_renderPassAnalyse->performAnalysePass(g_deviceGid,
+                                            g_camera,
+                                            modelMatrix,
+                                            g_tScaleRatio*g_tScaleRatioMultiplyer,
+                                            frustumOnePixelWidth,
+                                            frustumOnePixelHeight,
+                                            g_fbToAnalyseBufferDivide,
+                                            true);
   }
 #endif
 
@@ -412,28 +590,31 @@ void frameStep()
   gloostTest::Timer timerFillBuffer;
   timerFillBuffer.start();
 
-  g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
-  g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
-  g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
-  g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
-  g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
-  g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
-  g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
-
-  static bool flipFlop = false;
-  flipFlop = !flipFlop;
-
-  g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
+  if (g_showRayCastImage)
   {
-    g_context->enqueueKernel(g_deviceGid,
-                             "renderToBuffer",
-                             2u,
-                             gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
-                             true,
-                             gloost::Vector3(8, 8, 0));
-  }
-  g_context->releaseGlObjects(g_deviceGid);
+    g_context->setKernelArgFloat4("renderToBuffer", 3, gloost::Vector3(g_bufferWidth, g_bufferHeight, g_tScaleRatioMultiplyer*g_tScaleRatio));
+    g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
+    g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
+    g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
+    g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
+    g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
+    g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
+    static bool flipFlop = false;
+    flipFlop = !flipFlop;
+
+    g_context->acquireGlObjects(g_deviceGid, "renderToBuffer");
+    {
+      g_context->enqueueKernel(g_deviceGid,
+                               "renderToBuffer",
+                               2u,
+                               gloost::Vector3(g_bufferWidth, g_bufferHeight, 1),
+                               true,
+                               gloost::Vector3(8, 8, 0));
+    }
+    g_context->releaseGlObjects(g_deviceGid);
+
+  }
   // /timer
   timerFillBuffer.stop();
   gloostTest::TimerLog::get()->putSample("render.enqueueKernel", timerFillBuffer.getDurationInMicroseconds()/1000.0);
@@ -572,6 +753,8 @@ void draw2d()
 
 
 
+
+
           // timer names
           glColor4f(0.9f, 0.9f, 0.0f, 1.0);
           g_texter->setWritePosition(20, 200);
@@ -682,6 +865,12 @@ void key(int key, int state)
         {
           std::cerr << std::endl << "g_clMemoryManager: ";
           g_clMemoryManager->removeTreeletFromIncoreBuffer(1);
+        }
+        break;
+
+      case 'T':
+        {
+          g_do_benchmark = true;
         }
         break;
 
