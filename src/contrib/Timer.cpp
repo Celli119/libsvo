@@ -255,9 +255,9 @@ Timer::stop()
 void
 Timer::reset()
 {
-	_time.tv_sec  = 0;
-	_time.tv_nsec = 0;
-	_time.tv_sec  = 0;
+	_time.tv_sec       = 0;
+	_time.tv_nsec      = 0;
+	_time.tv_sec       = 0;
 	_lastStart.tv_nsec = 0;
 }
 

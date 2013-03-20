@@ -84,7 +84,8 @@ class RenderPassAnalyse
                             float                      tScaleRatio,
                             const gloost::Vector3&     frameBufferFrustumOnePixelWidth,
                             const gloost::Vector3&     frameBufferFrustumOnePixelHeight,
-                            unsigned                   frameBufferToFeedbackBufferRatio);
+                            unsigned                   frameBufferToFeedbackBufferRatio,
+                            bool drawOnly = false);
 
 
     // returns a std::set of TreeletIds belonging to visible leaves

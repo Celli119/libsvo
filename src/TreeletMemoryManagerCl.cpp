@@ -35,6 +35,7 @@
 #include <gloost/Mesh.h>
 #include <gloost/BinaryFile.h>
 
+#include <contrib/TimerLog.h>
 
 // cpp includes
 #include <string>
@@ -71,7 +72,6 @@ TreeletMemoryManagerCl::TreeletMemoryManagerCl(const std::string& svoFilePath,
   _svoClBufferGid(0),
   _attributeClBufferGid(0)
 {
-
 
 }
 
@@ -164,6 +164,9 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   gloost::bencl::ClBuffer* incoreClBuffer = _clContext->getClBuffer(_svoClBufferGid);
   gloost::bencl::ClDevice* device         = _clContext->getDevice(0);
 
+  gloostTest::TimerLog::get()->putSample("zz_memory_manager-cl_slots_to_upload", _incoreSlotsToUpload.size());
+
+
   std::set<gloost::gloostId>::iterator slotGidIt    = _incoreSlotsToUpload.begin();
   std::set<gloost::gloostId>::iterator slotGidEndIt = _incoreSlotsToUpload.end();
 
@@ -175,9 +178,15 @@ TreeletMemoryManagerCl::updateDeviceMemory()
   {
 
     gloost::gloostId startSlot = (*slotGidIt);
+//    ++slotGidIt;
 
     unsigned numSlots    = 1;
     unsigned numTreelets = 1;
+
+
+
+    float treeletToSlotRatio = 0.4f * 2.0f;
+
 
     if (slotGidIt!=slotGidEndIt)
     {
@@ -187,7 +196,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
         int   slotDist = (*slotGidIt) - (int)startSlot;
         float ratio    = (numTreelets+1) / (float)(slotDist+1);
 
-        if (ratio > 0.25)
+        if (ratio >= treeletToSlotRatio)
         {
           numSlots = slotDist+1;
           ++numTreelets;
@@ -231,6 +240,14 @@ TreeletMemoryManagerCl::updateDeviceMemory()
 //  std::cerr << std::endl << "            : " << (float)numCopyCalls/_incoreSlotsToUpload.size() * 100.0 << " %";
 
   _incoreSlotsToUpload.erase(_incoreSlotsToUpload.begin(), _incoreSlotsToUpload.end());
+
+
+
+  gloostTest::TimerLog::get()->putSample("zz_memory_manager-num_copy_calls", numCopyCalls);
+
+
+
+
 }
 
 

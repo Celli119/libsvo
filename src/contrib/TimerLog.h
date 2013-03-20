@@ -77,6 +77,9 @@ class TimerLog
     // returns the average value gained after % numSamples steps
     double getLastAverage(const std::string& name) const;
 
+    // returns the last sampled value
+    double getLastValue() const;
+
 
     // sets the number of samples to record
     void setNumSamples(unsigned num);

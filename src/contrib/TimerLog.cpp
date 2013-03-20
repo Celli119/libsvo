@@ -153,10 +153,12 @@ TimerLog::addTimer(const std::string& name)
 void
 TimerLog::putSample(const std::string& name, double value)
 {
+  value*=0.5f;
+
   std::map<std::string, unsigned>::iterator pos = _insertPositions.find(name);
   if (pos == _insertPositions.end())
   {
-    return;
+    addTimer(name);
   }
   _valuesForName[name][_insertPositions[name]] = value;
 
@@ -220,6 +222,30 @@ TimerLog::getLastAverage(const std::string& name) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//
+///**
+//  \brief   returns the last sampled value
+//  \param   ...
+//  \remarks ...
+//*/
+//
+//double
+//TimerLog::getLastValue(const std::string& name) const
+//{
+//  std::map<std::string, unsigned>::const_iterator pos = _insertPositions.find(name);
+//  if (pos == _insertPositions.end())
+//  {
+//    return 0.0;
+//  }
+//
+//  unsigned position = pos->second;
+//
+//  return pos->second;
+//}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 
 /**
   \brief   reset all timers
@@ -230,7 +256,6 @@ TimerLog::getLastAverage(const std::string& name) const
 void
 TimerLog::resetAllTimers()
 {
-
   std::map<std::string, std::vector<double> >::iterator vIt    = _valuesForName.begin();
   std::map<std::string, std::vector<double> >::iterator vEndIt = _valuesForName.end();
 
@@ -258,10 +283,6 @@ TimerLog::resetAllTimers()
     aIt->second = 0.0;
     ++aIt;
   }
-
-
-
-
 }
 
 

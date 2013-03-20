@@ -304,17 +304,17 @@ TreeletBuilderFromFaces::buildFromQueue()
         childQueueElements[childIdx]._parentLocalNodeIndex = parentQueuedElement._localLeafIndex;
 
         // queue children
-        if (childQueueElements[childIdx]._depth <= _maxDepth+2 || !BUILD_DEPTH_LIMIT_MAX_DEPTH)
-        {
+//        if (childQueueElements[childIdx]._depth <= _maxDepth/* || !BUILD_DEPTH_LIMIT_MAX_DEPTH*/)
+//        {
           _queue.push(childQueueElements[childIdx]);
-        }
-        else/* if ()*/
-        {
-          // set the leaf flag within leafes parent node
-          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
-                                                                                                   true);
-          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
-        }
+//        }
+//        else/* if ()*/
+//        {
+//          // set the leaf flag within leafes parent node
+//          _treelet->getNodes()[childQueueElements[childIdx]._parentLocalNodeIndex].setLeafMaskFlag(childQueueElements[childIdx]._idx,
+//                                                                                                   true);
+//          _treelet->getFinalLeafQueueElements().push_back(childQueueElements[childIdx]);
+//        }
 
         ++currentNodeIndex;
       }
@@ -351,7 +351,7 @@ TreeletBuilderFromFaces::buildFromQueue()
 
 
 #if 1
-    if (leafQueuedElement._depth < _maxDepth)
+    if ((int)leafQueuedElement._depth < (int)_maxDepth/*-2*/)
     {
       _treelet->getIncompleteLeafQueueElements().push_back(leafQueuedElement);
     }
