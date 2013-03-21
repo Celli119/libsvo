@@ -1,10 +1,10 @@
 \chapter{Ergebnisse und Diskussion}
 
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=1.0\textwidth]{figures/progressive_refinement.png}
-  \caption{Verfeinerung in 5 aufeinander folgenden Schritten \label{progressive_refinement}}
-\end{figure}
+%\begin{figure}[position=h]
+%  \centering
+%  \includegraphics[width=1.0\textwidth]{figures/progressive_refinement.png}
+%  \caption{Verfeinerung in 5 aufeinander folgenden Schritten \label{progressive_refinement}}
+%\end{figure}
 
 
 % /////////////////////////////////////////////////////////
@@ -12,19 +12,25 @@
 
 
 \section{Überblick}
-
-Um Eigenschaften und Leistungsfähigkeit des Systems zu ermitteln wurden im Zuge dieser Arbeit drei Test durchgeführt. Der erste Test untersuchte welchen Einfluss die Größe der Treelets auf das Verhalten des Out-of-Core-Systems hat. Der zweite Test beschäftigt sich speziell mit der Minimierung der Kopieraufrufe des serverseitigen Updates. Ein dritter Test soll die Reaktionsfähigkeit des Systems während der Benutzung untersuchen.\\
-Als Testsystem stand ein aktuelles GNU/Linux-System mit Intel Core i7(!!!RAUSFINDEN) und 32 GB Arbeitsspeicher zu Verfügung. Eine Nvidia GForce 580 GTX mit 1.5 GB Ram war über PCI-Express 2 angebunden. 
+Abbildung \ref{lucy_s4_D13_timeseries} gibt einen allgemeinen Eindruck über die Laufzeiten der einzelnen Teilschritte, die in Abschnitt \ref{sec:echtzeitfaehiges_svo_raycasting} (\nameref{sec:echtzeitfaehiges_svo_raycasting}) beschrieben wurden und die Anzahl verarbeiteter Treelets. Die Werte wurden in Abständen von 200 ms abgegriffen.
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/lucy_s4_D13_timeseries.pdf}
+  \caption{Systemzeiten und zu verarbeitende Treelets Treelets\label{lucy_s4_D13_timeseries}}
+\end{figure}
+Im oberen Graphen finden sich die Zeiten für das Erstellen des Analyse-Buffers, das Zurücklesen und dessen Vorsortierung in Sichtinformationen für neue und bereits geladene Treelets. Ausserdem sind die benötigten Zeiten für die Pflege des clientseitigen und serverseitigen Incore-Buffers dargestellt. Im unteren Graphen sind die Menge der von der Analyse des Baumes erzeugten Anfragen nach neuen Treelets, die Menge der daraufhin geänderten Slots und die Anzahl der benötigten Kopieraufrufe dargestellt.\\
+Um Eigenschaften und Leistungsfähigkeit des Systems zu analysieren wurden im Zuge dieser Arbeit drei Tests durchgeführt. Der erste Test untersuchte den Einfluss der Treelet-Größe auf das Verhalten des Out-of-Core-Systems. Der zweite Test beschäftigt sich mit der Minimierung der Kopieraufrufe bei der serverseitigen Aktualisierung. Ein dritter Test soll die Reaktionsfähigkeit des Systems während der Benutzung untersuchen.\\
+Als Testsystem stand ein aktuelles GNU/Linux-System mit Intel Core i7-2600 (3.4 GHz) und 32 GB Arbeitsspeicher zu Verfügung. Eine Nvidia GForce 580 GTX mit 1.5 GB Ram war über PCI-Express 2 angebunden. 
 
 
 % /////////////////////////////////////////////////////////
 
-\newpage
 
 \section{Verwendete Testmodelle}
  
-Als Testdaten wurde drei Dreiecksmodelle mit Hilfe des in Kapitel \ref{sec:erzeugung_treelet_struktur} (\textit{\nameref{sec:erzeugung_treelet_struktur}}) beschrieben Systems in Sparse Voxel Octrees überführt. Aus jedem Modell wurden jeweils zwei SVO-Strukturen erstellt. Beide Varianten haben die selbe minimale Tiefe von 13, unterscheiden sich aber in der Treelet-Größe, die 1 kB und 4 kB beträgt. Tabelle \ref{tab:verwendete_modelle} zeigt die Anzahl der Dreiecke der verwendeten Ausgangsmodelle und stellt daneben Anzahl von Treelets und Voxel der resultierenden Octrees dar.\\
-Für alle Octrees wurden Attribut-Buffer erstellt die Farb- und Normalenwerten enthalten und mit mit 16 Byte/Voxel aufgelöst sind.
+Als Testdaten wurde drei Dreiecksmodelle mit Hilfe des in Kapitel \ref{sec:erzeugung_treelet_struktur} (\textit{\nameref{sec:erzeugung_treelet_struktur}}) beschrieben Systems in Sparse Voxel Octrees überführt. Aus jedem Modell wurden jeweils zwei SVO-Strukturen erstellt. Beide Varianten haben die selbe minimale Tiefe von 13 für alle Blattknoten, unterscheiden sich aber in der Treelet-Größe, die 1 kB und 4 kB beträgt. Tabelle \ref{tab:verwendete_modelle} zeigt die Anzahl der Dreiecke der verwendeten Ausgangsmodelle und Anzahl von Treelets und Voxel der resultierenden Octrees. 
+Für alle Octrees wurden Attribut-Buffer mit Farb- und Normalenwerten erstellt die mit 16 Byte/Voxel aufgelöst sind die in den angegebenen zum Speicherbedarf bereits enthalten sind.\\
+Das Modell "david face" stellt eine Besonderheit dar. Durch die feste Segmentgröße ist die Darstellung mit 4 kB-großen Treelets unverhältnismässig groß geworden.
 
 
 \begin{table}[position=h]
@@ -51,37 +57,45 @@ Für alle Octrees wurden Attribut-Buffer erstellt die Farb- und Normalenwerten en
 \caption{Verwendete Modelle}\label{tab:verwendete_modelle}
 \end{table}
 
-
-
-% /////////////////////////////////////////////////////////////
-
-
-\section{Systemverhalten}
-
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=1.0\textwidth]{figures/lucy_s4_D13_timeseries.pdf}
-  \caption{Systemzeiten und zu verarbeitende Treelets Treelets\label{lucy_s4_D13_timeseries}}
-\end{figure}
-
-
 % /////////////////////////////////////////////////////////////
 
 \newpage
 
-\section{Einfluss der Segmentgröße auf das Systemverhalten}
-Zur  wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-Core Systems gemessen. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Anzahl der Treelets auf den Ver\-walt\-ungsaufwandes zu untersuchen. Der SVO wurde über einen Zeitraum von 60 Sekunden aus verschiedenen Perspektiven analysiert und verfeinert. Durch die kontinuierliche Veränderung der Perspektive muss das System permanent neue Teile des Octrees anfordern, während es andere verwerfen muss. Damit bei der Verfeinerung auch Treelets in hohen Octree Tiefen angefordert werden, wird zum testen eine Kamerafahrt verwendet die ein Maß an Kohärenz zwischen den Perspektiven zu gewährleisten.
+\section{Einfluss der Segmentgröße auf das Systemverhalten}\label{sec:test_einfluss_groesse}
+\subsection{Versuchsaufbau}
+Bei diesem Test soll der Einfluss der Speichergröße der Treelets auf das Laufverhalten des Systems untersucht werden. Dazu wurden für alle sechs Modelle die Werte wie sie in Abbildung \ref{lucy_s4_D13_timeseries} dargestellt sind aufgenommen. Aufnahme Zeit betrug in allen Durchläufen 30 Sekunden. In Intervallen von 200 ms wurde jeweils ein Wert notiert der dem Mittelwert aller in dieser Zeit erfolgten Programmzyklen entspricht.\\
+Um das System zu belasten und die permanente die Veränderung des Incore-Buffers anzuregen wurden alle Modelle vor der Kamera platziert und mit $1/3$ Hz um die Hochachse rotiert. Mit der Bewegung sollte gewährleistet werden, dass das System in jedem Durchlauf eine hohe Anzahl von Anfragen nach neuen Treelets erzeugt und verarbeiten muss. Die Geschwindigkeit der Rotation wurde gewählt um einen wahrscheinlichen Anwendungs\-fall zu simulieren, in dem eine hohe Kohärenz zwischen den aufeinander\-folgenden Ansichten erwartet wird. Die Größe des Incore-Buffers wurde auf 256 MB festgelegt und entspricht damit $1/4$ bis $1/14$ der Speichergrößen der gesamten Octreedaten. Um das Laufverhalten über einen längeren Zeitraum zu simmulieren wurde das Model vor der eigentlichen Messung über 30 Sekunden aus zufällig gewählten Perspektiven verarbeitet. Dies führt zu einer unsystematischen Anordnung der Treelets im Incore-Buffer. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Größe der Treelets auf den Ver\-walt\-ungsaufwand untersuchen zu können.
 
+
+
+% /////////////////////////////////////////////////////////////
+
+
+
+\subsection{Auswertung}
+Die in Abbildung \ref{david_lucy_xyzrgb_s1_vs_24_D13} dargestellte Vergleich der Messergebnisse für unterschiedliche Treeletgrößen zeigt für alle drei Modelle ähnliche Tendenzen auf.\\
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/david_lucy_xyzrgb_s1_vs_24_D13.pdf}
   \caption{Gegenüberstellung unterschiedleichen Treelet-Größen\label{david_lucy_xyzrgb_s1_vs_24_D13}}
 \end{figure}
+\\
+\subsubsection{Erstellung und Übertragung des Analyse-Buffers}
+Zunächst kann festgestellt werden, dass die Erstellungszeit für den Analyse-Buffer für zwei der drei Beispiele in beiden Varianten annähernd konstant ist. Der Unterschied beim Modell \textit{david face} kann durch den enormen Unterschied in der Anzahl der Knoten beider Darstellungen erklärt werden der immerhin 260\% beträgt. Trotzdem benötigt die 4Kb Version nur ca. 0.2 ms mehr für das Erstellen des Buffers. Daraus läßt sich schließen dass die Größe der Treelets, für die Gewählten Werte von 1 kB und 4 kB, keinen nenenswerten Einfluss auf das beim Erstellen stattfindende Raycasting besitzt. Der Algorithmus skaliert sehr gut, trotz der Segmentierung.\\
+Die nötige Übertragung des Analyse-Buffers in den Hauptspeicher der CPU läuft erwartungsgemäß in konstanter Zeit ab.
+
+\subsubsection{Vorsortierung}
+Der Vorsortierungsschritt benötigt bei allen drei Modellen für die Variante mit kleinen Treelets mehr Zeit als für ihre 4 kB Pendants. Der größere zu bewältigende Verwaltungsaufwand bei der Erstellung der Sichtinformation und Anfragen nach neuen Treelets dürfte der Grund für dieses Ergebniss sein. Beispielsweise muss bei der Behandlung eines Elementes des Analysebuffers das einen Knoten getroffen hatte, die Sichtbarkeit des Entsprechenden Treelets bis zu Wurzel-Treelet durchgereicht werden. Falls ein Treelet angehangen werden kann, wird der entsprechende Index mit dem Fehlerwert für diesen Bildpunkt in den Container mit allen Treelet-Anfragen sortiert um sie, ihrem Beitrag zur Bildqualität nach, einpflegen zu können.\\
+Da die Unterteilung bei 1 kB großen Treelets feiner ist, ist auch der Weg zum Propagieren der Sichtbarkeitsinformationen länger. Auch ist der Vorgang bei kleinen Treelets wohl kaum Speicher\-kohärent da es wesentlich mehr Blätter und damit mehr Wege von Blättern zum Wurzel-Knoten gibt. Die feinere Unterteilung führt im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) zu einer Größeren Menge von Anfragen nach neuen Treelets.
+
+\subsubsection{Clientseitige Aktualisierung}
+Im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) sind die Zeiten für die 
 
 
+% /////////////////////////////////////////////////////////////
 
 
-\subsection{Serverseitige Aktualisierung}
+\section{Serverseitige Aktualisierung}
 Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom aktualisieren des serverseitigen Incore-Buffers beansprucht. 
 
 Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
@@ -92,7 +106,7 @@ Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/ratio_0-1.pdf}
-  \caption{öfmÖAFJaÖFOJ\label{ratio_0-1}}
+  \caption{Idealwert für das Verhältnis von Nutzdaten zu Übertragungsmenge\label{ratio_0-1}}
 \end{figure}
 
 
