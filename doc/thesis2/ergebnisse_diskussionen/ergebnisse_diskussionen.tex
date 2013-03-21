@@ -6,49 +6,49 @@
   \caption{Verfeinerung in 5 aufeinander folgenden Schritten \label{progressive_refinement}}
 \end{figure}
 
+
+% /////////////////////////////////////////////////////////
+
+
+
 \section{Überblick}
-\section{Verwendete Testszenen}
+
+Um Eigenschaften und Leistungsfähigkeit des Systems zu ermitteln wurden im Zuge dieser Arbeit drei Test durchgeführt. Der erste Test untersuchte welchen Einfluss die Größe der Treelets auf das Verhalten des Out-of-Core-Systems hat. Der zweite Test beschäftigt sich speziell mit der Minimierung der Kopieraufrufe des serverseitigen Updates. Ein dritter Test soll die Reaktionsfähigkeit des Systems während der Benutzung untersuchen.\\
+Als Testsystem stand ein aktuelles GNU/Linux-System mit Intel Core i7(!!!RAUSFINDEN) und 32 GB Arbeitsspeicher zu Verfügung. Eine Nvidia GForce 580 GTX mit 1.5 GB Ram war über PCI-Express 2 angebunden. 
+
+
+% /////////////////////////////////////////////////////////
+
+\newpage
+
+\section{Verwendete Testmodelle}
  
+Als Testdaten wurde drei Dreiecksmodelle mit Hilfe des in Kapitel \ref{sec:erzeugung_treelet_struktur} (\textit{\nameref{sec:erzeugung_treelet_struktur}}) beschrieben Systems in Sparse Voxel Octrees überführt. Aus jedem Modell wurden jeweils zwei SVO-Strukturen erstellt. Beide Varianten haben die selbe minimale Tiefe von 13, unterscheiden sich aber in der Treelet-Größe, die 1 kB und 4 kB beträgt. Tabelle \ref{tab:verwendete_modelle} zeigt die Anzahl der Dreiecke der verwendeten Ausgangsmodelle und stellt daneben Anzahl von Treelets und Voxel der resultierenden Octrees dar.\\
+Für alle Octrees wurden Attribut-Buffer erstellt die Farb- und Normalenwerten enthalten und mit mit 16 Byte/Voxel aufgelöst sind.
 
-Zum Testen des Out-of-Core Systems wurden SVO-Strukturen aus drei unterschiedliche Dreiecksg\-eometrien generiert (siehe Tabelle \ref{verwendete_mesh_modelle}). 
-Aus jedem Modell wurden zwei verschiedene SVO-Strukturen erstellt. Beide haben jeweils die selbe minimale Tiefe von 13, aber eine unterschiedliche Treelet Größe. Die Tiefe betrug jeweils 12 bei Treelet Größen von 1kb und 4kb. Durch die Verkleinerung der Treelets bei gleicher minimaler SVO-Tiefe entstehen mehr Treelets und damit eine größerer Aufwand bei der Verwaltung. Die beiden Varianten sollen im folgenden verglichen werden, um die Skalierbarkeit des Out-of-Core Systems nach zu vollziehen. In Tabelle ... wird gezeigt... .
 
-\begin{table}
+\begin{table}[position=h]
+\changefont{ptm}{m}{n}
+\normalsize
 \centering
-\begin{tabular}{ l  r  r }
-  \hline
-  \textbf{Name} & \textbf{Anzahl Dreiecke} & \textbf{Dateigröße} \\
-  \hline
-  david face       & 52.5 Mio & 14.7 GB \\
-  \hline
-  xyzrgb statuette & 10.0 Mio & 270 MB \\
-  \hline  
-  Lucy             & 28.0 Mio & 757 MB  \\
-  \hline
-\end{tabular}
+\begin{tabular}{ l  r  r  c  r r r}
+\toprule
+\textbf{Name} & \textbf{Dreiecke} & \textbf{Dateigröße} & \textbf{Treelet-Größe} & \textbf{Treelets} & \textbf{Voxel} & \textbf{Dateigröße} \\
+\midrule
+  david face        & 52.5 Mio & 14.7 GB & 1kb & 743.277 &  95.139.456 & 1.4 GB \\
 
-\caption{Verwendete Dreicksmodelle}\label{verwendete_mesh_modelle}
-\end{table}
-
-
-\begin{table}
-\centering
-\begin{tabular}{ l  r  r  r  r }
-  \hline
-  \textbf{Name} & \textbf{Treelet Größe} & \textbf{Anzahl Treelets} & \textbf{Anzahl Knoten} & \textbf{Dateigröße} \\
-  \hline
-  david face        & 1kb & 743.277 &  95.139.456 & 1.4 GB \\
-                    & 4kb & 484.297 & 247.960.064 & 3.7 GB \\
-  \hline
-  xyzrgb statuette  & 1kb & 781.302 & 100.006.656 & 1.5 GB \\
-                    & 4kb & 246.434 & 126.174.208 & 1.9 GB \\
-  \hline  
-  Lucy              & 1kb & 588.032  & 75.268.096 & 1.2 GB \\
-                    & 4kb & 131.072  & 67.108.864 & 1.0 GB \\
-  \hline
-\end{tabular}
-
-\caption{Verwendete Sparse Voxel Octrees}\label{verwendete_svo_modelle}
+                    &          &         & 4kb & 484.297 & 247.960.064 & 3.7 GB \\
+\midrule
+  Lucy              & 28.0 Mio & 757 MB & 1kb & 588.032  & 75.268.096 & 1.2 GB \\
+                    &          &        & 4kb & 131.072  & 67.108.864 & 1.0 GB \\
+\midrule
+  xyzrgb statuette  & 10.0 Mio & 270 MB & 1kb & 781.302 & 100.006.656 & 1.5 GB \\
+                    &          &        & 4kb & 246.434 & 126.174.208 & 1.9 GB \\ 
+\bottomrule 
+\end{tabular}\\
+%\vspace{0.2cm}
+%\hrule height 1pt width 1.0\hsize
+\caption{Verwendete Modelle}\label{tab:verwendete_modelle}
 \end{table}
 
 
@@ -56,21 +56,38 @@ Aus jedem Modell wurden zwei verschiedene SVO-Strukturen erstellt. Beide haben j
 % /////////////////////////////////////////////////////////////
 
 
-
-\section{Laufzeitanalyse}
-Zum Testen wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-Core Systems gemessen. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Anzahl der Treelets auf den Ver\-walt\-ungsaufwandes zu untersuchen. Der SVO wurde über einen Zeitraum von 60 Sekunden aus verschiedenen Perspektiven analysiert und verfeinert. Durch die kontinuierliche Veränderung der Perspektive muss das System permanent neue Teile des Octrees anfordern, während es andere verwerfen muss. Damit bei der Verfeinerung auch Treelets in hohen Octree Tiefen angefordert werden, wird zum testen eine Kamerafahrt verwendet die ein Maß an Kohärenz zwischen den Perspektiven zu gewährleisten.
+\section{Systemverhalten}
 
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/lucy_s4_D13_timeseries.pdf}
-  \caption{Systemzeiten und Arbeit für Model lucy mit 4 kb Treelets\label{lucy_s4_D13_timeseries}}
+  \caption{Systemzeiten und zu verarbeitende Treelets Treelets\label{lucy_s4_D13_timeseries}}
 \end{figure}
+
+
+% /////////////////////////////////////////////////////////////
+
+\newpage
+
+\section{Einfluss der Segmentgröße auf das Systemverhalten}
+Zur  wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-Core Systems gemessen. Während der Messung wurde die Bildsynthese deaktiviert, um ausschließlich den Einfluss der Anzahl der Treelets auf den Ver\-walt\-ungsaufwandes zu untersuchen. Der SVO wurde über einen Zeitraum von 60 Sekunden aus verschiedenen Perspektiven analysiert und verfeinert. Durch die kontinuierliche Veränderung der Perspektive muss das System permanent neue Teile des Octrees anfordern, während es andere verwerfen muss. Damit bei der Verfeinerung auch Treelets in hohen Octree Tiefen angefordert werden, wird zum testen eine Kamerafahrt verwendet die ein Maß an Kohärenz zwischen den Perspektiven zu gewährleisten.
 
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/david_lucy_xyzrgb_s1_vs_24_D13.pdf}
   \caption{Gegenüberstellung unterschiedleichen Treelet-Größen\label{david_lucy_xyzrgb_s1_vs_24_D13}}
 \end{figure}
+
+
+
+
+\subsection{Serverseitige Aktualisierung}
+Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom aktualisieren des serverseitigen Incore-Buffers beansprucht. 
+
+Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
+Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
+
+
 
 \begin{figure}[position=h]
   \centering
@@ -86,9 +103,6 @@ Zum Testen wurden die Zeiten für die einzelnen Verarbeitungsschritte des Out-of-
 
 \section{Einschränkungen und Verbesserungen}
 
-\subsection{Serverseitige Aktualisierung}
-Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
-Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
-
 \subsection{Verwendung von OpenGL Texturen als Buffer}
+\subsection{Entkoppelung des Out-of-Core-Systems von der Bilderzeugung}
 ...

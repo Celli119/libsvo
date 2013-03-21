@@ -185,7 +185,7 @@ TreeletMemoryManagerCl::updateDeviceMemory()
 
 
 
-    float treeletToSlotRatio = 0.4f * 2.0f;
+    float treeletToSlotRatio = 0.6f * 2.0f;
 
 
     if (slotGidIt!=slotGidEndIt)
