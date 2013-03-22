@@ -89,15 +89,22 @@ Der Vorsortierungsschritt benötigt bei allen drei Modellen für die Variante mit 
 Da die Unterteilung bei 1 kB großen Treelets feiner ist, ist auch der Weg zum Propagieren der Sichtbarkeitsinformationen länger. Auch ist der Vorgang bei kleinen Treelets wohl kaum Speicher\-kohärent da es wesentlich mehr Blätter und damit mehr Wege von Blättern zum Wurzel-Knoten gibt. Die feinere Unterteilung führt im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) zu einer Größeren Menge von Anfragen nach neuen Treelets.
 
 \subsubsection{Clientseitige Aktualisierung}
-Im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) sind die Zeiten für die 
+Im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) sind die Zeiten für die Pflege des clientseitigen Incore-Buffers obwohl mit unterschiedlichen Treelet
 
 
 % /////////////////////////////////////////////////////////////
 
 
 \section{Serverseitige Aktualisierung}
-Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom aktualisieren des serverseitigen Incore-Buffers beansprucht. 
+Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom aktualisieren des serverseitigen Incore-Buffers beansprucht. Darum lohnt es an dieser Stelle optimieren.
 
+
+\subsection{Versuchsaufbau}
+
+
+
+
+\subsection{Auswertung}
 Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
 Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
 
@@ -110,10 +117,31 @@ Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und
 \end{figure}
 
 
-
 % /////////////////////////////////////////////////////////////
 
 
+\section{Test der Reaktionsfähigkeit des Systems}
+
+
+
+\subsection{Versuchsaufbau}
+
+
+
+
+\subsection{Auswertung}
+
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/kamera_fahrt.pdf}
+  \caption{Reaktionszeit des Systems\label{ratio_0-1}}
+\end{figure}
+
+
+
+% /////////////////////////////////////////////////////////////
+
+\newpage
 
 \section{Einschränkungen und Verbesserungen}
 
