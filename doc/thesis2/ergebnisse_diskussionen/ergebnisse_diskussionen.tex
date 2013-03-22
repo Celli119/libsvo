@@ -1,10 +1,5 @@
 \chapter{Ergebnisse und Diskussion}
 
-%\begin{figure}[position=h]
-%  \centering
-%  \includegraphics[width=1.0\textwidth]{figures/progressive_refinement.png}
-%  \caption{Verfeinerung in 5 aufeinander folgenden Schritten \label{progressive_refinement}}
-%\end{figure}
 
 
 % /////////////////////////////////////////////////////////
@@ -89,31 +84,36 @@ Der Vorsortierungsschritt benötigt bei allen drei Modellen für die Variante mit 
 Da die Unterteilung bei 1 kB großen Treelets feiner ist, ist auch der Weg zum Propagieren der Sichtbarkeitsinformationen länger. Auch ist der Vorgang bei kleinen Treelets wohl kaum Speicher\-kohärent da es wesentlich mehr Blätter und damit mehr Wege von Blättern zum Wurzel-Knoten gibt. Die feinere Unterteilung führt im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) zu einer Größeren Menge von Anfragen nach neuen Treelets.
 
 \subsubsection{Clientseitige Aktualisierung}
-Im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) sind die Zeiten für die Pflege des clientseitigen Incore-Buffers obwohl mit unterschiedlichen Treelet
+Im zweiten und dritten Beispiel (\textit{lucy} und \textit{xyzrgb statuette}) sind die Zeiten für die Pflege des clientseitigen Incore-Buffers (obere Graphen, grün) nahezu identisch obwohl sich die Menge an vorhandenen Treelets der Modelle stark unterscheidet. Die großere Anzahl von Slot-Änderungen (untere Graphen, grau) weißt auf eine Mehrlast für mehr verwaltete Treelets hin. Besonders beim Modell \textit{lucy} mit 1 kB Treelets wird dies deutlich, da es mit Abstand die meisten Treelets der vier Octrees besitzt. Damit kann abgeleitet werden das die clientseitge Aktualisierung mit steigender Treelet-Anzahl gut skaliert. Allerdings lässt sich über alle Modelle eine stärkere Abhängigkeit der Laufzeit von den neu angeforderten Treelets (untere Graphen, lila) erkennen 
+
+\subsubsection{Serverseitige Aktualisierung}
+Das kopieren der geänderten Slot-Bereiche auf den Server beansprucht bei fast allen Versuchen einen großen Anteil der Laufzeit. Das Zusammenfassen der Slot-Bereiche funktioniert, wie ein Vergleich der Anzahl der geänderten Slots (unterer Graph, grau) mit der Anzahl der ausgeführten Kopieroperationen (unterer Graph, blau) veranschaulicht. Ob die Zusammenfassung tatsächlich einen Geschwindigkeitsvorteil gegenüber dem einzelnen Kopieren der Slot-Bereiche bring, sollte ein zweiter Test untersuchen der in Abschnitt \ref{sec:test_zusammenfassen_von_slots} (\textit{\nameref{sec:test_zusammenfassen_von_slots}}) dokumentiert ist.
+
+\subsubsection{Anmerkungen zum Modell david face}
+Das Modell \textit{david face} stellt eine Besonderheit zwischen den ausgewählten Testmodellen dar. Durch die Segmentierung mit 4 kB großen Treelets sehr viele Knoten entstanden sind die Unterhalb der geforderten Tiefe liegen. Dies passiert beim Aufbau der Octree-Struktur im Build-Manager, wenn die gewünschte Octree-Tiefe mit den bisher erstellten Treelets beinahe erreicht wurde. Auf Voxel-Ebene würde es ausreichen noch einige wenige Unterteilungen vorzunehmen um die benötigte Tiefe zu erreichen. Da aber für jeden Blattknoten des bisher erstellten Octrees neue Treelets von 4 kB Größe erzeugt werden wird die Gesamtstruktur sehr groß. Anders ausgedrückt, will man einen Schnitt in der Tiefe 13 durch einen beliebig tiefen Octree abbilden, gelingt das mit 4 Kb großen Segmenten für dieses Modell nur verhältnismäßig grob. Damit offenbart sich ein bedeutender Nachteil einer festen Segmentgröße. Die mögliche Anzahl von Knoten, deren Tiefe die geforderte minimale Baumtiefe übersteigt, erhöht sich mit jeder zusätzlichen Tiefenstufe, da die Anzahl der Blattknoten größer wird. 
 
 
 % /////////////////////////////////////////////////////////////
 
 
-\section{Serverseitige Aktualisierung}
-Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom aktualisieren des serverseitigen Incore-Buffers beansprucht. Darum lohnt es an dieser Stelle optimieren.
+\section{Zusammenfassen von Slots bei der Serverseitige Aktualisierung}\label{sec:test_zusammenfassen_von_slots}
+
+Einen großer Teil der Laufzeit des Out-of-Core-Systems wird vom Aktualisieren des serverseitigen Incore-Buffers beansprucht. Daher hätte eine Optimierung dieses Vorgangs einen großen Einfluss auf die Gesamtleistung des Systems. Es wurde zunächst vermutet das die große Anzahl der Kopieropterationen vom clientseitigen zum serverseitigen Incore-Buffer für den Großteil der benötigten Zeit verantwortlich ist. Mit dem Zusammenfassen der Speicherbereiche mehrerer zu aktualisierenden Slots wurde versucht die Anzahl der Kopieroperationen zu minimieren. Der eingestellte Anteil der Nutzdaten an dem zu kopierenden Speicherbereich wirkt sich dabei entscheident auf die benötigte Laufzeit ab. Ist der Anteil zu hoch festgelegt können nur wenige Bereiche zusammengefasst werden. Ist er dagegen zu hoch wird im Extremfall der Bereich des gesamten Incore-Buffer zu einer Kopieroperation zusammengefasst. Das wäre sehr ungünstig da zum Übertragen einer so großen Datenmenge mehr Zeit benötigt würde als bei der Einzel\-übertragung der Slot-Bereiche. Es muss also eine Einstellung für den Anteil von Nutzdaten geben der die benötigte Zeit für das Kopieren minimiert. Um diese Einstellung für eine gegebene Konfiguration von Incore-Buffer-Größe und Eingabedaten zu finden wurde dieser Test durchgeführt.
 
 
 \subsection{Versuchsaufbau}
-
-
+Das Modell \textit{david face} mit 4 KB großen Treelets wurde analog zum ersten Test vor der Kamera bewegt. In zehn Durchläufen wurden die Zeit für die serverseitige Aktualisierung, die Menge der veränderten Slots und die Anzahl der ausgeführten Kopieroperationen über 30 Sekunden aufgezeichnet. Dabei wurde der geforderte Nutzdatenanteil in jedem Durchlauf von $0$ beginnend, um 0.1 erhöht. Um Artefakte in den gemessenen Werten zu verhindern, wurde das Model wieder vor der eigentlichen Messung über 30 Sekunden aus zufällig gewählten Perspektiven verarbeitet.
 
 
 \subsection{Auswertung}
-Die in Abschnitt \ref{sec:serverseitige_aktualisierung} beschriebene Zusammenfassung der zu kopierenden Incore-Buffer-Slots wirkt sich deutlich auf die zum Übertragen der geänderten Speicherbereiche benötigte Zeit aus. Wie beschrieben arbeitet der Ansatz am besten wenn die zu transferierenden Speicherbereiche 
-Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und schwankt stark. Bei einem vorgegebenen Verhältis zu aktualisierenden Slots von 20\% etwa schwankt die Einsparung zwischen 10\% bis 92\% und lag über einen Zeitraum von 60 Sekunden im Mittel bei etwa 43\%. Die hier examplarisch genannten Werte sind jedoch wenig aussagekräftig, da das Verhalten des Ansatzes nicht nur von der Anzahl der Slots, der Größe und dem Fragmentierungsgrad des Incore-Buffers abhängt, sondern auch von der Geometrie und der Kameraposition über die Zeit. Eine Verbesserung zum einzelnen Kopieren der Slots ist jedoch erkennbar.
-
+Abbildung \ref{ratio_0_1} zeigt die Ergebnisse für die gemessene Zeit für das Kopieren, die Anzahl von geänderten Slots und die für die durchgeführten Kopieroperationen. Dabei entspricht ein Anteil von 0 dass kopierte Bereiche keine Nutzdaten enthalten müssen. Ein Anteil von 1.0 verlangt dagegen dass jeder in einem zu kopierten Bereich liegender Slot auch kopiert werden muss. In der Abbildung lässt sich ein Optimum für den Nutzdatenanteiles bei 0.6 erkennen. Mit dieser Einstellung betrug die Zeit für die Übertragung im Durchschnitt bei 2.48 ms. Zum Vergleich lag die Zeit für das einzelne Kopieren der Bereiche im Durchschnitt bei bei 4.23 ms. Der im Graph nicht dargestellte Wert für einen Nutzdatenanteil von Null lag dagegen bei 52.51 ms.\\
+Ein Optimum existiert also und kann in der Anwendung auch ausgenutzt werden. Wie sich der Wert jedoch im laufenden System ändert und wie er in Abhängigkeit zu anderen Systemparametern steht konnte im Zuge dieser Arbeit nicht untersucht werden.
 
 
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/ratio_0-1.pdf}
-  \caption{Idealwert für das Verhältnis von Nutzdaten zu Übertragungsmenge\label{ratio_0-1}}
+  \caption{Idealwert für Nutzdatenanteil\label{ratio_0_1}}
 \end{figure}
 
 
@@ -121,28 +121,44 @@ Mit steigender Fragmentierung des Incore-Buffers sinkt die Einsparung jedoch und
 
 
 \section{Test der Reaktionsfähigkeit des Systems}
-
+In diesem Versuch sollte die Reaktionsfähigkeit des Systems untersucht werden. Dazu wurde die Zeit gemessen die das System benötigt um auf eine Sichtveränderung zu reagieren in dem es den aktuell sichtbaren Teil des Octrees bis zum nötigen beziehungsweise möglichen Grad verfeinert. Die Anzahl der zur Verfeinerung angeforderten Treelets kann dabei als Fehlerwert, für den momentan im Incore-Buffer befindlichen Teil des Octrees gegenüber einer Ansicht auf den gesamten Octree, gesehen werden.
 
 
 \subsection{Versuchsaufbau}
-
-
+Für diesen Test wurde die betrachtende Kamera zunächst auf das SVO-Model gerichtet und dann die Verfeinerung des Octrees aktiviert. Nachdem die Verfeinerung für diese Ansicht abgeschlossen war wurde die Kamera in einer schnellen Bewegung auf das Modell zu bewegt um davor wieder zum Stehen zu kommen. Wieder wurde gewartet bis die Verfeinerung der Ansicht abgeschlossen war. Danach wurde das Modell noch einmal in einer schnellen Bewegung umkreist. Wärent dieses Ablaufs wurden Werte für die Kamerageschwindigkeit, die benötigte Zeit für die Bildsynthese und den Gesamtzyklus sowie für die Anzahl der angeforderten Treelets aufgezeichnet.
 
 
 \subsection{Auswertung}
+Für eine korrekte Interpretation der Ergebnisse ist anzumerken, !!!!!!! dass die Sortierung der Anfragen nach ihrem Fehler in der Darstellung wärend der Vorsortierung dafür sorgt, dass zuerst die Treelets eingepflegt werden die den größten Beitrag zur Darstellungs\-qualität liefern (vgl. Abschnitt \ref{sec:streaming_vorsortierung} \textit{\nameref{sec:streaming_vorsortierung}}). Somit finden Verfeinerungen von groben Strukturen zuerst statt während im weiteren Verlauf der Verfeinerung einer Ansicht die Darstellungs\-qualität kaum noch steigt. Das in Abschnitt \ref{sec:streaming_analyse_pass} (\textit{\nameref{sec:streaming_analyse_pass}}) beschriebene Verfahren führt dazu, dass die Verfeinerung nie wirklich beendet ist, da bedingt durch die Unterabtastung beim Füllen des Analyse-Buffers immer wieder Blattknoten getroffen werden die in keinem Vorherigen Analyse-Pass zu sehen waren.
+Diese müssen aber sehr klein sein um längere Zeit vom Analyse-Pass unentdeckt zu bleiben. Daher ist auch deren Beitrag zur Bild\-qualität zu vernachlässigen. Abbildung \ref{progressive_refinement} zeigt die Verfeinerung einer Ansicht in fünf auf einander folgenden Schritten. Der Fehler in der Darstellung ist in der unteren Reihe auf einen Farbverlauf von Grün über Gelb nach Rot abgebildet. Die Darstellungen lassen erkennen, dass die Verfeinerung bereits nach wenigen Schritten so weit vorangeschritten ist, dass die weiterhin stattfindende Verfeinerung kaum noch zur wahrgenommenen Bildqualität beiträgt.  
+
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/progressive_refinement.png}
+  \caption{Verfeinerung für eine Ansicht in fünf Schritten\label{progressive_refinement}}
+\end{figure}
+
+\newpage
+Abbildung\ref{kamera_fahrt} zeigt die Ergebnisse der durchgeführten Messung. Von Zeitpunkt Null an beginnt die Verfeinerung der Octree-Struktur und ist nach etwa 3.5 Sekunden praktisch abgeschlossen. Nach vier Sekunden beginnt die Kamera\-bewegung in Richtung Modell, welche nach weiteren fünf Sekunden beendet ist. In dieser Zeit gibt es einen deutlichen Anstieg der benötigten Zeit für die Bildsynthese, da bedingt durch die steigende Größe des Models im Bildausschnitt beim Raycasting mehr Strahlen den Octree traversieren müssen. Ab etwas der Hälfte der Zeit beginnt die Verfeinerung des weiter voranzuschreiten da Octree-Tiefe der geladenen Treelets nicht mehr für die Darstellung in dieser Entfernung genügt. Vier Sekunden nach der Beendigung der Kamerabewegung ist die Verfeinerung
 
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/kamera_fahrt.pdf}
-  \caption{Reaktionszeit des Systems\label{ratio_0-1}}
+  \caption{Reaktionszeit des Systems\label{kamera_fahrt}}
 \end{figure}
 
 
 
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/difference.png}
+  \caption{Unterschiede der Verfeinerung zu zwei Zeitpunken\label{difference}}
+\end{figure}
+
 % /////////////////////////////////////////////////////////////
 
 \newpage
-
+\newpage
 \section{Einschränkungen und Verbesserungen}
 
 \subsection{Verwendung von OpenGL Texturen als Buffer}

@@ -11,20 +11,25 @@
  unsigned incoreLeafParentPosition = parentTreelet->getSlotGid()
                                    * _numNodesPerTreelet + parentTreeletLeafParentPosition;
 
- // copy root node of new Treelet to the leaf of parents Treelet
+
+ // kopiere den Wurzelknoten des neuen Treelets auf das Blatt des Eltern-Treelets
  _incoreBuffer[incoreLeafPosition] = _incoreBuffer[incoreNodePosition];
 
- // update leaf mask of leafs parent so that the leaf is no leaf anymore
+ // aktualisiere die Leaf-Mask des Elternknotens des Blattes (Blattknoten wird innerer Knoten)
  _incoreBuffer[incoreLeafParentPosition].setLeafMaskFlag(parentTreeletLeafIdx, false);
 
- // update first child position within leaf/root (relative value within the incore buffer)
+ // aktualisiere den First-Child-Index des neuen inneren Knotes auf die zweite Position
+ // im neuen Treelet (das war das erste Kind des Wurzelknotens)
  _incoreBuffer[incoreLeafPosition].setFirstChildIndex( (int)(incoreNodePosition+1)
                                                       -(int)incoreLeafPosition);
 
- // mark incore slot of parent to be uploaded to device memory
+ // notiere den Slot des Eltern-Treelets damit er serverseitig Aktualisiert wird
  markIncoreSlotForUpload(parentTreelet->getSlotGid());
 
- // note treeletGid to parent position within the _childTreeletsInIncoreBuffer
+ // notiere den Slot des neuen Treelets damit er serverseitig Aktualisiert wird
+ markIncoreSlotForUpload(_treelets[tve._treeletGid]->getSlotGid());
+
+ // notiere dass das Eltern-Treelet ein neues Kind-Treelet im Incore-Buffer besitzt
  _childTreeletsInIncoreBuffer[parentTreeletGid].insert(tve._treeletGid);
 
  return true;

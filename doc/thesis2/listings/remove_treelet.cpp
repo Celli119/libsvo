@@ -12,27 +12,22 @@
  unsigned incoreLeafParentPosition = parentSlotGid
                                    *_numNodesPerTreelet + parentTreeletLeafParentPosition;
 
- // copy original node/leaf to incore leaf position
+  // kopiere den originalen Blattknoten an seine Position 
  _incoreBuffer[incoreLeafPosition]
                 = getTreelet(parentTreeletGid)->getNodeForIndex(parentTreeletLeafPosition);
 
- // update leaf mask of leafs parent so that the leaf is a leaf again
+ // aktualisiere die Leaf-Mask des Elternknotens (innerer Knoten wird wieder Blatknoten)
  _incoreBuffer[incoreLeafParentPosition].setLeafMaskFlag(parentTreeletLeafIdx, true);
 
- // mark incore slot of parent to be uploaded to device memory
+ // notiere den Slot des Eltern-Treelets damit er serverseitig Aktualisiert wird
  markIncoreSlotForUpload(parentSlotGid);
 
- // clear slot info
+ // entferne information des Treelets aus den Slotinformationen
  _slots[slotGid] = SlotInfo();
 
- // add slots to available/free slots
+ // füge den Slot zur Menge der freien Slots dazu
  _freeIncoreSlots.push(slotGid);
 
- // remove assoziation from treelet gid to slot
- treelet->setSlotGid(-1);
-
- // remove entry of treelet within parents list of incore child treelets
- _childTreeletsInIncoreBuffer[parentTreeletGid].erase(treeletGid);
 
  return true;
 }
