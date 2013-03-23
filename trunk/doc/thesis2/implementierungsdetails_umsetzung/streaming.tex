@@ -1,16 +1,5 @@
 
-\section{Echtzeitfähiges Sparse Voxel Octree Ray Casting}\label{sec:echtzeitfaehiges_svo_raycasting}
-
-
-\subsection{Prinzipieller Aufbau}
-
-Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vier Teilen (Abbildung \ref{out-of-core_setup}): Einem großen, clientseitigen \textbf{Segmentpool} der die gesamte SVO-Struktur vorhält, einem vergleichsweise kleinen Buffer der eine Untermenge der SVO-Struktur halten kann und auf Server- und Clientseite existiert (\textbf{\textit{Incore-Buffer}}), einer \textbf{Speicherverwaltung} die den server-seitigen Buffer pflegt und einem \textbf{Analysesystem} das entscheidet welche Segmente benötigt werden.
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=0.85\textwidth]{figures/out-of-core_setup.pdf}
-  \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out-of-core_setup}}
-\end{figure}
-Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie der SVO in Segmente gleicher Größe (\textbf{\textit{Slots}}) aufgeteilt, von denen jedes ein Treelet aufnehmen kann. Die Wahl einer einheitliche Treelet- und Größe verhindert eine Fragmentierung des Incore-Buffers und somit den Defragmentierungs\-aufwand. Die Analyse arbeitet serverseitig auf den im Incore-Buffer vorhandenen Treelets. (!!! WEITER)
+\section{Echtzeitfähiges Sparse Voxel Octree Streaming}\label{sec:echtzeitfaehiges_svo_raycasting}
 
 
 
@@ -19,8 +8,15 @@ Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie der S
 
 
 \subsection{Überblick der Verarbeitungsschritte}
-Im Folgenden soll der Ablauf der dynamischen Veränderung der SVO-Struktur im Incore-Buffer abhängig von der Kameraposition erläutert werden. In den nachfolgenden Kapiteln wird auf die einzelnen Schritte genauer eingegangen.\\
-Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumstruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Feedback-Buffer gerendert (\textbf{\textit{Analyse-Pass}}). Nach diesem Schritt enthält dieses Buffer für jeden Strahl unter anderem die Position des getroffenen Knotens im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.\\
+Im Folgenden soll der Ablauf der dynamischen Veränderung der SVO-Struktur im Incore-Buffer abhängig von der Kameraposition erläutert werden. In den nachfolgenden Kapiteln wird auf die einzelnen Schritte genauer eingegangen. Die Abfolge der beteiligte Teilprozesse können in Abbildung \ref{ablauf_farbe} nachvollzogen werden. \\
+Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumstruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Feedback-Buffer gerendert (\textbf{\textit{Analyse-Pass}}). Nach diesem Schritt enthält dieses Buffer für jeden Strahl unter anderem die Position des getroffenen Knotens im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.
+
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.70\textwidth]{figures/ablauf_farbe.pdf}
+  \caption{Ablauf der Verarbeitsschritte des Out-of-Core-Systems\label{ablauf_farbe}}
+\end{figure}
+
 Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Container einsortiert (\textbf{\textit{Vorsortierung}}). Der eine enthält die Treelet-Indices aller Knoten die sichtbar sind sowie die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Container enthält Anfragen nach Verfeinerung in Form der Indices der anzuhängen Treelets. Die Fehlerwerte bleiben dabei in beiden Containern erhalten.\\
 Beide Container werden dem Speichermanagement übergeben (\textit{\textbf{clientseitige Aktualisierung}}). Dort werden zunächst die Sichtbarkeitsinformationen aller im letzten Zyklus sichtbarer Treelets aktualisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Stehen im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung, werden nicht sichtbare Treelets entfernt. Slots mit verändertem Inhalt werden markiert. Anschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textbf{\textit{serverseitige Aktualisierung}}).\\
 Die folgenden Abschnitte werden diese Schritte genauer betrachten.

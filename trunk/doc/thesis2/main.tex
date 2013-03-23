@@ -17,6 +17,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[bottom=4cm]{geometry}
 \usepackage{booktabs}
+\usepackage{natbib}
 
 %\usepackage[automark]{scrpage2}
 \newcommand{\changefont}[3]{\fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
@@ -75,13 +76,11 @@
 \setcounter{secnumdepth}{-2}
 
 \input{title/title.tex}
-\blankpage
 \input{title/erklaerung.tex}
 \blankpage
 \input{title/danksagung.tex}
 \blankpage
 \input{einleitung/kurzfassung.tex}
-\blankpage
 \addtocontents{toc}{\protect\thispagestyle{empty}}
 \tableofcontents
 \thispagestyle{empty}
@@ -133,6 +132,7 @@
 \input{zusammenfassung_und_ausblick/zusammenfassung_und_ausblick.tex}
 
 \addcontentsline{toc}{chapter}{Literatur}
+\bibliographystyle{jas99}
 \bibliography{literatur}
 \newpage
 \input{glossar/glossar.tex}

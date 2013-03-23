@@ -28,7 +28,8 @@ Bereiche in Volumendaten, die homogene Daten enthalten oder leer sind, können vo
 \end{figure}
 Jedes Voxel kann einen oder mehrere Skalare speichern. Oft werden diese Werte nicht direkt im Octree abgelegt, um bei die Traversierung der Struktur möglichst wenig Speicher auslesen zu müssen. Stattdessen werden die Attributwerte in einem zusätzlichen Attribut-Buffer abgelegt. In diesem wird für jedes Voxel im Octree ein Tupel mit Attributwerten vorgehalten. Die Attribute eines übergeordneten Voxels ergeben sich im einfachsten Fall aus dem Mittelwert der Attribute seiner untergeordneten Voxel, vergleichbar mit der Erzeugung von \textit{Mipmaps}. Somit enthält jedes Voxel seiner Größe entsprechend aufgelöste Attribut\-werte. Diese approximieren die Ausprägungen der Attribute innerhalb der räumlichen Ausdehnung des Voxels. Der Octree bildet also zugleich Geometrie und Textur ab. Der wesentliche Vorteil der Octree-Struktur gegenüber texturierten Dreiecksnetzen ist, dass sich mit dieser Struktur das LOD-Problem für Geometrie und Attribute (Texturen) gleichzeitig lösen lässt. Der hierarchische Aufbau und die Granularität von Octress ermöglichen eine effiziente Bestimmung der für die Darstellung optimalen Detailstufe der Daten. Dies kann während der Bildsynthese durch die Wahl der Traversierungstiefe im Baum pro Bildpunkt geschehen.
 
-\subsection{Verwandte Arbeiten}
+\subsubsection{Verwandte Arbeiten}
+In \cite{Crassin2009} werden kleine Voxel-Volumen in einer Octree-Struktur angeordnet. Der Octree diente dabei zum effizienten Speichen von Volumendaten mit großen homogenen Bereichen. Um inhomogene Bereiche innerhalb der Volumendaten zu finden wurde der Octree mit den Sichtstrahlen geschnitten. Wurde solch ein Bereich gefunden wurde dessen Beitrag zum Bild durch Volumen-Raycasting bestimmt. Dazu wurde die hardwaregestützte, trilineare Filterung aktueller Grafikkarten ausgenutzt.
 
 
 
@@ -43,13 +44,20 @@ Für einige Anwendungen sind nur bestimmte Ausprägungen der in den Voxeln gespeic
   \includegraphics[width=0.32\textwidth]{figures/cut_svo.pdf}
   \caption{Schnitt durch einen Sparse Voxel Octree \label{cut_svo}}
 \end{figure}
-Eine solche Volumenrepräsentation eignet sich ebenso zur Darstellung anderer opaker Oberflächen wie diskretisierter Dreiecksnetze, Punktwolken oder Höhenfeldern und wird als \textit{Sparse Octree} oder \textit{Sparse Voxel Octree} bezeichnet. Innere Knoten können dabei weniger als acht Kinder haben. Durch die variierende Anzahl von Kindknoten lässt sich keine implizite Regel zum Berechnen ihrer Positionen im Speicher herleiten. Vielmehr muss jeder Knoten speichern, welche Kindknoten besetzt sind und wo sich diese im Speicher befinden. Liegen die Kindknoten jedes Voxels jeweils hintereinander im Speicher, muss jedoch nur ein Verweis pro Elternknoten vorgehalten werden. Da in einem Sparse Voxel Octree nur Oberflächen gespeichert werden, steigt der Speicherbedarf mit jeder weiteren Tiefenstufe nur durchschnittlich um das vierfache, wie (vgl. ESVORG) zeigen konnte.
-
-
-\subsection{Verwandte Arbeiten}
+Eine solche Volumenrepräsentation eignet sich ebenso zur Darstellung anderer opaker Oberflächen wie diskretisierter Dreiecksnetze, Punktwolken oder Höhenfeldern und wird als \textit{Sparse Octree} oder \textit{Sparse Voxel Octree} bezeichnet. Innere Knoten können dabei weniger als acht Kindknoten besitzen. Durch die variierende Anzahl von Kindknoten lässt sich keine implizite Regel zum Berechnen ihrer Positionen im Speicher herleiten. Vielmehr muss jeder Knoten speichern, welche Kindknoten besetzt sind und wo sich diese im Speicher befinden. Liegen die Kindknoten jedes Voxels jeweils hintereinander im Speicher, muss jedoch nur ein Verweis pro Elternknoten vorgehalten werden. Da in einem Sparse Voxel Octree nur Oberflächen gespeichert werden, steigt der Speicherbedarf mit jeder weiteren Tiefenstufe nur durchschnittlich um das vierfache, wie unter anderem in \cite{Laine2010} gezeigt werden konnte.
+\\
+\subsubsection{Verwandte Arbeiten}
+In der Arbeit \cite{Plate2002} \citeauthor{Plate2002} wurden Sparse-Octrees verwendet, um Ober\-flächen\-normalen eines hoch\-auf\-gelösten Dreiecksnetzes zu speichern. Dabei wurde die Unterteilung der Knoten in Abhängigkeit von der Auflösung der Oberflächendetails vorangetrieben. Bei der Darstellung einer niedriger aufgelösten Version des Netzes wurden die im Octree enhaltenen Werte dazu verwendet, den ursprünglichen Detailgrad des Modells zu rekonstruieren. Diesen erhielt man während der Rekonstruktion durch Wahl der Octree-Tiefe in Abhängigkeit vom Abstand der Kamera zum betrachteten Objekt\-punkt. Dies führte zu einem mit dem Mipmapping vergleichbaren Ergebnis. Dabei verlangt dieser Ansatz keine Parametrisierung des Dreiecksnetzes.
+\\
+\\
+\cite{Laine2010} stellt die bisher umfangreichste Arbeit über Sparse Voxel Octree Raycasting dar. Wie auch in \cite{Plate2002} speichert jeder Knoten im Octree einen Verweis auf den ersten Kindknoten und Bitmasken die die Konfiguration der möglichen Kindknoten beschreiben. Neben einem sehr effizienten Raycasting-Ansatz beschreibt die Arbeit unter anderem Techniken zur Kompression von Normalenwerten und der Nutzung von Konturinformation zur besseren Approximation des Oberflächen\-verlaufs der dargestellten Geometrie. Zusätzlich beschreibt die Arbeit einen effizienten Out-of-Core Ansatz. Im Gegensatz zu dem in der vorliegenden Arbeit beschriebenen Out-of-Core-Ansatz, arbeitet dieser ausschließlich cpu-seitig. Dabei wird eine Heuristig verwendet um anhand der Auflösung der bisher geladenen Segmente und der aktuellen Ansicht, mögliche neu Segmente anzufordern.
+\\
+\\
+In der Arbeit von \cite{CNSGE11b} wird ein dynamisch erstellte Sparse-Voxel-Octree-Representation der Szenengeometrie verwendet um globale Beleuchtungswerte für alle Oberflächen zu speichen. Wärend der Bilderzeugung konnten damit via Cone Tracing zwei Reflexiontiefen für den direktionalen Lichtanteil in echtzeitfähigen Bildwiederholraten berechnet werden.
 
 
 %  ////////////////////////////////////////////////////////////////////
+
 
 \section{Raycasting von Volumendaten}
 Bei Raycasting wird für jeden Punkt eines Ziel-Buffers ein Strahl erzeugt und mit den Volumendaten geschnitten. 
@@ -69,25 +77,8 @@ HIER NOCH SAGEN; WAS DAS TX(X) IST!!
 
 
 
-\subsection{Verwandte Arbeiten}
+\subsubsection{Verwandte Arbeiten}
 
-
-%  ////////////////////////////////////////////////////////////////////
-
-
-\section{Out-of-Core Datenmanagement}
-Out-of-Core-Strategien ermöglichen einer Anwendung oder einem System die Verwendung von Datenmengen, welche die lokale Speicherkapazität übersteigen. Voraussetzung dafür ist die Seg\-men\-tier\-bar\-keit der Daten. Außerdem muss die lokal gespeicherte Untermenge der segmentierten Daten zu jedem Zeitpunkt zur Verarbeitung genügen.
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=0.75\textwidth]{figures/out_of_core_principal.pdf}
-  \caption{Out-Of-Core-Prinzip\label{out_of_core_principal}}
-\end{figure}
-\\
-Die endliche Menge lokalen Speichers der GPU begrenzt die maximale Auflösung von SVO-Strukturen. Eine Vergrößerung des Speichers löst das Problem nicht nachhaltig. Wie oben beschrieben benötigt jede weitere SVO-Tiefe etwa die vierfache Speicher\-menge.\\
-(!!! streaming system notwendig)\\
-(beispiele für ooc Systeme)\\
-
-\subsection{Verwandte Arbeiten}
 
 
 %  ////////////////////////////////////////////////////////////////////
