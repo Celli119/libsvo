@@ -13,25 +13,6 @@
  - Problem bei Visuellen Ansatz: Mann muss das was man sieht einordnen können
 
 
-\section{Out-of-Core Management}
-
-
-
-%/////////////////////////////////////////////////////////
-
-
-
-\subsection{Aufbau}
-
-
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=0.85\textwidth]{figures/out-of-core_setup.pdf}
-  \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out-of-core_setup1}}
-\end{figure}
-
-
-
 %/////////////////////////////////////////////////////////
 
 \section{Datenstrukturen}
@@ -109,22 +90,47 @@ Das System zur Erstellung der SVO-Struktur ist modular aufgebaut und besteht pri
 \end{figure}
 Das in Abbildung \ref{uml_diagam} gezeigte Klassen\-diagramm stellt die Relationen zwischen den einzelnen Komponenten dar. Der Build-Manager besitzt einen Treelet-Builder, der abhängig von der Art der Eingabedaten gewählt wird. Dazu besitzt er einen passenden Attributgenerator, der anhand der Eingabedaten und SVO-Repräsentation Attribute für alle Knoten erzeugt.
 
+
+
 %/////////////////////////////////////////////////////////
+\newpage
+\section{Out-of-Core Datenmanagement}
+Out-of-Core-Strategien ermöglichen einer Anwendung oder einem System die Verwendung von Datenmengen, welche die lokale Speicherkapazität übersteigen. Voraussetzung dafür ist die Seg\-men\-tier\-bar\-keit der Daten. Außerdem muss die lokal gespeicherte Untermenge der segmentierten Daten zu jedem Zeitpunkt zur Verarbeitung genügen.
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/out_of_core_principal.pdf}
+  \caption{Out-Of-Core-Prinzip\label{out_of_core_principal}}
+\end{figure}
+\\
+Die endliche Menge lokalen Speichers der GPU begrenzt die maximale Auflösung von SVO-Strukturen. Eine Vergrößerung des Speichers löst das Problem nicht nachhaltig. Wie oben beschrieben benötigt jede weitere SVO-Tiefe etwa die vierfache Speicher\-menge.\\
+(!!! streaming system notwendig)\\
+(beispiele für ooc Systeme)\\
+
+\subsection{Prinzipieller Aufbau des Out-of-Core-Ansatzes}
+
+Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vier Teilen die in Abbildung \ref{out_of_core_setup} schematisch angeordnet sind: Einem großen, clientseitigen \textbf{Segmentpool} der die gesamte SVO-Struktur vorhält, einem vergleichsweise kleinen Buffer der eine Untermenge der SVO-Struktur halten kann und auf Server- und Clientseite existiert (\textbf{\textit{Incore-Buffer}}), einer \textbf{Speicherverwaltung} die den server-seitigen Buffer pflegt und einem \textbf{Analysesystem} das entscheidet welche Segmente benötigt werden.
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/out-of-core_setup.pdf}
+  \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out_of_core_setup}}
+\end{figure}
+Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie der SVO in Segmente gleicher Größe (\textbf{\textit{Slots}}) aufgeteilt, von denen jedes ein Treelet aufnehmen kann. Die Wahl einer einheitliche Treelet- und Größe verhindert eine Fragmentierung des Incore-Buffers und somit den Defragmentierungs\-aufwand. Die Analyse arbeitet serverseitig auf den im Incore-Buffer vorhandenen Treelets. (!!! WEITER)
+
+
+
+%/////////////////////////////////////////////////////////
+
 
 \section{Verwendete Infrastruktur}
 gloost
 opencl
 bencl
-%/////////////////////////////////////////////////////////
-
-\section{Client-Server-Architektur}
-Es kommt darauf an wer die Anfragen stellt, nicht wer die Daten hält.
 
 
 %/////////////////////////////////////////////////////////
 
+%\section{Client-Server-Architektur}
+%Es kommt darauf an wer die Anfragen stellt, nicht wer die Daten hält.
 
 
-
-\section{Real Time Rendering von Sparse Voxel Octrees}
-
+%/////////////////////////////////////////////////////////
