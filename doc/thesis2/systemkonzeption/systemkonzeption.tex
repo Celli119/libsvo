@@ -48,7 +48,7 @@ Die im Baum abwärts gerichtete Verknüpfung wird durch Speichern der Indices der 
   \caption{Treelet-Struktur mit 6 Knoten pro Treelet \label{treelet_struktur}}
 \end{figure}
 \newpage
-Die Verbindung der Treelets untereinander bildet einen bidirektionalen Baum über dem eigentlichen Octree. Abbildung \ref{verbinung_ueber_treelet_index} stellt diese Verbindung dar. Unter der Abbildung des Baumes sind die Werte der First-Child-Pointer für alle Knoten notiert. Durch die abwärts gerichtete Verbindung, die in den Blatt\-knoten gespeichert ist, kann beim Traversieren der Struktur in jedem Blatt das zugehörige Treelet ermittelt werden. Die aufwärts gerichtete Verbindung ermöglicht den effizienten Zugriff auf alle übergeordneten Treelets bis zum Wurzel-Treelet. Dies sind die Treelets, von denen ein gegebenes Treelet für seine Verarbeitung in der SVO-Struktur abhängig ist.
+Die Verbindung der Treelets untereinander bildet einen bidirektionalen Baum über dem eigentlichen Octree. In der vorliegenden Arbeit wird daher häufig von Eltern-Treelet oder Kind-Treelet gesprochen um die hierarchische Anordnung der Treelets in diesem Baum zu verdeutlichen. Abbildung \ref{verbinung_ueber_treelet_index} stellt diese Verbindung dar. Unter der Abbildung des Baumes sind die Werte der First-Child-Pointer für alle Knoten notiert um die Referenzierung der Treelets untereinander zu veranschauliche. Durch die abwärts gerichtete Verbindung, die in den Blatt\-knoten gespeichert ist, kann beim Traversieren der Struktur in jedem Blatt das zugehörige Treelet ermittelt werden. Die aufwärts gerichtete Verbindung ermöglicht den effizienten Zugriff auf alle übergeordneten Treelets bis zum Wurzel-Treelet. Dies sind die Treelets, von denen ein gegebenes Treelet für seine Verarbeitung in der Octree-Struktur abhängig ist.
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=0.90\textwidth]{figures/verbinung_ueber_treelet_index.pdf}
@@ -66,7 +66,7 @@ Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vie
   \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out_of_core_setup}}
 \end{figure}
 Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie die Octree-Daten in Segmente glei\-cher Größe (\textbf{\textit{Slots}}) aufgeteilt, von denen jedes ein Treelet aufnehmen kann. Die Wahl einer einheit\-lichen Treelet- und Größe verhindert eine Fragmentierung des Incore-Buffers und somit den Defragmentierungs\-aufwand.\\
-Um die für eine Ansicht nötigen Treelets zu ermitteln wird der Octree aus dieser durch einen separaten Raycasting-Schritt analysiert. Dabei werden die in den Blattknoten vorhanden Verweise auf weiter Treelets pro Abtast\punkt  
+Um die für eine Ansicht nötigen Treelets zu ermitteln wird der Octree aus dieser durch einen separaten Raycasting-Schritt auf der GPU analysiert. Dabei werden die in den Blattknoten vorhanden Verweise auf weiter Treelets pro Abtast\-punkt in einem Buffer gespeicher (\textit{Analyse-Buffer}). Die Elemente des Analyse-Buffers werde CPU-seitig zu Anfragen nach neuen Treelets verarbeitet.
 
 
 %/////////////////////////////////////////////////////////
