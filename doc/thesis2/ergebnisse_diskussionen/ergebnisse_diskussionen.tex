@@ -1,4 +1,4 @@
-\chapter{Ergebnisse und Diskussion}
+\chapter{Ergebnisse und Diskussion}\label{se:ergebnisse_diskusionen}
 
 
 
@@ -7,11 +7,11 @@
 
 
 \section{Überblick}
-Abbildung \ref{lucy_s4_D13_timeseries} gibt einen allgemeinen Eindruck über die Laufzeiten der einzelnen Teilschritte, die in Abschnitt \ref{sec:echtzeitfaehiges_svo_raycasting} (\nameref{sec:echtzeitfaehiges_svo_raycasting}) beschrieben wurden sowie über die Anzahl verarbeiteter Treelets. Die Werte wurden in Abständen von 200 ms aufgezeichnet.
+Abbildung \ref{lucy_s4_D13_timeseries} gibt einen allgemeinen Eindruck über die Laufzeiten der einzelnen Teilschritte, die in Abschnitt \ref{sec:echtzeitfaehiges_svo_raycasting} \textit{\nameref{sec:echtzeitfaehiges_svo_raycasting}} beschrieben wurden sowie über die Anzahl verarbeiteter Treelets. Die Werte wurden in Abständen von 200 ms aufgezeichnet.
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/lucy_s4_D13_timeseries.pdf}
-  \caption{Systemzeiten und zu verarbeitende Treelets Treelets\label{lucy_s4_D13_timeseries}}
+  \caption{Systemzeiten und zu verarbeitende Treelets\label{lucy_s4_D13_timeseries}}
 \end{figure}
 Im oberen Teil der Abbildung finden sich die Zeiten für das Befüllen und die Übertragung des Analyse-Buffers sowie die Vorsortierung in Sichtinformationen für neue und bereits geladene Treelets. Ausserdem sind die benötigten Zeiten für die Pflege des clientseitigen und serverseitigen Incore-Buffers dargestellt. Im unteren Graphen sind die Menge der von der Analyse des Baumes erzeugten Anfragen nach neuen Treelets, die Anzahl der daraufhin geänderten Slots und die Anzahl der benötigten Kopieraufrufe dargestellt.\\
 Um die Eigenschaften und Leistungsfähigkeit des Systems zu analysieren wurden im Zuge dieser Arbeit drei Tests durchgeführt. Der erste Test untersucht den Einfluss der Treelet-Größe auf das Verhalten des Out-of-Core-Systems. Der zweite Test untersucht das Verfahren zur Minimierung der Kopieraufrufe bei der serverseitigen Aktualisierung (vgl. Abschnitt \ref{sec:serverseitige_aktualisierung} \textit{\nameref{sec:serverseitige_aktualisierung}} ). Ein dritter Test soll die Reaktionsfähigkeit des Systems während der Benutzung untersuchen.\\
@@ -73,7 +73,7 @@ Die in Abbildung \ref{david_lucy_xyzrgb_s1_vs_24_D13} dargestellte Vergleich der
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=1.0\textwidth]{figures/david_lucy_xyzrgb_s1_vs_24_D13.pdf}
-  \caption{Gegenüberstellung unterschiedleichen Treelet-Größen\label{david_lucy_xyzrgb_s1_vs_24_D13}}
+  \caption{Gegenüberstellung von unterschiedlichen Treelet-Größen\label{david_lucy_xyzrgb_s1_vs_24_D13}}
 \end{figure}
 \\
 \subsubsection{Erstellung und Übertragung des Analyse-Buffers}
