@@ -7,17 +7,15 @@
 
 \subsection{Überblick der Verarbeitungsschritte}
 Im Folgenden soll der Ablauf der dynamischen Veränderung der SVO-Struktur im Incore-Buffer abhängig von der Kameraposition erläutert werden. In den nachfolgenden Kapiteln wird auf die einzelnen Schritte genauer eingegangen. Die Abfolge der beteiligten Teilprozesse können in Abbildung \ref{ablauf_farbe} nachvollzogen werden. \\
-Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumstruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Analyse-Buffer gerendert \textit{Analyse-Pass}). Nach diesem Schritt enthält diese Buffer für jeden Strahl unter anderem die Position des getroffenen Knotens im Incore-Buffer und einen Fehlerwert. War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.
+Der Incore-Buffer wird zunächst mit dem Wurzel-Treelet im ersten Slot initialisiert. Die adaptive Anpassung der Baumstruktur wird in vier Schritten realisiert: Zunächst wird der Octree aus der Sicht der Kamera in den Analyse-Buffer gerendert (\textit{Analyse-Pass}). Nach diesem Schritt enthält dieser Buffer für jeden Strahl unter anderem die Position des getroffenen Knotens im Incore-Buffer und einen Fehler\-wert. Der Fehler\-wert ergibt sich dabei aus dem Unterschied der Fläche der Projektion des getroffenen Voxels zur Größe eines Pixels des verwendeten Bild-Buffers (vgl. Lacoste et al. \cite{Lacoste_2007}). War der getroffene Knoten ein Blatt, zu dessen Verfeinerung ein Treelet vorhanden ist, wird zusätzlich noch dessen Index gespeichert.
 
 \begin{figure}[position=h]
   \centering
-  \includegraphics[width=0.70\textwidth]{figures/ablauf_farbe.pdf}
+  \includegraphics[width=0.68\textwidth]{figures/ablauf_farbe.pdf}
   \caption{Ablauf der Verarbeitsschritte des Out-of-Core-Systems\label{ablauf_farbe}}
 \end{figure}
 
-Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Container einsortiert (\textbf{\textit{Vorsortierung}}). Der eine enthält die Treelet-Indices aller Knoten die sichtbar sind sowie die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Container ent\-hält Anfragen nach Verfeinerung in Form der Indices der anzuhängen Treelets. Die Fehlerwerte bleiben dabei in beiden Containern erhalten.\\
-Beide Container werden dem Speichermanagement übergeben (\textit{\textbf{clientseitige Aktualisierung}}). Dort werden zunächst die Sichtbarkeitsinformationen aller im letzten Zyklus sichtbarer Treelets aktualisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Stehen im Incore-Buffer keine freien \textit{Slots} mehr zur Verfügung werden nicht sichtbare Treelets entfernt. Slots mit verändertem Inhalt werden markiert. Anschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textbf{\textit{serverseitige Aktualisierung}}).\\
-Die folgenden Abschnitte werden diese Schritte genauer betrachten.
+Nach der Übertragung des Feedback-Buffers in den Hauptspeicher werden dessen Einträge in zwei Container einsortiert (\textit{Vorsortierung}). Der eine enthält die Treelet-Indices aller Knoten die sichtbar sind sowie die Treelet-Indices ihrer übergeordneten Treelets bis zum Wurzel-Treelet. Der andere Container ent\-hält Anfragen nach Verfeinerung in Form der Indices der anzuhängenden Treelets. Die Fehler\-werte bleiben dabei in beiden Containern erhalten. Beide Container werden dem Speichermanagement übergeben (\textit{clientseitige Aktualisierung}). Dort werden zunächst die Sichtbarkeitsinformationen aller im letzten Zyklus sichtbarer Treelets aktualisiert. Danach werden die neu anzuhängenden Treelets in den clientseitigen Incore-Buffer eingepflegt. Stehen im Incore-Buffer keine freien Slots mehr zur Verfügung werden nicht sichtbare Treelets entfernt. Slots mit verändertem Inhalt werden markiert. Anschließend werden die veränderten Bereiche des Incore-Buffers an den Server übertragen und stehen nun dem Renderer für den nächsten Zyklus zur Verfügung (\textit{serverseitige Aktualisierung}).
 
 
 
@@ -27,18 +25,25 @@ Die folgenden Abschnitte werden diese Schritte genauer betrachten.
 
 \subsection{Analyse-Pass}\label{sec:streaming_analyse_pass}
 
-Um die Last, die durch diesen zusätzlichen Render-Pass entsteht, möglichst gering zu halten ist die Größe des zur Analyse verwendeten Analyse-Buffer wesentlich kleiner als die des für die Bildgenerierung verwendeten Frame-Buffers. Um Artefakt\-bildung zu vermindern werden die Strahlen bei jedem Analyseschritt durch Zufalls\-werte parallel zur Sicht-Ebene verschoben. Die Verschiebung ist dabei so gewählt, dass über die Zeit im Bereich von $n*n$ Texeln des Bild-Buffers gesampelt wird, wobei $n$ das Verhältnis der Größen von Frame-Buffer und Analyse-Buffer ist.
+Um die Last, die durch diesen zusätzlichen Render-Pass entsteht, möglichst gering zu halten ist die Größe des zur Analyse verwendeten Buffer wesentlich kleiner als die des für die Bildgenerierung verwendeten Frame-Buffers. Um Artefakt\-bildung zu vermindern werden die Strahlen bei jedem Analyseschritt durch Zufalls\-werte parallel zur Sicht-Ebene verschoben. Die Verschiebung ist dabei so gewählt, dass über die Zeit im Bereich von $n*n$ Texeln des Bild-Buffers gesampelt wird, wobei $n$ das Verhältnis der Größen von Frame-Buffer und Analyse-Buffer ist.
 In Tests war es möglich, den Analyse-Buffer bis auf ein Achtel der Größe des Bild-Buffers zu verkleinern ohne dass es durch Aliasing zu Artefaktbildung kam oder zu wenig Daten für die nachfolgende dynamische Anpassung des Octrees zur Verfügung standen.\\
-
-Das Füllen des Feedback-Buffers erfolgt analog zum bilderzeugenden Raycasting mit OpenCl auf dem, im Incore-Buffer vorhanden Octree. Nach der Traversierung des Octrees liegt für jeden Strahl eines der folgenden drei Ergebnisse vor:  
+Das Füllen des Analyse-Buffers erfolgt analog zum bilderzeugenden Raycasting mit OpenCL auf dem, im Incore-Buffer vorhanden Octree. Nach der Traversierung des Octrees liegt für jeden Strahl eines der folgenden drei Ergebnisse vor:  
 \begin{enumerate}
   \item der Strahl trifft keinen Knoten 
   \item der Strahl trifft einen inneren Knoten
   \item der Strahl trifft einen Blattknoten
 \end{enumerate}
-Im ersten Fall wird nichts zurückgegeben. Im zweiten Fall wird nur die Position des Voxels im Incore-Buffer und die Länge des Strahles zurückgegeben. Im dritten Fall wird zusätzlich der Verweis auf ein eventuell anhängbares Treelet zurückgegeben. Ausserdem wird die Differenz zwischen vorgefundener Voxelgröße und der für die Länge des Strahles idealen Voxelgröße als Fehlerwert gespeichert Listing \ref{structFeedBackDataElement} zeigt den Aufbau eines Analyse-Buffer-Elements.
+Im ersten Fall wird nichts zurückgegeben. Im zweiten Fall wird nur die Position des Voxels im Incore-Buffer und die Länge des Strahles zurückgegeben. Im dritten Fall wird zusätzlich der Verweis auf ein eventuell anhängbares Treelet zurückgegeben. Ausserdem wird die Differenz zwischen vorgefundener Voxelgröße und der für die Länge des Strahles idealen Voxelgröße als Fehler\-wert gespeichert. Abbildung \ref{oversampling_aliasing} zeigt die Bildung des Fehler\-wertes. Listing 4.2 zeigt den Aufbau eines Analyse-Buffer-Elements.
 
-\begin{lstlisting}[caption=Struktur eines Analyse-Buffer-Elements]{structFeedBackDataElement}
+\begin{figure}[position=h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/oversampling_aliasing.pdf}
+  \caption{Fehlermaß bei der Überabtastung der Voxel\label{oversampling_aliasing}}
+\end{figure}
+
+\newpage
+
+\begin{lstlisting}[caption=Struktur eines Analyse-Buffer-Elements]{lst:structFeedBackDataElement}
   struct FeedBackDataElement
   {
     // Knoten-Index im Incore-Buffer in dem der Strahl terminierte
@@ -55,31 +60,32 @@ Im ersten Fall wird nichts zurückgegeben. Im zweiten Fall wird nur die Position 
 
 \subsection{Vorsortierung}\label{sec:streaming_vorsortierung}
 
-Nach der Übertragung des Analyse-Buffers vom Server in den Hauptspeicher werden dessen Elemente ausgewertet. Dabei werden zwei Container mit unterschiedlichen Sicht\-informationen gefüllt. Im ersten Container werden Indices von Treelets notiert, die bereits im Incore-Buffer vorhanden sind. Der zweite Container enthält nur Anfragen nach neuen Treelets. Beide Container sind nach dem Fehlerwert der Einträge absteigend sortiert wobei jeder Treelet-Index über beide Container hinweg unique ist.\\
+Nach der Übertragung des Analyse-Buffers vom Server in den Hauptspeicher werden dessen Elemente ausgewertet. Dabei werden zwei Container mit unterschiedlichen Sicht\-informationen gefüllt. Im ersten Container werden Indices von Treelets notiert, die bereits im Incore-Buffer vorhanden sind. Der zweite Container enthält nur Anfragen nach neuen Treelets. Beide Container sind nach dem Fehler\-wert der Einträge absteigend sortiert wobei jeder Treelet-Index über beide Container hinweg unique ist.\\
 Im oben beschriebenen Fall 1 (der Strahl trifft keinen Knoten) liegt keine Sichtbarkeitsinformation vor, weshalb solche Einträge übersprungen werden. Im Fall 2 (der Strahl trifft einen inneren Knoten) wird über die erhaltene Position des Knotens im Incore-Buffer und über die Größe eines Treelets auf den Slot des zugehörigen Treelets und damit auch auf das entsprechenden Treelet selbst geschlossen. Durch die in den Treelets gespeicherten Eltern-Information werden zusätzlich alle übergeordneten Treelets als sichtbar notiert. Tritt bei der Notation ein Treelet mehrfach auf, wird jeweils der größte Fehler übernommen.\\
 Im Fall 3 (der Strahl trifft einen Blattknoten) wird für den Blattknotenindex wie im Fall 2 vorgegangen. Zusätzlich wird der Treelet-Index des anhängbaren Treelets im entsprechenden Container gespeichert. Tritt ein Treelet-Index mehrfach auf wird auch hier nur ein Eintrag mit dem größten Fehler gespeichert.\\
-Damit ist die Trennung von Sichtbarkeitsinformation für bereits im Incore-Buffer vorhandene Treelets und Anfragen nach neuen Treelets abgeschlossen. An diesem Punkt kann die Menge der Anfragen noch auf einen Maximalwert begrenzt werden um die Last für die folgenden Schritte zu begrenzen, was die Verfeinerung des Octrees verlangsamt. Die absteigende Sortierung der Anfragen nach ihrem Fehler bei der Darstellung des Voxels sorgt dafür, dass bei einer Begrenzung der Menge der Anfragen immer diejenigen weiterverarbeitet werden, die den größten Beitrag zur Bildqualität liefern. Anschließend werden beide Container der Speicherverwaltung für die clientseitige Aktualisierung übergeben.
-
+Damit ist die Trennung der Sichtbarkeitsinformation abgeschlossen. An diesem Punkt kann die Menge der Anfragen noch auf einen Maximalwert begrenzt werden um die Last für die folgenden Schritte zu begrenzen, was die Verfeinerung des Octrees verlangsamt. Die absteigende Sortierung der Anfragen nach ihrem Fehler bei der Darstellung des Voxels sorgt dafür, dass bei einer Begrenzung der Menge der Anfragen immer diejenigen weiterverarbeitet werden, die den größten Beitrag zur Bildqualität liefern. Anschließend werden beide Container der Speicherverwaltung für die clientseitige Aktualisierung übergeben.
 
 
 % ////////////////////////////////////////////
 
-
-
+\newpage
 \subsection{Clientseitige Aktualisierung}
 
-Nun sollen die ermittelten Sichtbarkeitsinformationen eingepflegt und Anfragen nach neuen Treelets in Veränderungen der Octree-Struktur umgesetzt werden. Nach diesem Schritt wird sich auch die Belegung des clientseitigen Incore-Buffers geändert haben.\\
-Die Pflege der Sichtbarkeitsinformationen der bereits im Incore-Buffer befindlichen Treelets ist einfach: Zunächst wird die Sichtbarkeit jedes Slots, d.h. die Sichtbarkeit jedes im Incore-Buffer befindlichen Treelets dekrementiert. Dann wird die Sichtbarkeit derjenigen Treelets aktualisiert, die beim let\-zten Analyse-Pass sichtbar waren. Dabei wird die Sichtbarkeit auf einen vorher festgelegten Maximalwert gesetzt der dem Größenverhältnis von Render-Buffer und Analyse-Buffer entspricht. %Da die Anzahl der berechneten Samples im Analyse-Buffer bei einem Größenverhältnis von $1/8$ nur einem $1/64$ der berechneten Pixel im Framebuffer entspricht währe anzunehemen das die miximale Sichtbarkeitswert höher sein müsste. 
+Nun sollen die ermittelten Sichtbarkeitsinformationen eingepflegt und Anfragen nach neuen Treelets durch Veränderungen der Octree-Struktur umgesetzt werden. Nach diesem Schritt ändert sich auch die Belegung des clientseitigen Incore-Buffers.\\
+Die Pflege der Sichtbarkeitsinformationen der bereits im Incore-Buffer befindlichen Treelets ist einfach: Zunächst wird die Sichtbarkeit jedes Slots, d.h. jedes im Incore-Buffer befindlichen Treelets dekrementiert. Dann werden diejenigen Treelets aktualisiert, die beim let\-zten Analyse-Pass sichtbar waren. Dabei wird die Sichtbarkeit auf einen vorher festgelegten Maximalwert gesetzt der dem Größenverhältnis von Render-Buffer und Analyse-Buffer entspricht. %Da die Anzahl der berechneten Samples im Analyse-Buffer bei einem Größenverhältnis von $1/8$ nur einem $1/64$ der berechneten Pixel im Framebuffer entspricht währe anzunehemen das die miximale Sichtbarkeitswert höher sein müsste. 
 
 \subsubsection{Einfügen eines Treelets}
 Für das Einfügen eines Treelets aus dem in der Vorsortierung erstellten Container wird zunächst ein freier Slot innerhalb des Incore-Buffers benötigt. Ist dieser vorhanden, kann das Treelet an die ensprechende Stelle im Incore-Buffer kopiert werden. Der Slot-Index wird im Treelet-Objekt gespeichert und zur Aktualisierung des serverseitigen Incore-Buffers vorgemerkt. Die folgende Veränderung der Baumstruktur kann in Listing \ref{lst:insert_treelet} nachvollzogen werden. Aus dem Treelet werden folgende Werte gelesen:
 \begin{enumerate}
   \item Der Treelet-Index des Eltern-Treelets,
   \item Der Knoten-Index des Blattknotens, an dem das Treelet angehängt werden soll,
-  \item Der Eltern-Knoten-Index des Blattknotens,
-  \item Die Position des Blattknotens in seinem Eltern-Knoten.
+  \item Der Elternknoten-Index des Blattknotens,
+  \item Die Position des Blattknotens in seinem Elternknoten.
 \end{enumerate}
-Damit wird nun die Position des entsprechenden Blatt\-knotens des Eltern-Treelets im Incore-Buffer ermittelt und durch den Wurzel\-knoten des anzuhängenden Treelets ersetzt. Durch diese Position muss dessen relativer Index zu seinem ersten Kindknoten angepasst werden. Der erste Kindknoten des neuen inneren Knotens findet sich immer an zweiter Position innerhalb des angehängten Treelets im Incore-Buffer. Der Blattknoten wird damit zu einem inneren Knoten, was wiederum in seinem Elternknoten an der ent\-sprechen\-den Stelle in der Child-Mask vermerkt wird. In einem weiteren Container wird vermerkt, dass das Eltern-Treelet nun ein neues Kind-Treelet im Incore-Buffer besitzt. Abschließend wird der Slot-Index des Eltern-Treelets zur späteren serverseitigen Aktualisierung vorgemerkt. 
+Damit wird nun die Position des entsprechenden Blatt\-knotens des Eltern-Treelets im Incore-Buffer ermittelt und durch den Wurzel\-knoten des anzuhängenden Treelets ersetzt. Durch diese Position muss dessen relativer Index zu seinem ersten Kindknoten angepasst werden. Der erste Kindknoten des neuen inneren Knotens findet sich immer an zweiter Position innerhalb des angehängten Treelets im Incore-Buffer. Der Blattknoten wird damit zu einem inneren Knoten, was wiederum in seinem Elternknoten an der ent\-sprechen\-den Stelle in der Child-Mask vermerkt wird. In einem weiteren Container wird vermerkt, dass das Eltern-Treelet nun ein neues Kind-Treelet im Incore-Buffer besitzt. Abschließend wird der Slot-Index des Eltern-Treelets zur späteren serverseitigen Aktualisierung vorgemerkt.
+
+\newpage
+
 \lstinputlisting
     [caption={Einfügen eines Treelets}
        \label{lst:insert_treelet},
@@ -91,27 +97,24 @@ Damit wird nun die Position des entsprechenden Blatt\-knotens des Eltern-Treelet
 
 
 \subsubsection{Entfernen eines Treelets}
-Ist für das Einfügen eines Treelets kein Slot mehr verfügbar, muss zunächst ein Slot wieder freigegeben werden, das ein nicht sichtbares Treelet enthält. Dazu wird der Baum der Treelets nebenläufig durchsucht und eine Menge von Kandidaten für das Entfernen vorgehalten. Aufgrund der Nebenläufigkeit dieser Suche ist nicht sichergestellt, dass ein Kaditat zum Zeitpunkt des Entfernens noch valide ist. Daher muss vor dem eigentlichen Entfernen des Slots zunächst erneut die Sichtbarkeit überprüft werden. Ausserdem ist es möglich, dass zwar das entsprechende Treelet selbst nicht sichtbar ist, jedoch der entsprechende Blatt\-knoten des Eltern-Treelets, falls das Treelet entfernt werden würde. Dies geschieht nur an den Rändern der Geometrie. Abbildung \ref{sichtstrahl_kanten_artefakt} stellt diesen Fall dar. Im Bild befindet sich ein geladenes Treelet hinter einer konvexen Wölbung der Geometrie und kann so nicht vom Analyse-Pass gesehen werden. Wird dieses Treelet jedoch entfernt, ragt der entstehende Blatt\-knoten des Eltern-Treelets (im Bild rot dargestellt) über die Wölbung hinaus. Im nächsten Zyklus würde dieses Blatt wieder verfeinert werden wodurch es zu flackernden Artefakten an den Geometrie\-kanten kommt. Um diese Artefaktbildung zu verhindern wird die Sichtbarkeit des Eltern-Treelets ebenfalls überprüft. Nur wenn auch das Eltern-Treelet nicht sichtbar ist, kann das Treelet sicher entfernt werden.\\
-\begin{figure}[position=h]
+Ist für das Einfügen eines Treelets kein Slot mehr verfügbar, muss zunächst ein Slot freigegeben werden, der ein nicht sichtbares Treelet enthält. Dazu wird der Baum der Treelets nebenläufig durchsucht und eine Menge von Kandidaten für das Entfernen vorgehalten. Aufgrund der Nebenläufigkeit dieser Suche ist nicht sichergestellt, dass ein Kandidat zum Zeitpunkt des Entfernens noch valide ist. Daher muss vor dem eigentlichen Entfernen des Slots zunächst erneut die Sichtbarkeit überprüft werden. Ausserdem ist es möglich, dass zwar das entsprechende Treelet selbst nicht sichtbar ist, jedoch der entsprechende Blatt\-knoten des Eltern-Treelets, falls das Treelet entfernt werden würde. Dies geschieht nur an den Rändern der Geometrie. Abbildung \ref{sichtstrahl_kanten_artefakt} stellt diesen Fall dar. Im Bild befindet sich ein geladenes Treelet hinter ei\-ner konvexen Wölbung der Geometrie und kann so nicht vom Analyse-Pass gesehen werden. Wird dieses Treelet jedoch entfernt, ragt der entstehende Blatt\-knoten des Eltern-Treelets (im Bild rot dargestellt) über die Wölbung hinaus. Im nächsten Zyklus würde dieses Blatt wieder verfeinert werden wodurch es zu flackernden Artefakten an den Geometrie\-kanten kommt. Um diese Artefaktbildung zu verhindern wird die Sichtbarkeit des Eltern-Treelets ebenfalls überprüft. Nur wenn auch das Eltern-Treelet nicht sichtbar ist, kann das Treelet sicher entfernt werden.\\
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.75\textwidth]{figures/sichtstrahl_kanten_artefakt.pdf}
   \caption{Artefaktbildung and Objektkante\label{sichtstrahl_kanten_artefakt}}
 \end{figure}
 Alle Slots von im Incore-Buffer gespeicherten Treelets, die sich unterhalb des zu entfernenden Treelets befinden, können sofort freigegeben werden. Dazu wird für das Kan\-di\-daten-Treelet ermittelt, welche untergeordneten Treelets sich ebenfalls im Incore-Buffer befinden. So werden in einem günstigen Fall gleich mehrere Slots freigegeben.\\
-Die Manipulation des Incore-Buffers zum Entfernen des Kan\-di\-daten-Treelets läuft analog zum Einfügen ab. Die folgenden Schritte können im Listing \ref{lst:remove_treelet} nachvollzogen werden.
-
+Die Manipulation des Incore-Buffers zum Entfernen des Kan\-di\-daten-Treelets läuft analog zum Einfügen ab. Die folgenden Schritte können im Listing \ref{lst:remove_treelet} nachvollzogen werden. Wieder wird das Eltern-Treelet, die Position des entsprechenden Blattknotens und dessen Elternknotens ermittelt. Dann wird der Blatt\-knoten durch seine Repräsentation aus dem Eltern-Treelet überschrieben. Aus dem inneren Knoten wird so wieder ein Blattknoten mit einem Verweis auf ein anhängbares Treelet. Dies wird im Elternknoten des Blattknotens an der entsprechenden Stelle in der \textit{Child-Mask} markiert. Da sich damit das Eltern-Treelet im client\-seitigen Incore-Buffer geändert hat muss dessen Slot zur server\-seitigen Aktualisierung vorgemerkt werden.
+\newpage
 \lstinputlisting
     [caption={Entfernen eines Treelets}
        \label{lst:remove_treelet},
        captionpos=t,language=C++]
  {listings/remove_treelet.cpp}
 
-
-Wieder wird das Eltern-Treelet, die Position des entsprechenden Blatt-Knoten und dessen Eltern-Knotens ermittelt. Dann wird der Blattknoten durch seine Repräsentation aus dem Eltern-Treelet überschrieben. Aus dem inneren Knoten wird so wieder ein Blattknoten mit einem Verweis auf ein anhängbares Treelet. Dies wird im Elternknoten des Blattknotens an der entsprechenden Stelle in der \textit{Child-Mask} markiert. Da sich damit das Eltern-Treelet im client\-seitigen Incore-Buffer geändert hat muss dessen Slot zur server\-seitigen Aktualisierung vorgemerkt werden.
-
 % ////////////////////////////////////////////
 
-
+\newpage
 \subsection{Serverseitige Aktualisierung}\label{sec:serverseitige_aktualisierung}
 
 Die beim Einfügen und Entfernen von Treelets markierten Slots werden in diesem Schritt auf den Server übertragen. Dabei kann im einfachsten Fall jeder Slot innerhalb des Incore-Buffers einzeln übertragen werden. Dies führt jedoch zu vielen Einzelübertragungen von geringer Größe. Dies ist sehr ungünstig, da für jede Kopieroperation ein erheblicher Verwaltungsaufwand innerhalb der OpenCL-Implementation anfällt. Handelt es sich beim verwendeten Server um eine GPU, müssen die Daten zusätzlich über den PCI-Express-Bus übertragen werden. Auch hier kann eine hohe Übertragungsrate nur durch möglichst große Pakete erreicht werden.\\
@@ -121,4 +124,4 @@ Um die Anzahl der Kopieraufrufe möglichst gering zu halten werden deshalb nahe b
   \includegraphics[width=0.85\textwidth]{figures/zusammenfassung_der_slots.pdf}
   \caption{Zusammenfassen von Slots zur Übertragung\label{zusammenfassung_der_slots}}
 \end{figure}
-Am effizientesten arbeitet dieser Ansatz, wenn der Incore-Buffer anfangs noch leer ist, da die Slots-Indices aufeinanderfolgend herausgegeben werden und die entsprechenden Speicherbereiche damit an einem Stück auf den Server transferiert werden können. Das Zusammenfassen der Slots kann in einem Thread ausgelagert werden, damit sich der entstehende Zeitaufwand nicht auf die Bildrate auswirkt. Im Abschnitt \ref{sec:test_zusammenfassen_von_slots} (\nameref{sec:test_zusammenfassen_von_slots}) wird die Ermittlung eines geeigneten Wertes für das Verhälnis zwischen der Anzahl veränderter Slots und der Gesamtzahl von Slots im zu kopierenden Bereich untersucht.
+Am effizientesten arbeitet dieser Ansatz, wenn der Incore-Buffer anfangs noch leer ist, da die Slots-Indices aufeinanderfolgend herausgegeben werden und die entsprechenden Speicherbereiche damit an einem Stück auf den Server transferiert werden können. Das Zusammenfassen der Slots kann in einem Thread ausgelagert werden, damit sich der entstehende Zeitaufwand nicht auf die Bildrate auswirkt. Im Abschnitt \ref{sec:test_zusammenfassen_von_slots} (\nameref{sec:test_zusammenfassen_von_slots}) wird die Ermittlung eines geeigneten Wertes für das Verhältnis zwischen der Anzahl veränderter Slots und der Gesamtzahl von Slots im zu kopierenden Bereich untersucht.

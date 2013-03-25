@@ -3,18 +3,11 @@
 
 \section{Zusammenfassung}
 
-%Der Schwerpunkt der vorliegende Arbeit liegt auf...
+In der vorliegende Arbeit wurde ein Out-of-Core Ansatz zur Darstellung von großen Sparse-Voxel-Octree-Strukturen entwickelt. Dieser arbeitet durch Segmentierung der Octree-Daten in Teilen fester Größe. Die Anpassung der darzustellenden Untermenge an Octree-Daten wurde durch ein Analysesystem realisiert das auf Abtastung des momentan vorgehaltenen Octrees basiert. Zur Erstellung von Inhalten wurde ein generalisiertes System zur Erstellung von Sparse Voxel Octrees aus unterschiedlichen Ausgangsformaten entworfen. Um die Ergebnisse der Erstellung und des Out-of-Core-Ansatzes zu validieren wurde der Raycasting-Algorithmus in OpenCL implementiert.\\
+In Tests wurden die Laufzeiten des Gesamtsystems und der einzelnen am System beteiligten Komponenten gemessen und in der Auswertung in Beziehung gesetzt. In einem weiteren Test wurde die Reaktionsfähigkeit des umgesetzten Ansatzes auf Veränderungen der Ansicht beim Betrachten untersucht. Es konnte gezeigt werden, dass sich mit dem vorgestellten Out-of-Core-Ansatz, eine schnelle Anpassung der Darstellung an die Ansicht des Betrachters realisieren lässt.  
 
-In der vorliegende Arbeit wurde ein Out-of-Core Ansatz zur Darstellung von großen Sparse Voxel Octree Strukturen entwickelt. Dieser arbeitet durch Segmentierung der Octree-Daten in Teile fester Größe. Die Anpassung der darzustellenden Untermenge an Octree-Daten wurde durch ein Analysesystem realisiert das auf Abtastung der momentan vorgehaltenen Daten basiert.
-
-
-
-Zur Erstellung von Inhalten wurde ein generalisiertes System zur Erstellung von Sparse Voxel Octrees aus unterschiedlichen Ausgangsformaten entworfen. Um die Ergebnisse der Erstellung und des Out-of-Core-Ansatzes zu validieren wurde der Raycasting-Algorithmus in OpenCL implementiert.\\
-\\
-Es konnte gezeigt werden, dass sich mit dem vorgestellten Out-of-Core-Ansatz eine schnelle Anpassung der Darstellung des Octrees an die Ansicht des Betrachters möglich ist. 
-
-
-Die Tests haben gezeigt ... 
-
-
+\newpage
 \section{Ausblick}
+
+Die Verwendung von Sparse Voxel Octrees in Verbindung mit einem leistungsfähigen Out-of-Core-Systems zur Darstellung von hochauflösender Geometrie liefert vielversprechende Ergebnisse. Der vor\-ge\-stell\-te Ansatz und dessen Implementation kann an mehreren entscheidenden Stellen optimiert werden. So könnten zukünftige Arbeiten den Einsatz von OpenGL-Texturen als serverseitigen Incore-Buffer prüfen, da Zugriffe auf Texturen vom Hardware-Cache der GPU profitieren. Dies sollte sich positiv auf die Bildwiederholrate beim Analyse-Pass und bei der Bildsynthese auswirken.\\
+Weitere Entwicklungen könnten auf eine Entkoppelung von Out-of-Core-System und der Bilderzeugung zielen, um eine bessere Ausnutzung der Systemresourcen zu gewährleisten.
