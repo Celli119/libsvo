@@ -1,28 +1,22 @@
 \chapter{Systemkonzeption}
 
 
-In diesem Kapitel werden algorithmische und datenstrukturelle Konzepte vorgestellt, die bei der Vorliegenden Arbeit eine Rolle spielten. 
+In diesem Kapitel werden algorithmische und datenstrukturelle Konzepte vorgestellt, die bei der vorliegenden Arbeit eine Rolle spielten. Dabei werden Begriffe eingeführt um die in dieser Arbeit ent\-wi\-ckelten Vorgänge und beteiligten Systemkomponenten zu beschreiben. 
 
 %/////////////////////////////////////////////////////////
 
 
 
-\section{Vorüberlegungen}
+%\section{Vorüberlegungen}
 
+% - Fehler bei der Darstellung -> Fehlerwert ausnutzen\\
+% - Visueller/Progressiver Ansatz (outputsensitiv)\\
+% - Problem bei Visuellen Ansatz: Mann muss das was man sieht einordnen können
 
-
- - Fehler bei der Darstellung -> Fehlerwert ausnutzen\\
- - Visueller/Progressiver Ansatz (outputsensitiv)\\
- - Problem bei Visuellen Ansatz: Mann muss das was man sieht einordnen können
-
-\begin{figure}[position=h]
-  \centering
-  \includegraphics[width=0.75\textwidth]{figures/oversampling_aliasing.pdf}
-  \caption{Abtastung\label{oversampling_aliasing}}
-\end{figure}
 
 %/////////////////////////////////////////////////////////
-\newpage
+
+
 \section{Out-of-Core Datenmanagement}
 Out-of-Core-Strategien ermöglichen einer Anwendung oder einem System die Verwendung von Datenmengen, welche die lokale Speicherkapazität übersteigen. Voraussetzung dafür ist die Seg\-men\-tier\-bar\-keit der Daten. Außerdem muss die lokal gespeicherte Untermenge der segmentierten Daten zu jedem Zeitpunkt zur Verarbeitung genügen. Abbildung \ref{out_of_core_principal} zeigt die prinzipielle Konfiguration eines Segment\-pools der die Gesamtheit der Daten bereithält und einem lokalem System das einen Teil der Daten halten und verarbeiten kann.
 \begin{figure}[position=h]
@@ -31,42 +25,41 @@ Out-of-Core-Strategien ermöglichen einer Anwendung oder einem System die Verwend
   \caption{Out-Of-Core-Prinzip\label{out_of_core_principal}}
 \end{figure}
 \\
-Die endliche Menge lokalen Speichers der GPU begrenzt die maximale Auflösung von SVO-Strukturen. Eine Vergrößerung des Speichers löst das Problem nicht nachhaltig. Wie oben beschrieben benötigt jede weitere SVO-Tiefe etwa die vierfache Speicher\-menge.\\
-(!!! streaming system notwendig)\\
-(beispiele für ooc Systeme)\\
 
+Die endliche Menge lokalen Speichers der GPU begrenzt die maximale Auflösung von SVO-Strukturen. Eine Vergrößerung des Speichers löst das Problem nicht nachhaltig. Wie oben beschrieben benötigt jede weitere SVO-Tiefe etwa die vierfache Speicher\-menge.
 
 
 \subsection{Segmentierung der Octree-Daten}\label{sec:segmentierung}
 
-Bei der Wahl der Speichergröße der Segmente gilt es zwischen Granularität und Aufwand abzuwägen. Um eine hohe Granularität und damit eine hohe Anpassungsfähigkeit der gewählten Untermenge an Segmenten zu gewährleisten, sollte die Größe der Segmente eher klein gewählt werden. Sind die Segmente jedoch zu klein, können für einen gegebenen Octree schnell mehrere Millionen davon entstehen und so den Verwaltungsaufwand deutlich erhöhen. Einzelne Operationen auf großen Segmenten benötigen mehr Zeit als gleiche Operationen auf kleinen Segmenten. Somit kann eine zu hohe Größe der Segmente sich negativ auf die Gesamtleistung des Systems auswirken.\\
-In dieser Arbeit erfolgt die Unterteilung des Octrees in Unterbäumen die als \textit{Treelets} (Bäumchen) bezeichnet werden. Jedes Treelet umfasst die gleiche Anzahl an Knoten und stellt selbst einen Sparse Voxel Octree mit Wurzel- und Blatt\-knoten dar (vgl. Abbildung \ref{treelet_struktur}). Bei initialen Test haben sich Treelet-Größen zwischen einem und zwölf Kilobyte als günstig erwiesen. Im Abschnitt \ref{sec:test_einfluss_groesse} (\nameref{sec:test_einfluss_groesse}) wird der Einfluß dieser Größe untersucht. Zum Identifizieren eines Treelets erhält jedes einen eindeutigen Index (\textit{Treelet-Index}). Über diesen Index wird die Verknüpfung der Treelets untereinander realisiert. Dazu speichert jedes Treelet unter anderem den Index des übergeordneten Treelets und die Position des ihm entsprechenden Blattknotens.
-Die im Baum abwärts gerichtete Verknüpfung wird durch Speichern der Indices der untergeordneten Treelets im First-Child-Index des je\-wei\-ligen Blattknotes realisiert.
-\begin{figure}[position=h]
+Bei der Wahl der Speichergröße der Segmente gilt es zwischen Granularität und Aufwand abzuwägen. Um eine hohe Granularität und damit eine hohe Anpassungsfähigkeit der gewählten Untermenge an Segmenten zu gewährleisten, sollte die Größe der Segmente eher klein gewählt werden. Sind die Segmente jedoch zu klein, können für einen gegebenen Octree schnell mehrere Millionen davon entstehen und so den Verwaltungsaufwand deutlich erhöhen. Wird die Segment\-größe zu hoch gewählt kann die Laufzeit von Einzeloperationen zu hoch werden und sich negativ auf die Gesamtleistung des Systems auswirken.
+\\
+In dieser Arbeit erfolgt die Unterteilung des Octrees in Unterbäume die im Folgendem als \textit{Treelets} (Bäumchen) be\-zeich\-net werden. Jedes Treelet umfasst die gleiche Anzahl an Knoten und stellt selbst einen Sparse Voxel Octree mit Wurzel- und Blatt\-knoten dar (vgl. Abbildung \ref{treelet_struktur}). Bei initialen Test haben sich Treelet-Größen zwischen einem und zwölf Kilobyte als günstig erwiesen. Im Abschnitt \ref{sec:test_einfluss_groesse} (\nameref{sec:test_einfluss_groesse}) wird der Einfluss dieser Größe untersucht.
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.75\textwidth]{figures/treelet_struktur.pdf}
   \caption{Treelet-Struktur mit 6 Knoten pro Treelet \label{treelet_struktur}}
 \end{figure}
-\newpage
-Die Verbindung der Treelets untereinander bildet einen bidirektionalen Baum über dem eigentlichen Octree. In der vorliegenden Arbeit wird daher häufig von Eltern-Treelet oder Kind-Treelet gesprochen um die hierarchische Anordnung der Treelets in diesem Baum zu verdeutlichen. Abbildung \ref{verbinung_ueber_treelet_index} stellt diese Verbindung dar. Unter der Abbildung des Baumes sind die Werte der First-Child-Pointer für alle Knoten notiert um die Referenzierung der Treelets untereinander zu veranschauliche. Durch die abwärts gerichtete Verbindung, die in den Blatt\-knoten gespeichert ist, kann beim Traversieren der Struktur in jedem Blatt das zugehörige Treelet ermittelt werden. Die aufwärts gerichtete Verbindung ermöglicht den effizienten Zugriff auf alle übergeordneten Treelets bis zum Wurzel-Treelet. Dies sind die Treelets, von denen ein gegebenes Treelet für seine Verarbeitung in der Octree-Struktur abhängig ist.
-\begin{figure}[position=h]
+Zum Identifizieren eines Treelets erhält jedes einen eindeutigen Index (\textit{Treelet-Index}). Über diesen Index wird die Verknüpfung der Treelets unter\-ein\-ander realisiert. Dazu speichert jedes Treelet unter anderem den Index des übergeordneten Treelets und die Position des ihm entsprechenden Blattknotens.
+Die im Baum abwärts gerichtete Verknüpfung wird durch Speichern der Indices der untergeordneten Treelets im First-Child-Index des je\-wei\-ligen Blattknotes realisiert. Die Verbindung der Treelets un\-ter\-einander bildet einen bidirektionalen Baum über dem eigentlichen Octree. In der vorliegenden Arbeit wird daher häufig von Eltern-Treelet oder Kind-Treelet gesprochen um die hierarchische Anordnung der Treelets in diesem Baum zu verdeutlichen. Abbildung \ref{verbinung_ueber_treelet_index} stellt diese Verbindung dar. Unter der Abbildung des Baumes sind die Werte der First-Child-Pointer für alle Knoten notiert um die Referenzierung der Treelets untereinander zu veranschaulichen. Durch die abwärts gerichtete Verbindung, die in den Blatt\-knoten gespeichert ist, kann beim Traversieren der Struktur in jedem Blatt das zugehörige Treelet ermittelt werden. Die aufwärts gerichtete Verbindung ermöglicht den effizienten Zugriff auf alle übergeordneten Treelets bis zum Wurzel-Treelet. Dies sind die Treelets, von denen ein gegebenes Treelet für seine Verarbeitung in der Octree-Struktur abhängig ist.
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.90\textwidth]{figures/verbinung_ueber_treelet_index.pdf}
-  \caption{Verbindung der Treeelets durch ihren Index \label{verbinung_ueber_treelet_index}}
+  \includegraphics[width=0.80\textwidth]{figures/verbinung_ueber_treelet_index.pdf}
+  \caption{Verbindung der Treelets durch ihren Index \label{verbinung_ueber_treelet_index}}
 \end{figure}
 
-
 \newpage
+
 \subsection{Prinzipieller Aufbau des Out-of-Core-Ansatzes}
 
 Der in dieser Arbeit verwendete Out-Of-Core-Ansatz besteht grundsätzlich aus vier Teilen die in Abbildung \ref{out_of_core_setup} schematisch angeordnet sind: Einem großen, clientseitigen Segmentpool der die gesamte SVO-Struktur vorhält, einem vergleichsweise kleinen Buffer der eine Untermenge der SVO-Struktur halten kann und auf Server- und Clientseite existiert (\textit{Incore-Buffer}), einer Speicherverwaltung die den server-seitigen Buffer aktualisiert und einem Analyse\-system das ermittelt welche Segmente benötigt werden.
 \begin{figure}[position=h]
   \centering
-  \includegraphics[width=0.85\textwidth]{figures/out-of-core_setup.pdf}
+  \includegraphics[width=0.86\textwidth]{figures/out-of-core_setup.pdf}
   \caption{Schematischer Aufbau des Out-Of-Core-Systems\label{out_of_core_setup}}
 \end{figure}
-Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie die Octree-Daten in Segmente glei\-cher Größe (\textbf{\textit{Slots}}) aufgeteilt, von denen jedes ein Treelet aufnehmen kann. Die Wahl einer einheit\-lichen Treelet- und Größe verhindert eine Fragmentierung des Incore-Buffers und somit den Defragmentierungs\-aufwand.\\
-Um die für eine Ansicht nötigen Treelets zu ermitteln wird der Octree aus dieser durch einen separaten Raycasting-Schritt auf der GPU analysiert. Dabei werden die in den Blattknoten vorhanden Verweise auf weiter Treelets pro Abtast\-punkt in einem Buffer gespeicher (\textit{Analyse-Buffer}). Die Elemente des Analyse-Buffers werde CPU-seitig zu Anfragen nach neuen Treelets verarbeitet.
+Der Incore-Buffer, der auf Client- und Serverseite vorhanden ist, wird wie die Octree-Daten in Segmente glei\-cher Größe ({\textit{Slots}) aufgeteilt, von denen jedes ein Treelet aufnehmen kann. Die Wahl einer einheit\-lichen Treelet- und Slot-Größe verhindert eine Fragmentierung des Incore-Buffers und somit den Defragmentierungs\-aufwand.\\
+Um die für eine Ansicht nötigen Treelets zu ermitteln wird der Octree aus dieser durch einen separaten Raycasting-Schritt auf der GPU analysiert. Dabei werden die in den Blattknoten vorhanden Verweise auf weiter Treelets pro Abtast\-punkt in einem Buffer gespeicher (\textit{Analyse-Buffer}). Die Elemente des Analyse-Buffers werden CPU-seitig zu Anfragen nach neuen Treelets verarbeitet.
 
 
 %/////////////////////////////////////////////////////////
@@ -99,7 +92,7 @@ Die Topologie des Octrees wird durch 64 Bit große Knoten beschrieben. Der Speich
 \newpage
 \subsection{Attribute}\label{sec:attribute}
 
-Attributinformationen werden parallel zu den Knotendaten in einem oder mehreren Attribut-Buffern gehalten. Diese Buffer können, wie auch die Knotenstruktur des Octrees, sehr groß werden da benötigte Attributwerte für jedes Voxel des Octrees einzeln gespeichert werden. Darum werden die Werte wie Beleuchtungsinformationen, Farben, Richtungsinformationen oder ambiente Verdeckungswerte (Ambient Occlusion) vor dem Ablegen komprimiert. Dies kann beispielsweise durch die Verwendung von 8 Bit-Datentypen für die einzelnen Attribut-Komponenten erfolgen. Um einen schnellen Zugriff auf alle Attribute eines Knoten zu ermöglichen sind die Werte im Buffer in verschachtelter Reihenfolge abgelegt. Abbildung \ref{interleaved_attributes} zeigt die Visualisierung eines solchen Buffers, der abwechselt Normalen- und Farbinformationen speichert. 
+Attributinformationen werden parallel zu den Knotendaten in einem oder mehreren Attribut-Buffern gehalten. Diese Buffer können, wie auch die Knotenstruktur des Octrees, sehr groß werden da benötigte Attributwerte für jedes Voxel des Octrees einzeln gespeichert werden. Darum werden die Werte wie Beleuchtungsinformationen, Farben, Richtungsinformationen oder ambiente Verdeckungswerte (Ambient Occlusion) vor dem Ablegen komprimiert. Dies kann beispielsweise durch die Verwendung von 8-Bit-Datentypen für die einzelnen Attribut-Komponenten erfolgen. Um einen schnellen Zugriff auf alle Attribute eines Knotens zu ermöglichen sind die Werte im Buffer in verschachtelter Reihenfolge abgelegt. Abbildung \ref{interleaved_attributes} zeigt die Visualisierung eines solchen Buffers, der abwechselnd Normalen- und Farbinformationen speichert. 
 \begin{figure}[position=h]
   \centering
   \includegraphics[width=0.75\textwidth]{figures/interleaved_attributes.png}
@@ -120,16 +113,6 @@ Das System zur Erstellung der SVO-Struktur ist modular aufgebaut und besteht pri
   \caption{Klassendiagramm des generallisierten Erstellungssystems \label{uml_diagam}}
 \end{figure}
 Das in Abbildung \ref{uml_diagam} gezeigte Klassen\-diagramm stellt die Relationen zwischen den einzelnen Komponenten dar. Der Build-Manager besitzt einen Treelet-Builder, der abhängig von der Art der Eingabedaten gewählt wird. Dazu besitzt er einen passenden Attributgenerator, der anhand der Eingabedaten und SVO-Repräsentation Attribute für alle Knoten erzeugt.
-
-
-
-%/////////////////////////////////////////////////////////
-
-
-\section{Verwendete Infrastruktur}
-gloost
-opencl
-bencl
 
 
 %/////////////////////////////////////////////////////////

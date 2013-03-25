@@ -11,7 +11,6 @@
  unsigned incoreLeafParentPosition = parentTreelet->getSlotGid()
                                    * _numNodesPerTreelet + parentTreeletLeafParentPosition;
 
-
  // kopiere den Wurzelknoten des neuen Treelets auf das Blatt des Eltern-Treelets
  _incoreBuffer[incoreLeafPosition] = _incoreBuffer[incoreNodePosition];
 

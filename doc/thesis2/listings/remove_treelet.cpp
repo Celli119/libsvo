@@ -25,7 +25,7 @@
  // entferne information des Treelets aus den Slotinformationen
  _slots[slotGid] = SlotInfo();
 
- // fÃ¼ge den Slot zur Menge der freien Slots dazu
+ // füge den Slot zur Menge der freien Slots dazu
  _freeIncoreSlots.push(slotGid);
 
 

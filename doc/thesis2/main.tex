@@ -1,8 +1,9 @@
-\documentclass[a4paper,oneside,titlepage, openright, 10pt]{report}
+\documentclass[ngerman,a4paper,oneside,titlepage, openright, 10pt]{report}
 \usepackage[ngerman]{babel}
 %\usepackage[ansinew]{inputenc}
 \usepackage[ansinew]{inputenc}
 \usepackage[numbers,square]{natbib}
+%\documentclass[ngerman]{scrartcl}
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{capt-of}
@@ -19,6 +20,7 @@
 \usepackage{booktabs}
 \usepackage{natbib}
 \usepackage{hyphenat}
+\usepackage{float}
 
 %\usepackage[automark]{scrpage2}
 \newcommand{\changefont}[3]{\fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
@@ -132,12 +134,11 @@
 \newpage
 \input{zusammenfassung_und_ausblick/zusammenfassung_und_ausblick.tex}
 
+\newpage
 \addcontentsline{toc}{chapter}{Quellen}
 \addcontentsline{toc}{section}{Literaturverzeichnis}
 \bibliographystyle{jas99}
 \bibliography{literatur}
 \newpage
 \input{glossar/glossar.tex}
-%\newpage
-%\input{Appendix/Appendix.tex}
 \end{document}
