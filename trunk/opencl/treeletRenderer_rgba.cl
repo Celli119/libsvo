@@ -5,7 +5,7 @@
 //
 //__constant float scale = 1.0f;
 #define MAX_STACK_SIZE        13
-#define MAX_SVO_RAYCAST_DEPTH 13
+#define MAX_SVO_RAYCAST_DEPTH 12
 
 
 ///////////////////////////////////////////////////////////////////////////////

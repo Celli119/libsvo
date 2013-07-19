@@ -472,7 +472,9 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
   _parentTreeletLeafsParentPosition = inFile.readUInt32();
 
   _serializedNodes.resize(_memSize/sizeof(CpuSvoNode), CpuSvoNode());
-  gloost::unserialize((unsigned char*)&_serializedNodes.front(), _numNodes*sizeof(CpuSvoNode), inFile);
+  gloost::unserialize((unsigned char*)&_serializedNodes.front(),
+                      inFile,
+                      _numNodes*sizeof(CpuSvoNode));
 }
 
 

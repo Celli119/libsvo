@@ -153,8 +153,6 @@ TimerLog::addTimer(const std::string& name)
 void
 TimerLog::putSample(const std::string& name, double value)
 {
-  value*=0.5f;
-
   std::map<std::string, unsigned>::iterator pos = _insertPositions.find(name);
   if (pos == _insertPositions.end())
   {

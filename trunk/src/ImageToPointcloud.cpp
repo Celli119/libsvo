@@ -137,24 +137,24 @@ ImageToPointcloud::generate(gloost::mathType      fieldOfView,
   pointMesh->getNormals().resize(numPixels);
 
   // Bundle storing 96 bit image data
-  gloost::BinaryBundle imageData_depth(image_depth.getPixelData(),
-                                       numPixels*image_depth.getBitsPerPixel()/8);
+  gloost::BinaryBundle::shared_ptr imageData_depth = gloost::BinaryBundle::create(image_depth.getPixelData(),
+                                                                                   numPixels*image_depth.getBitsPerPixel()/8);
 
-  gloost::BinaryBundle imageData_normal(image_normal.getPixelData(),
-                                        numPixels*image_normal.getBitsPerPixel()/8);
+  gloost::BinaryBundle::shared_ptr imageData_normal = gloost::BinaryBundle::create(image_normal.getPixelData(),
+                                                                                   numPixels*image_normal.getBitsPerPixel()/8);
 
-  gloost::BinaryBundle imageData_color(image_color.getPixelData(),
-                                       numPixels*image_depth.getBitsPerPixel()/8);
+  gloost::BinaryBundle::shared_ptr imageData_color = gloost::BinaryBundle::create(image_color.getPixelData(),
+                                                                                  numPixels*image_depth.getBitsPerPixel()/8);
 
   // file reader to access the bundle
   gloost::BinaryFile imageReader_depth;
-  imageReader_depth.openAndLoad(&imageData_depth);
+  imageReader_depth.openAndLoad(imageData_depth);
 
   gloost::BinaryFile imageReader_normal;
-  imageReader_normal.openAndLoad(&imageData_normal);
+  imageReader_normal.openAndLoad(imageData_normal);
 
   gloost::BinaryFile imageReader_color;
-  imageReader_color.openAndLoad(&imageData_color);
+  imageReader_color.openAndLoad(imageData_color);
 
   unsigned pointIndex = 0;
   for (unsigned y=0; y!=image_depth.getHeight(); ++y)
