@@ -139,9 +139,10 @@ void init()
   /// transform
   gloost::Matrix rotateMat = gloost::Matrix::createIdentity();
 
-  if (gloost::abs(g_rotateXInDeg) > 0.00001)
+  if (gloost::math::abs(g_rotateXInDeg) > 0.00001)
   {
-    rotateMat = gloost::Matrix::createRotMatrix(gloost::Vector3(1.0, 0.0, 0.0), gloost::deg2rad(g_rotateXInDeg));
+    rotateMat = gloost::Matrix::createRotMatrix(gloost::Vector3(1.0, 0.0, 0.0),
+                                                gloost::math::deg2rad(g_rotateXInDeg));
   }
 
   gloost::Matrix translateMat;

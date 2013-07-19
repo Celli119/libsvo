@@ -60,10 +60,11 @@ gloost::Mouse g_mouse;
 #include <gloost/PerspectiveCamera.h>
 float                        g_tScaleRatio           = 1.0f;
 float                        g_tScaleRatioMultiplyer = 1.0f;
+gloost::PerspectiveCamera*   g_camera = 0;
 
 
 gloost::Point3 g_modelOffset;
-float          g_cameraRotateY  = gloost::PI;
+float          g_cameraRotateY  = gloost::math::PI;
 float          g_cameraRotateX  = 0.0f;
 float          g_cameraDistance = 1.0f;
 
@@ -72,7 +73,7 @@ float          g_cameraDistance = 1.0f;
 svo::TreeletMemoryManagerCl* g_clMemoryManager         = 0;
 #include <RenderPassAnalyse.h>
 svo::RenderPassAnalyse*      g_renderPassAnalyse       = 0;
-const float                  g_fbToAnalyseBufferDivide = 4.0f; // <---
+const float                  g_fbToAnalyseBufferDivide = 8.0f; // <---
 
 #include <gloost/InterleavedAttributes.h>
 gloost::InterleavedAttributes* g_voxelAttributes = 0;
@@ -131,7 +132,7 @@ struct virtualEye
 {
   virtualEye(unsigned screenWidth, unsigned screenHeight):
     _camPos(0.0f,0.0f, 1.0f),
-    _rotation(0.0f, gloost::PI, 0.0f),
+    _rotation(0.0f, gloost::math::PI, 0.0f),
     _camSpeed(0.0f, 0.0f, 0.0f),
     _camera(65.0,
            (float)screenWidth/(float)screenHeight,
@@ -162,7 +163,7 @@ struct virtualEye
       _camSpeed[0] += mouseSpeed[1]*-0.005;
       _camSpeed[1] += mouseSpeed[0]*0.005;
 
-      _camSpeed[0] = gloost::clamp(_camSpeed[0], -3.4f, 3.4f);
+      _camSpeed[0] = gloost::math::clamp((float)_camSpeed[0], -3.4f, 3.4f);
     }
 
     static const gloost::Vector3 upVector    (0.0f, 1.0f, 0.0f);
@@ -232,7 +233,7 @@ struct virtualEye
 
 };
 
-virtualEye g_eye(g_bufferWidth, g_bufferHeight);
+//virtualEye g_eye(g_bufferWidth, g_bufferHeight);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -241,18 +242,19 @@ virtualEye g_eye(g_bufferWidth, g_bufferHeight);
 
 void init()
 {
-  const unsigned screenDivide           = 4;
-  const unsigned incoreBufferSizeInByte = 256/*MB*/ * 1024 * 1024;
+  const unsigned screenDivide           = 1;
+  const unsigned incoreBufferSizeInByte = 512/*MB*/ * 1024 * 1024;
 
   g_bufferWidth  = g_screenWidth  / (float)screenDivide;
   g_bufferHeight = g_screenHeight / (float)screenDivide;
 
   // load svo
-//  const std::string svo_dir_path = "/home/fweissig/Desktop/SVO_DATA/";
-  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
+  const std::string svo_dir_path = "/home/fweissig/Data/SVO_DATA/";
+//  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  g_svoBaseName  = "TreeletBuildManager_out";
+//  g_svoBaseName  = "TreeletBuildManager_out";
+  g_svoBaseName  = "david_2mm_final_ao_s4_d11";
 //  g_svoBaseName  = "david_face_s1_D13";
 //  g_svoBaseName  = "david_face_s4_D13";
 
@@ -291,14 +293,17 @@ void init()
   texture->setTexParameter(GL_TEXTURE_MAX_LEVEL, 0);
   texture->initInContext();
 
-//  g_camera = new gloost::PerspectiveCamera(65.0,
-//                                           (float)g_screenWidth/(float)g_screenHeight,
-//                                           0.01,
-//                                           20.0);
+  g_camera = new gloost::PerspectiveCamera(65.0,
+                                           (float)g_screenWidth/(float)g_screenHeight,
+                                           0.01,
+                                           20.0);
 
-  float xmax    = /*g_camera->getNear()**/  tan(g_eye._camera.getFov() * gloost::PI / 360.0f) * g_eye._camera.getAspect();
+  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::math::PI / 360.0f) * g_camera->getAspect();
   g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
+//  float xmax    = /*g_camera->getNear()**/  tan(g_eye._camera.getFov() * gloost::PI / 360.0f) * g_eye._camera.getAspect();
+//  g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
+//  std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
 
 
   // init cl stuff
@@ -388,25 +393,25 @@ void frameStep()
   g_mouse.setLoc(x,g_screenHeight-y,0);
 
 
-  g_eye.move(glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ),
-             g_mouse.getSpeed(),
-             glfwGetKey('W'),
-             glfwGetKey('A'),
-             glfwGetKey('S'),
-             glfwGetKey('D'),
-             glfwGetKey(' '),
-             glfwGetKey(GLFW_KEY_LSHIFT ),
-             glfwGetKey('V'),
-             glfwGetKey(GLFW_KEY_LCTRL ));
+//  g_eye.move(glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ),
+//             g_mouse.getSpeed(),
+//             glfwGetKey('W'),
+//             glfwGetKey('A'),
+//             glfwGetKey('S'),
+//             glfwGetKey('D'),
+//             glfwGetKey(' '),
+//             glfwGetKey(GLFW_KEY_LSHIFT ),
+//             glfwGetKey('V'),
+//             glfwGetKey(GLFW_KEY_LCTRL ));
 
 
-#if 0
+#if 1
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ))
   {
     g_cameraRotateY += g_mouse.getSpeed()[0]*0.005;
     g_cameraRotateX += g_mouse.getSpeed()[1]*-0.005;
 
-    g_cameraRotateX = gloost::clamp(g_cameraRotateX, -3.0f, 3.0f);
+    g_cameraRotateX = gloost::math::clamp(g_cameraRotateX, -3.0f, 3.0f);
 
     g_frameDirty = true;
   }
@@ -476,7 +481,8 @@ void frameStep()
 
   if (glfwGetMouseButton( GLFW_MOUSE_BUTTON_3 ))
   {
-    gloost::Matrix viewMatrixInv = g_eye._camera.getViewMatrix().inverted();
+//    gloost::Matrix viewMatrixInv = g_eye._camera.getViewMatrix().inverted();
+    gloost::Matrix viewMatrixInv = g_camera->getViewMatrix().inverted();
     viewMatrixInv.setTranslate(0.0,0.0,0.0);
 
     g_mouse.getSpeed()[2] = 0.0;
@@ -658,7 +664,8 @@ void frameStep()
 
 
   // start raycasting
-  const gloost::Frustum& frustum = g_eye._camera.getFrustum();
+//  const gloost::Frustum& frustum = g_eye._camera.getFrustum();
+  const gloost::Frustum& frustum = g_camera->getFrustum();
 
   gloost::Vector3 frustumH_vec          = frustum.far_lower_right - frustum.far_lower_left;
   gloost::Vector3 frustumOnePixelWidth  = frustumH_vec/g_bufferWidth;
@@ -673,7 +680,8 @@ void frameStep()
 //    g_enableDynamicLoading = false;
 #if 1
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
-                                            &g_eye._camera,
+//                                            &g_eye._camera,
+                                            g_camera,
                                             modelMatrix,
                                             g_tScaleRatio*g_tScaleRatioMultiplyer,
                                             frustumOnePixelWidth,
@@ -688,7 +696,7 @@ void frameStep()
   {
 
     g_renderPassAnalyse->performAnalysePass(g_deviceGid,
-                                            &g_eye._camera,
+                                            g_camera,
                                             modelMatrix,
                                             g_tScaleRatio*g_tScaleRatioMultiplyer,
                                             frustumOnePixelWidth,
@@ -720,8 +728,8 @@ void frameStep()
     g_context->setKernelArgFloat4("renderToBuffer", 4, frustumOnePixelWidth);
     g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
     g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
-    g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_eye._camera.getPosition());
-    g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_eye._camera.getViewMatrix()));
+    g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
+    g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
     g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
     static bool flipFlop = false;
@@ -850,7 +858,7 @@ void draw2d()
         glPushMatrix();
         {
 
-          maxWeight = gloost::max(maxWeight, weight);
+          maxWeight = gloost::math::max(maxWeight, weight);
           glColor4f(0.1, 0.1, 0.2f, 0.4f);
           glTranslatef(0.0f, 0.0f, 0.0f);
           glScalef(maxWeight*1000.0f + 10, 30, 1.0);
@@ -869,8 +877,6 @@ void draw2d()
           gloost::drawQuad();
         }
         glPopMatrix();
-
-
 
 
 
@@ -984,7 +990,11 @@ void resize(int width, int height)
   const float ar = (float) width / (float) height;
 
 
-  g_eye._camera.setAspect(ar);
+//  g_eye._camera.setAspect(ar);
+  if (g_camera)
+  {
+    g_camera->setAspect(ar);
+  }
 
   /// recalc the frustum
   glViewport(0, 0, width, height);

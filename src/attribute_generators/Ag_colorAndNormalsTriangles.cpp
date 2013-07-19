@@ -128,8 +128,8 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
       float u,v;
       triangle.calculateUAndV( voxelCenter, u, v);
 
-      u = gloost::clamp(u, 0.0f, 1.0f);
-      v = gloost::clamp(v, 0.0f, 1.0f);
+      u = gloost::math::clamp(u, 0.0f, 1.0f);
+      v = gloost::math::clamp(v, 0.0f, 1.0f);
 
       normal += triangle.interpolateNormal(u, v);
       color  += triangle.interpolateColor(u, v);
@@ -140,9 +140,9 @@ Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* b
 
     normal.normalize();
 
-    color[0] = gloost::clamp(color[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
-    color[1] = gloost::clamp(color[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
-    color[2] = gloost::clamp(color[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
+    color[0] = gloost::math::clamp(color[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
+    color[1] = gloost::math::clamp(color[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
+    color[2] = gloost::math::clamp(color[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
 
     // compress attributes
     unsigned compressedNormal = gloost::Vector3::compressAsNormal(normal);
@@ -285,9 +285,9 @@ Ag_colorAndNormalsTriangles::averageFromeChildAttributes( TreeletBuildManager* b
 
   unsigned compressedNormal = gloost::Vector3::compressAsNormal(avarageNormal);
 
-  averageColor[0] = gloost::clamp(averageColor[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
-  averageColor[1] = gloost::clamp(averageColor[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
-  averageColor[2] = gloost::clamp(averageColor[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
+  averageColor[0] = gloost::math::clamp(averageColor[0], (gloost::mathType)0.0, (gloost::mathType)1.0);
+  averageColor[1] = gloost::math::clamp(averageColor[1], (gloost::mathType)0.0, (gloost::mathType)1.0);
+  averageColor[2] = gloost::math::clamp(averageColor[2], (gloost::mathType)0.0, (gloost::mathType)1.0);
 
   unsigned compressedColor = gloost::Vector3::compressAsColor(averageColor);
 
