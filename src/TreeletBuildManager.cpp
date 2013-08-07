@@ -118,14 +118,14 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
 
 
   // creating the Interleaved Attribute Layout
-  gloost::InterleavedAttributes attributeProto;
-  attributeProto.addAttribute(1, 4, "compressedNormal");
-  attributeProto.addAttribute(1, 4, "compressedColor");
+  gloost::InterleavedAttributes::shared_ptr attributeProto = gloost::InterleavedAttributes::create();
+  attributeProto->addAttribute(1, 4, "compressedNormal");
+  attributeProto->addAttribute(1, 4, "compressedColor");
 
 
   // Build root Treelet
   _treelets.resize(1);
-  _attributeBuffers.resize(1, new gloost::InterleavedAttributes());
+  _attributeBuffers.resize(1, gloost::InterleavedAttributes::create());
   {
     _treelets[0] = new Treelet(0u,  // this treelet Gid
                                0u,  // root node depth
@@ -136,8 +136,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                _treeletSizeInByte);
 
 
-    _attributeBuffers[0] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
-                                                             _treelets[0]->getNodes().size());
+    _attributeBuffers[0] = gloost::InterleavedAttributes::create(attributeProto->getLayout(),
+                                                                 _treelets[0]->getNodes().size());
 
     _attributeBuffers[0]->fill(0.0);
 
@@ -216,8 +216,8 @@ TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                           parentIncompleteQueueElements[i]._parentLocalNodeIndex,
                                           _treeletSizeInByte);
 
-      _attributeBuffers[treeletId] = new gloost::InterleavedAttributes(attributeProto.getLayout(),
-                                                                       _treelets[treeletId]->getNodes().size());
+      _attributeBuffers[treeletId] = gloost::InterleavedAttributes::create(attributeProto->getLayout(),
+                                                                           _treelets[treeletId]->getNodes().size());
 
       _attributeBuffers[treeletId]->fill(0.0);
 
@@ -367,7 +367,7 @@ TreeletBuildManager::getTreelet(gloost::gloostId Gid)
   \remarks ...
 */
 
-gloost::InterleavedAttributes*
+std::shared_ptr<gloost::InterleavedAttributes>
 TreeletBuildManager::getAttributeBuffer(gloost::gloostId Gid)
 {
   return _attributeBuffers[Gid];

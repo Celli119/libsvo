@@ -173,8 +173,8 @@ SvoLoader::SvoLoader(const std::string& basePath):
   std::cerr << std::endl << "Message from SvoLoader::SvoLoader(const std::string& basePath): ";
   std::cerr << std::endl << "             Loading attributes " + attributeDataPath;
 
-	gloost::InterleavedAttributes* attributes = new gloost::InterleavedAttributes(attributeDataPath);
-	attributes->takeReference();
+	gloost::InterleavedAttributes::shared_ptr attributes = gloost::InterleavedAttributes::create(attributeDataPath);
+//	attributes->takeReference();
   _attributeData.push_back(attributes);
 
   std::cerr << std::endl << "Svo attribute layout: " << attributes->getLayoutString();

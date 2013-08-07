@@ -186,10 +186,10 @@ Ag_colorAndNormalsTriangles::createInnerNodesAttributes( TreeletBuildManager* bu
   {
     Treelet* treelet = buildManager->getTreelet(treeletGid);
 
-    gloost::InterleavedAttributes* treeletAttributebuffer =  buildManager->getAttributeBuffer(treeletGid);
+    gloost::InterleavedAttributes::shared_ptr treeletAttributebuffer = buildManager->getAttributeBuffer(treeletGid);
     unsigned sourceIndex = treeletAttributebuffer->getPackageIndex(0);
 
-    gloost::InterleavedAttributes* parentTreeletAttributebuffer =  buildManager->getAttributeBuffer(treelet->getParentTreeletGid());
+    gloost::InterleavedAttributes::shared_ptr parentTreeletAttributebuffer = buildManager->getAttributeBuffer(treelet->getParentTreeletGid());
     unsigned destIndex = parentTreeletAttributebuffer->getPackageIndex(treelet->getParentTreeletLeafPosition());
 
     parentTreeletAttributebuffer->getVector()[destIndex++] = treeletAttributebuffer->getVector()[sourceIndex++];
