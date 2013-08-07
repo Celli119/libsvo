@@ -40,6 +40,7 @@
 
 // cpp includes
 #include <string>
+#include <memory>
 
 
 
@@ -95,8 +96,8 @@ class SvoLoader
    unsigned _bitMaskTexId;
    unsigned _svoAttributePointersTexId;
 
-   std::vector<gloost::InterleavedAttributes*> _attributeData;
-   std::vector<unsigned>                       _attributeDataTextureIds;
+   std::vector<std::shared_ptr<gloost::InterleavedAttributes> > _attributeData;
+   std::vector<unsigned>                                        _attributeDataTextureIds;
 
 };
 

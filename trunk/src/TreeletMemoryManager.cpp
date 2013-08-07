@@ -211,7 +211,7 @@ TreeletMemoryManager::getIncoreBuffer()
   \remarks ...
 */
 
-gloost::InterleavedAttributes*
+std::shared_ptr<gloost::InterleavedAttributes>
 TreeletMemoryManager::getAttributeIncoreBuffer()
 {
   return _incoreAttributeBuffer;
@@ -280,7 +280,7 @@ TreeletMemoryManager::loadFromFile(const std::string& filePath)
 
   for (unsigned i=0; i!=numTreelets; ++i)
   {
-    _attributeBuffers[i] = new gloost::InterleavedAttributes();
+    _attributeBuffers[i] = gloost::InterleavedAttributes::create();
     _attributeBuffers[i]->loadFromFile(inFileAttributes);
   }
 
@@ -343,8 +343,8 @@ TreeletMemoryManager::resetIncoreBuffer()
   std::cerr << std::endl << "             Attribute incore buffer: " << numNodesInIncoreBuffer * _attributeBuffers[0]->getPackageStride() / 1024.0 /1024.0 << " MB";
   if (_attributeBuffers.size())
   {
-    _incoreAttributeBuffer = new gloost::InterleavedAttributes(_attributeBuffers[0]->getLayout(),
-                                                               numNodesInIncoreBuffer);
+    _incoreAttributeBuffer = gloost::InterleavedAttributes::create(_attributeBuffers[0]->getLayout(),
+                                                                   numNodesInIncoreBuffer);
   }
   std::cerr << std::endl << "             Attribute incore buffer size: " << _incoreAttributeBuffer->getVector().size();
 

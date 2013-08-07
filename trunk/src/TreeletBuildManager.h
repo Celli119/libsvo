@@ -41,6 +41,7 @@
 // cpp includes
 #include <string>
 #include <vector>
+#include <memory>
 
 
 namespace gloost
@@ -85,7 +86,7 @@ class TreeletBuildManager
     Treelet* getTreelet(gloost::gloostId Gid);
 
     // returns a attribute buffer for a given Gid
-    gloost::InterleavedAttributes* getAttributeBuffer(gloost::gloostId Gid);
+    std::shared_ptr<gloost::InterleavedAttributes> getAttributeBuffer(gloost::gloostId Gid);
 
 
 	protected:
@@ -95,8 +96,8 @@ class TreeletBuildManager
 
 	  unsigned _treeletSizeInByte;
 
-    std::vector<Treelet*>                       _treelets;
-    std::vector<gloost::InterleavedAttributes*> _attributeBuffers;
+    std::vector<Treelet*>                                         _treelets;
+    std::vector< std::shared_ptr<gloost::InterleavedAttributes> > _attributeBuffers;
 
 };
 

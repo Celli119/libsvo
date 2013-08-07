@@ -44,6 +44,7 @@
 #include <stack>
 #include <map>
 #include <set>
+#include <memory>
 
 
 namespace gloost
@@ -117,7 +118,7 @@ class TreeletMemoryManager
     std::vector<CpuSvoNode>& getIncoreBuffer();
 
     // returns the attribute incore buffer
-    gloost::InterleavedAttributes* getAttributeIncoreBuffer();
+    std::shared_ptr<gloost::InterleavedAttributes> getAttributeIncoreBuffer();
 
 
 
@@ -162,12 +163,12 @@ class TreeletMemoryManager
 	  unsigned                _numNodesPerTreelet;
 
 
-    std::vector<Treelet*>                        _treelets;
-    std::vector<gloost::InterleavedAttributes*>  _attributeBuffers;
+    std::vector<Treelet*>                                        _treelets;
+    std::vector<std::shared_ptr<gloost::InterleavedAttributes> > _attributeBuffers;
 
-    std::vector<CpuSvoNode>                      _incoreBuffer;
-    gloost::InterleavedAttributes*               _incoreAttributeBuffer;
-    unsigned                                     _incoreBufferSizeInByte;
+    std::vector<CpuSvoNode>                        _incoreBuffer;
+    std::shared_ptr<gloost::InterleavedAttributes> _incoreAttributeBuffer;
+    unsigned                                       _incoreBufferSizeInByte;
 
     std::vector<SlotInfo>              _slots;   // << assoziation from slot id to Treelet Gid
 
