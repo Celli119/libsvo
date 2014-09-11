@@ -105,10 +105,10 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
   _treelet  = treelet;
   _mesh     = mesh;
 
-  std::vector<gloost::TriangleFace>& triangles = mesh->getTriangles();
-  std::vector<gloost::Point3>&       vertices  = mesh->getVertices();
-  std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
-  std::vector<gloost::vec4>&         colors    = mesh->getColors();
+  std::vector<gloost::Mesh::TriangleIndices>& triangles = mesh->getTriangles();
+  std::vector<gloost::Point3>&                vertices  = mesh->getVertices();
+  std::vector<gloost::Vector3>&               normals   = mesh->getNormals();
+  std::vector<gloost::vec4>&                  colors    = mesh->getColors();
 
   std::cerr << std::endl;
   std::cerr << std::endl << "Message from TreeletBuilderFromFaces::build(SvoBranch* svo, gloost::Mesh* mesh):";
@@ -154,10 +154,10 @@ TreeletBuilderFromFaces::build(Treelet* treelet,
   _treelet  = treelet;
   _mesh     = mesh;
 
-  std::vector<gloost::TriangleFace>& triangles = mesh->getTriangles();
-  std::vector<gloost::Point3>&       vertices  = mesh->getVertices();
-  std::vector<gloost::Vector3>&      normals   = mesh->getNormals();
-  std::vector<gloost::vec4>&         colors    = mesh->getColors();
+  std::vector<gloost::Mesh::TriangleIndices>& triangles = mesh->getTriangles();
+  std::vector<gloost::Point3>&                vertices  = mesh->getVertices();
+  std::vector<gloost::Vector3>&               normals   = mesh->getNormals();
+  std::vector<gloost::vec4>&                  colors    = mesh->getColors();
 
 
 #ifdef SVO_BUILDING_VERBOSE

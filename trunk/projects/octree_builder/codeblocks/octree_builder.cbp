@@ -16,17 +16,12 @@
 				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
-					<Add option="-Os" />
 					<Add option="-O3" />
-					<Add option="-O2" />
-					<Add option="-O1" />
-					<Add option="-O" />
 					<Add option="-Wall" />
 					<Add option="-W" />
 					<Add option="-fopenmp" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
 					<Add library="libsvo" />
 					<Add library="gloost" />
 					<Add library="GL" />
@@ -81,10 +76,12 @@
 			<Add directory="../src" />
 			<Add directory="../../../src" />
 			<Add directory="../../../../gloost/src" />
+			<Add directory="../../../../bencl/bencl/src" />
 		</Compiler>
 		<Linker>
-			<Add directory="../../../../gloost/gnulinux/bin" />
+			<Add directory="../../../../gloost/build/lib" />
 			<Add directory="../../../libsvo/lib" />
+			<Add directory="../../../../bencl/bencl/lib" />
 		</Linker>
 		<Unit filename="../src/octree_builder.cpp" />
 		<Extensions>

@@ -91,7 +91,7 @@ ImageToPointcloud::~ImageToPointcloud()
 */
 
 /* static*/
-gloost::Mesh*
+std::shared_ptr<gloost::Mesh>
 ImageToPointcloud::generate(gloost::mathType      fieldOfView,
                             const gloost::Matrix& viewMatrix,
                             const std::string& depthImagePath,
@@ -129,7 +129,7 @@ ImageToPointcloud::generate(gloost::mathType      fieldOfView,
 
 
   // mesh to store point indices
-  gloost::Mesh* pointMesh = new gloost::Mesh();
+  auto pointMesh = gloost::Mesh::create();
 //  pointMesh->takeReference();
   pointMesh->getPoints().resize(numPixels);
   pointMesh->getVertices().resize(numPixels);

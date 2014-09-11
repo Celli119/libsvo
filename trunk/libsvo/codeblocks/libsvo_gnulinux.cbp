@@ -16,11 +16,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
-					<Add option="-Os" />
 					<Add option="-O3" />
-					<Add option="-O2" />
-					<Add option="-O1" />
-					<Add option="-O" />
 					<Add option="-std=c++11" />
 					<Add option="-Wall" />
 					<Add option="-W" />
@@ -66,6 +62,7 @@
 			<Add option="-DGLOOST_GNULINUX" />
 			<Add directory="../../src" />
 			<Add directory="../../../gloost/src" />
+			<Add directory="../../../libbencl/libbencl/src" />
 			<Add directory="/opt/AMDAPP/include" />
 		</Compiler>
 		<Linker>
@@ -73,7 +70,8 @@
 			<Add library="GLEW" />
 			<Add library="glut" />
 			<Add library="GLU" />
-			<Add directory="../../../gloost/gnulinux/bin" />
+			<Add directory="../../../gloost/build/lib" />
+			<Add directory="../../../libbencl/libbencl/lib" />
 		</Linker>
 		<Unit filename="../../data/shaders/color_only.fs" />
 		<Unit filename="../../data/shaders/color_only.vs" />

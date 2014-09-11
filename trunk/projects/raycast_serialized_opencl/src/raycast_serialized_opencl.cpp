@@ -43,7 +43,7 @@ unsigned int g_frameCounter = 0;
 
 /// includes and globals for this demo /////////////////////////////////////////
 
-#include <gloost/gloostRenderGoodies.h>
+#include <gloost/gl/gloostRenderGoodies.h>
 
 
 #include <gloost/TextureText.h>
@@ -54,8 +54,8 @@ std::string g_gloostFolder = "../../gloost/";
 std::string g_dataPath     = "../data/";
 
 #include <gloost/Matrix.h>
-#include <gloost/Mouse.h>
-gloost::Mouse g_mouse;
+#include <gloost/human_input/MouseState.h>
+gloost::human_input::MouseState g_mouse;
 
 #include <gloost/PerspectiveCamera.h>
 float                        g_tScaleRatio           = 1.0f;
@@ -83,11 +83,11 @@ gloost::InterleavedAttributes* g_voxelAttributes = 0;
 
 // setup for rendering into frame buffer
 #include <gloost/TextureManager.h>
-#include <gloost/Texture.h>
+#include <gloost/gl/Texture.h>
 unsigned g_framebufferTextureId = 0;
 
 #include <gloost/gloostHelper.h>
-#include <gloost/gloostGlUtil.h>
+#include <gloost/gl/gloostGlUtil.h>
 
 // info
 bool        g_showTextInfo         = true;
@@ -275,15 +275,15 @@ void init()
   std::cerr << std::endl << "  height: " << g_bufferHeight;
   std::cerr << std::endl;
 
-  gloost::Texture* texture = new gloost::Texture( g_bufferWidth,
-                                                  g_bufferHeight,
-                                                  1,
-                                                  0,//(unsigned char*)&pixelData->getVector().front(),
-                                                  16,
-                                                  GL_TEXTURE_2D,
-                                                  GL_RGBA16F,
-                                                  GL_RGBA,
-                                                  GL_FLOAT);
+  gloost::gl::Texture* texture = new gloost::gl::Texture( g_bufferWidth,
+                                                          g_bufferHeight,
+                                                          1,
+                                                          0,//(unsigned char*)&pixelData->getVector().front(),
+                                                          16,
+                                                          GL_TEXTURE_2D,
+                                                          GL_RGBA16F,
+                                                          GL_RGBA,
+                                                          GL_FLOAT);
 
   g_framebufferTextureId = gloost::TextureManager::get()->addTexture(texture);
 
@@ -298,7 +298,7 @@ void init()
                                            0.01,
                                            20.0);
 
-  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::math::PI / 360.0f) * g_camera->getAspect();
+  float xmax    = /*g_camera->getNear()**/  tan(g_camera->getFov() * gloost::math::PI / 360.0f) * g_camera->getAspectRatio();
   g_tScaleRatio = xmax / /*g_camera->getNear() /*/ (g_bufferWidth*0.5);
   std::cerr << std::endl << "g_tScaleRatio: " << g_tScaleRatio;
 //  float xmax    = /*g_camera->getNear()**/  tan(g_eye._camera.getFov() * gloost::PI / 360.0f) * g_eye._camera.getAspect();
@@ -358,7 +358,7 @@ void initCl()
 
 
   // assign render buffer
-  gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
+  gloost::gl::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
   gloost::gloostId  renderbufferGid   = g_context->createClImage(CL_MEM_WRITE_ONLY,
                                                                  frameBufferTexture->getTarget(),
                                                                  frameBufferTexture->getTextureHandle());
@@ -729,7 +729,7 @@ void frameStep()
     g_context->setKernelArgFloat4("renderToBuffer", 5, frustumOnePixelHeight);
     g_context->setKernelArgFloat4("renderToBuffer", 6, frustum.far_lower_left);
     g_context->setKernelArgFloat4("renderToBuffer", 7, modelMatrix * g_camera->getPosition());
-    g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
+    g_context->setKernelArgMat4x4("renderToBuffer", 8, gloost::gl::modelViewMatrixToNormalMatrix(g_camera->getViewMatrix()));
     g_context->setKernelArgFloat4("renderToBuffer", 9, gloost::vec4(g_viewMode, 0.0,0.0,0.0));
 
     static bool flipFlop = false;
@@ -801,7 +801,7 @@ void draw2d()
       if (g_showRayCastImage)
       {
 
-        gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
+        gloost::gl::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_framebufferTextureId);
         glDisable(GL_CULL_FACE);
         frameBufferTexture->bind();
 
@@ -810,7 +810,7 @@ void draw2d()
         {
           glTranslated(0.0, g_screenHeight, 0.0);
           glScaled(g_screenWidth, -(int)g_screenHeight, 1.0);
-          gloost::drawQuad();
+          gloost::gl::drawQuad();
         }
         glPopMatrix();
         frameBufferTexture->unbind();
@@ -818,7 +818,7 @@ void draw2d()
       }
       else
       {
-        gloost::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_renderPassAnalyse->getTestFrameBufferGid());
+        gloost::gl::Texture* frameBufferTexture = gloost::TextureManager::get()->getTextureWithoutRefcount(g_renderPassAnalyse->getTestFrameBufferGid());
         glDisable(GL_CULL_FACE);
         frameBufferTexture->bind();
 
@@ -826,7 +826,7 @@ void draw2d()
         {
           glTranslated(0.0, g_screenHeight, 0.0);
           glScaled(g_screenWidth, -(int)g_screenHeight, 1.0);
-          gloost::drawQuad();
+          gloost::gl::drawQuad();
         }
         glPopMatrix();
         frameBufferTexture->unbind();
@@ -862,7 +862,7 @@ void draw2d()
           glColor4f(0.1, 0.1, 0.2f, 0.4f);
           glTranslatef(0.0f, 0.0f, 0.0f);
           glScalef(maxWeight*1000.0f + 10, 30, 1.0);
-          gloost::drawQuad();
+          gloost::gl::drawQuad();
 
           maxWeight *= 0.99;
         }
@@ -874,7 +874,7 @@ void draw2d()
           glColor4f(weight, 1.0f-weight, 0.0f, 1.0f);
           glTranslatef(0.0f, 0.0f, 0.0f);
           glScalef(weight*1000.0f + 10, 30, 1.0);
-          gloost::drawQuad();
+          gloost::gl::drawQuad();
         }
         glPopMatrix();
 
@@ -993,7 +993,7 @@ void resize(int width, int height)
 //  g_eye._camera.setAspect(ar);
   if (g_camera)
   {
-    g_camera->setAspect(ar);
+    g_camera->setAspectRatio(ar);
   }
 
   /// recalc the frustum

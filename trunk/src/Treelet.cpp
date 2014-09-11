@@ -36,7 +36,7 @@
 #include <gloost/MatrixStack.h>
 #include <gloost/BinaryFile.h>
 #include <gloost/BinaryBundle.h>
-#include <gloost/serializers.h>
+#include <gloost/gloostSerial.h>
 #include <gloost/InterleavedAttributes.h>
 
 // cpp includes
@@ -472,9 +472,9 @@ Treelet::loadFromFile(gloost::BinaryFile& inFile)
   _parentTreeletLeafsParentPosition = inFile.readUInt32();
 
   _serializedNodes.resize(_memSize/sizeof(CpuSvoNode), CpuSvoNode());
-  gloost::unserialize((unsigned char*)&_serializedNodes.front(),
-                      inFile,
-                      _numNodes*sizeof(CpuSvoNode));
+  gloost::serial::unserialize((unsigned char*)&_serializedNodes.front(),
+                              inFile,
+                              _numNodes*sizeof(CpuSvoNode));
 }
 
 

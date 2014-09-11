@@ -16,13 +16,8 @@
 				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
-					<Add option="-Os" />
 					<Add option="-O3" />
-					<Add option="-O2" />
-					<Add option="-O1" />
-					<Add option="-O" />
 					<Add option="-std=c++11" />
-					<Add option="-std=c++0x" />
 					<Add option="-Wall" />
 					<Add option="-W" />
 				</Compiler>
@@ -30,6 +25,7 @@
 					<Add option="-s" />
 					<Add library="libsvo" />
 					<Add library="gloost" />
+					<Add library="bencl" />
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
 					<Add library="OpenCL" />
@@ -52,6 +48,7 @@
 				<Linker>
 					<Add library="libsvo_db" />
 					<Add library="gloost_db" />
+					<Add library="bencl_db" />
 					<Add library="freeimage" />
 					<Add library="boost_thread" />
 					<Add library="OpenCL" />
@@ -69,6 +66,7 @@
 			<Add directory="../src" />
 			<Add directory="../../../src" />
 			<Add directory="../../../../gloost/src" />
+			<Add directory="../../../../libbencl/libbencl/src" />
 			<Add directory="/usr/local/cuda/include" />
 			<Add directory="/opt/AMDAPP/include" />
 		</Compiler>
@@ -77,8 +75,9 @@
 			<Add library="glfw" />
 			<Add library="GLU" />
 			<Add library="libtinyxml" />
-			<Add directory="../../../../gloost/gnulinux/bin" />
+			<Add directory="../../../../gloost/build/lib" />
 			<Add directory="../../../libsvo/lib" />
+			<Add directory="../../../../libbencl/libbencl/lib" />
 		</Linker>
 		<Unit filename="../../../opencl/fillFrameBuffer_rgba.cl" />
 		<Unit filename="../../../opencl/treeletRenderer_rgba.cl" />
