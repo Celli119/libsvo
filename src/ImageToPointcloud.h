@@ -57,11 +57,11 @@ class ImageToPointcloud
 	public:
 
     // generates a mesh from a depth image and a color image
-	  static gloost::Mesh* generate(gloost::mathType fieldOfView,
-                                  const gloost::Matrix& viewMatrix,
-                                  const std::string& depthImagePath,
-                                  const std::string& normalImagePath,
-                                  const std::string& colorImagePath);
+	  static std::shared_ptr<gloost::Mesh> generate(gloost::mathType fieldOfView,
+                                                  const gloost::Matrix& viewMatrix,
+                                                  const std::string& depthImagePath,
+                                                  const std::string& normalImagePath,
+                                                  const std::string& colorImagePath);
 
 
 	private:

@@ -33,7 +33,7 @@
 
 // gloost system includes
 #include <gloost/TextureManager.h>
-#include <gloost/Texture.h>
+#include <gloost/gl/Texture.h>
 #include <gloost/PerspectiveCamera.h>
 #include <gloost/Frustum.h>
 
@@ -93,15 +93,15 @@ RenderPassAnalyse::RenderPassAnalyse( TreeletMemoryManagerCl* memoryManager,
 
 
   // test texture, see what the analyser sees
-  gloost::Texture* texture = new gloost::Texture( _bufferWidth,
-                                                  _bufferHeight,
-                                                  1,
-                                                  0,//(unsigned char*)&pixelData->getVector().front(),
-                                                  16,
-                                                  GL_TEXTURE_2D,
-                                                  GL_RGBA16F,
-                                                  GL_RGBA,
-                                                  GL_FLOAT);
+  gloost::gl::Texture* texture = new gloost::gl::Texture( _bufferWidth,
+                                                          _bufferHeight,
+                                                          1,
+                                                          0,//(unsigned char*)&pixelData->getVector().front(),
+                                                          16,
+                                                          GL_TEXTURE_2D,
+                                                          GL_RGBA16F,
+                                                          GL_RGBA,
+                                                          GL_FLOAT);
 
   _testFramebufferTextureId = gloost::TextureManager::get()->addTexture(texture);
 

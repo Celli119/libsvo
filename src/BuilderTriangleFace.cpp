@@ -77,7 +77,7 @@ BuilderTriangleFace::BuilderTriangleFace(gloost::Mesh* mesh, unsigned triangleIn
     _id(triangleIndex)
 
 {
-  gloost::TriangleFace& triangle = mesh->getTriangles()[_id];
+  gloost::Mesh::TriangleIndices& triangle = mesh->getTriangles()[_id];
 
   _pos0 = mesh->getVertices()[triangle.vertexIndices[0]];
   _pos1 = mesh->getVertices()[triangle.vertexIndices[1]];

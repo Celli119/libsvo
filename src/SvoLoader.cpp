@@ -29,7 +29,7 @@
 // gloost system includes
 #include <gloost/BinaryFile.h>
 #include <gloost/BinaryBundle.h>
-#include <gloost/Texture.h>
+#include <gloost/gl/Texture.h>
 #include <gloost/TextureManager.h>
 #include <gloost/InterleavedAttributes.h>
 
@@ -125,7 +125,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
   std::cerr << std::endl;
   std::cerr << std::endl << "             Creating child pointers TBO ";
 
-  gloost::Texture* childPointersTexture = new gloost::Texture(_svoChildPointersBundle,
+  gloost::gl::Texture* childPointersTexture = new gloost::Texture(_svoChildPointersBundle,
                                                               GL_R32UI,
                                                               GL_DYNAMIC_DRAW,
                                                               GL_TEXTURE_BUFFER);
@@ -139,7 +139,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
 
   std::cerr << std::endl << "             Creating bitmasks TBO ";
 
-  gloost::Texture* bitMaskTexture = new gloost::Texture(_svoBitMasksBundle,
+  gloost::gl::Texture* bitMaskTexture = new gloost::Texture(_svoBitMasksBundle,
                                                         GL_RG8,
                                                         GL_DYNAMIC_DRAW,
                                                         GL_TEXTURE_BUFFER);
@@ -152,7 +152,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
 
   std::cerr << std::endl << "             Creating attrib pointers TBO ";
 
-  gloost::Texture* attributePointersTexture = new gloost::Texture(_attributePointersBundle,
+  gloost::gl::Texture* attributePointersTexture = new gloost::Texture(_attributePointersBundle,
                                                                   GL_R32UI,
                                                                   GL_DYNAMIC_DRAW,
                                                                   GL_TEXTURE_BUFFER);
@@ -219,7 +219,7 @@ SvoLoader::SvoLoader(const std::string& basePath):
 
   std::cerr << std::endl << "             Creating attribute TBO ";
 
-  gloost::Texture* attributesTexture = new gloost::Texture(attributeBundle,
+  gloost::gl::Texture* attributesTexture = new gloost::Texture(attributeBundle,
                                                             GL_RGBA32F,
                                                             GL_DYNAMIC_DRAW,
                                                             GL_TEXTURE_BUFFER);
