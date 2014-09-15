@@ -40,6 +40,7 @@
 
 // cpp includes
 #include <string>
+#include <memory>
 
 
 namespace gloost
@@ -75,7 +76,7 @@ class Ag_colorAndNormalsTriangles: public AttributeGenerator
     // creates attributes for all final leafes of a treelet
     static void createFinalLeafesAttributes(TreeletBuildManager* buildManager,
                                             unsigned treeletGid,
-                                            gloost::Mesh* mesh);
+                                            const std::shared_ptr<gloost::Mesh>& mesh);
 
     static void createInnerNodesAttributes( TreeletBuildManager* buildManager,
                                             gloost::gloostId     treeletGid);

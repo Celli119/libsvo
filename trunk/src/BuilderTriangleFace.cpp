@@ -60,7 +60,7 @@ namespace svo
   \remarks ...
 */
 
-BuilderTriangleFace::BuilderTriangleFace(gloost::Mesh* mesh, unsigned triangleIndex):
+BuilderTriangleFace::BuilderTriangleFace(const std::shared_ptr<gloost::Mesh>& mesh, unsigned triangleIndex):
     _pos0(),
     _pos1(),
     _pos2(),

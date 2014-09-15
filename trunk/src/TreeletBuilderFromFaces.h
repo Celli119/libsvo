@@ -45,6 +45,7 @@
 
 // cpp includes
 #include <string>
+#include <memory>
 #include <queue>
 
 namespace svo
@@ -68,10 +69,10 @@ class TreeletBuilderFromFaces
 
 
     // builds a treelet by discretising triangles using all triangles of a mesh
-	  void build(Treelet* treelet, gloost::Mesh* mesh);
+	  void build(Treelet* treelet, const std::shared_ptr<gloost::Mesh>& mesh);
 
     // builds a treelet by discretising triangles using initial QueueElement
-	  void build(Treelet* treelet, gloost::Mesh* mesh, const Treelet::QueueElement& initialQueueElement);
+	  void build(Treelet* treelet, const std::shared_ptr<gloost::Mesh>& mesh, const Treelet::QueueElement& initialQueueElement);
 
 
 
@@ -84,7 +85,7 @@ class TreeletBuilderFromFaces
     unsigned          _maxDepth;
 
     Treelet*          _treelet;
-    gloost::Mesh*     _mesh;
+    std::shared_ptr<gloost::Mesh> _mesh;
 
     unsigned          _numBuildThreads;
 

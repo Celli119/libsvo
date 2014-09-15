@@ -253,8 +253,8 @@ void init()
 //  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-//  g_svoBaseName  = "TreeletBuildManager_out";
-  g_svoBaseName  = "david_2mm_final_ao_s4_d11";
+  g_svoBaseName  = "TreeletBuildManager_out";
+//  g_svoBaseName  = "david_2mm_final_ao_s4_d11";
 //  g_svoBaseName  = "david_face_s1_D13";
 //  g_svoBaseName  = "david_face_s4_D13";
 
@@ -910,9 +910,9 @@ void draw2d()
           }
 
           unsigned freeIncoreSlots = g_clMemoryManager->getFreeIncoreSlotStack().size();
-          float freeIncoreSlotsMb  = ((float)freeIncoreSlots * (float)sizeof(svo::CpuSvoNode)) / 1024.0f / 1024.0f;
+//          float freeIncoreSlotsMb  = (float)(freeIncoreSlots * sizeof(svo::CpuSvoNode)) / 1024.0f / 1024.0f;
 
-          g_texter->renderTextLine("free incore slots:  " + gloost::toString(freeIncoreSlots) + " (" + gloost::toString(freeIncoreSlotsMb) + "MB)");
+          g_texter->renderTextLine("free incore slots:  " + gloost::toString(freeIncoreSlots));
           g_texter->renderTextLine("slots to upload:    " + gloost::toString(g_renderPassAnalyse->getVisibleNewTreeletsGids().size()));
 
 
