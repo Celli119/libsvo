@@ -102,7 +102,7 @@ void
 TreeletBuildManager::buildFromFaces(unsigned treeletSizeInByte,
                                     unsigned maxSvoDepth,
                                     unsigned numBuildingThreads,
-                                    gloost::Mesh* mesh,
+                                    const std::shared_ptr<gloost::Mesh>& mesh,
                                     const std::string& outFilePath)
 {
 

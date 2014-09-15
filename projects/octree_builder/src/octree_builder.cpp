@@ -24,7 +24,7 @@ std::string g_outputPath   = "";
 unsigned g_treeletSizeInByte  = 512u*1024u;
 unsigned g_maxSvoDepth        = 8u;
 unsigned g_nodesVisDepth      = 99u;
-unsigned g_numBuildingThreads = 12u;
+unsigned g_numBuildingThreads = 8u;
 float    g_rotateXInDeg       = 0.0f;
 
 #include <gloost/Matrix.h>
@@ -34,7 +34,7 @@ gloost::Matrix g_sizeAndCenterMatrix;
 #include <gloost/PlyLoader.h>
 #include <gloost/InterleavedAttributes.h>
 #include <gloost/Mesh.h>
-gloost::Mesh* g_mesh = 0;
+gloost::Mesh::shared_ptr g_mesh = nullptr;
 
 // SVO
 //#include <SvoBranch.h>
@@ -73,7 +73,7 @@ void idle(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <gloost/DirectoryList.h>
+#include <gloost/util/DirectoryList.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,26 +92,25 @@ void init()
     std::cerr << std::endl << "Reading directory: " << g_inputPath;
 
 
-    g_mesh = new gloost::Mesh();
-    g_mesh->takeReference();
+    g_mesh = gloost::Mesh::create();
 
-    gloost::DirectoryList directory(g_inputPath);
+    gloost::util::DirectoryList directory(g_inputPath);
     directory.open(".ply");
 
-    for (unsigned i=0; i!=directory.get_entries().size(); ++i)
+    for (unsigned i=0; i!=directory.getEntries().size(); ++i)
     {
-      std::cerr << std::endl << "  -> " << gloost::pathToFilename(directory.get_entries()[i]);
+      std::cerr << std::endl << "  -> " << gloost::pathToFilename(directory.getEntries()[i]);
     }
 
     std::cerr << std::endl;
     std::cerr << std::endl << "Loading and mergin files: " << g_inputPath;
-    for (unsigned i=0; i!=directory.get_entries().size(); ++i)
+    for (unsigned i=0; i!=directory.getEntries().size(); ++i)
     {
       std::cerr << std::endl << "  " << i
-                             << " of " << directory.get_entries().size() << "  -> "
-                             << gloost::pathToFilename(directory.get_entries()[i]) << " ... ";
+                             << " of " << directory.getEntries().size() << "  -> "
+                             << gloost::pathToFilename(directory.getEntries()[i]) << " ... ";
 
-      gloost::PlyLoader ply(directory.get_entries()[i]);
+      gloost::PlyLoader ply(directory.getEntries()[i]);
 
       std::cerr << "loaded ... ";
 
@@ -119,7 +118,6 @@ void init()
 
       std::cerr << "merged";
     }
-    g_mesh->takeReference();
   }
   // just load one file
   else
@@ -127,19 +125,18 @@ void init()
     std::cerr << std::endl << "Loading geometry: " << g_inputPath;
     gloost::PlyLoader ply(g_inputPath);
     g_mesh = ply.getMesh();
-    g_mesh->takeReference();
   }
 
   g_mesh->recalcBoundingBox();
 
-  std::cerr << std::endl << " Mesh memmory usage: " << g_mesh->getMemoryUsageCpu()/1024.0/1024.0 << " MB";
+  std::cerr << std::endl << " Mesh memmory usage: " << g_mesh->getMemoryUsage()/1024.0/1024.0 << " MB";
 
 
 
   /// transform
   gloost::Matrix rotateMat = gloost::Matrix::createIdentity();
 
-  if (gloost::math::abs(g_rotateXInDeg) > 0.00001)
+  if (std::abs(g_rotateXInDeg) > 0.00001)
   {
     rotateMat = gloost::Matrix::createRotMatrix(gloost::Vector3(1.0, 0.0, 0.0),
                                                 gloost::math::deg2rad(g_rotateXInDeg));
@@ -194,7 +191,7 @@ int main(int argc, char *argv[])
   if (!cmdp.isOptSet("i"))
   {
     std::cerr << std::endl << "No input file was specified.";
-    std::cerr << std::endl << "Use the -i parameter to do it.";
+    std::cerr << std::endl << "Use the -i parameter to do so.";
     std::cerr << std::endl;
     std::cerr << std::endl;
     cmdp.showHelp();

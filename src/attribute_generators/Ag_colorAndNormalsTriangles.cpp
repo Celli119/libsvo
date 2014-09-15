@@ -100,7 +100,7 @@ Ag_colorAndNormalsTriangles::~Ag_colorAndNormalsTriangles()
 void
 Ag_colorAndNormalsTriangles::createFinalLeafesAttributes( TreeletBuildManager* buildManager,
                                                           unsigned treeletGid,
-                                                          gloost::Mesh* mesh)
+                                                          const std::shared_ptr<gloost::Mesh>& mesh)
 {
 
   Treelet* treelet = buildManager->getTreelet(treeletGid);

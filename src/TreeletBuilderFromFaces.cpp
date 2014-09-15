@@ -100,7 +100,7 @@ TreeletBuilderFromFaces::~TreeletBuilderFromFaces()
 */
 
 void
-TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
+TreeletBuilderFromFaces::build(Treelet* treelet, const std::shared_ptr<gloost::Mesh>& mesh)
 {
   _treelet  = treelet;
   _mesh     = mesh;
@@ -148,7 +148,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, gloost::Mesh* mesh)
 
 void
 TreeletBuilderFromFaces::build(Treelet* treelet,
-                               gloost::Mesh* mesh,
+                               const std::shared_ptr<gloost::Mesh>& mesh,
                                const Treelet::QueueElement& initialQueueElement)
 {
   _treelet  = treelet;

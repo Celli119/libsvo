@@ -36,6 +36,7 @@
 
 // cpp includes
 #include <string>
+#include <memory>
 
 
 namespace gloost
@@ -59,7 +60,7 @@ class BuilderTriangleFace
 	public:
 
     // class constructor
-    BuilderTriangleFace(gloost::Mesh* mesh, unsigned triangleIndex);
+    BuilderTriangleFace(const std::shared_ptr<gloost::Mesh>& mesh, unsigned triangleIndex);
 
     // class destructor
 	  virtual ~BuilderTriangleFace();
