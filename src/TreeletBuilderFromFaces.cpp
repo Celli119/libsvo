@@ -106,7 +106,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet, const std::shared_ptr<gloost::M
   _mesh     = mesh;
 
   std::vector<gloost::Mesh::TriangleIndices>& triangles = mesh->getTriangles();
-  std::vector<gloost::Point3>&                vertices  = mesh->getVertices();
+  std::vector<gloost::Point3>&                vertices  = mesh->getPositions();
   std::vector<gloost::Vector3>&               normals   = mesh->getNormals();
   std::vector<gloost::vec4>&                  colors    = mesh->getColors();
 
@@ -155,7 +155,7 @@ TreeletBuilderFromFaces::build(Treelet* treelet,
   _mesh     = mesh;
 
   std::vector<gloost::Mesh::TriangleIndices>& triangles = mesh->getTriangles();
-  std::vector<gloost::Point3>&                vertices  = mesh->getVertices();
+  std::vector<gloost::Point3>&                vertices  = mesh->getPositions();
   std::vector<gloost::Vector3>&               normals   = mesh->getNormals();
   std::vector<gloost::vec4>&                  colors    = mesh->getColors();
 

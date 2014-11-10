@@ -132,7 +132,7 @@ ImageToPointcloud::generate(gloost::mathType      fieldOfView,
   auto pointMesh = gloost::Mesh::create();
 //  pointMesh->takeReference();
   pointMesh->getPoints().resize(numPixels);
-  pointMesh->getVertices().resize(numPixels);
+  pointMesh->getPositions().resize(numPixels);
   pointMesh->getColors().resize(numPixels);
   pointMesh->getNormals().resize(numPixels);
 
@@ -201,12 +201,12 @@ ImageToPointcloud::generate(gloost::mathType      fieldOfView,
       float nz = imageReader_normal.readFloat32();
 
 
-      pointMesh->getVertices()[pointIndex] = samplePosition;
+      pointMesh->getPositions()[pointIndex] = samplePosition;
       pointMesh->getColors()[pointIndex]   = gloost::vec4(r,g,b,1.0);
       pointMesh->getNormals()[pointIndex]  = gloost::Vector3(nx, -ny, nz);
       pointMesh->getPoints()[pointIndex]   = pointIndex;
 
-//      std::cerr << std::endl << "word: " << pointMesh->getVertices()[pointIndex];
+//      std::cerr << std::endl << "word: " << pointMesh->getPositions()[pointIndex];
 
       ++pointIndex;
     }
