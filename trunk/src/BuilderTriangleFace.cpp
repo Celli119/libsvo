@@ -79,9 +79,9 @@ BuilderTriangleFace::BuilderTriangleFace(const std::shared_ptr<gloost::Mesh>& me
 {
   gloost::Mesh::TriangleIndices& triangle = mesh->getTriangles()[_id];
 
-  _pos0 = mesh->getVertices()[triangle.vertexIndices[0]];
-  _pos1 = mesh->getVertices()[triangle.vertexIndices[1]];
-  _pos2 = mesh->getVertices()[triangle.vertexIndices[2]];
+  _pos0 = mesh->getPositions()[triangle.vertexIndices[0]];
+  _pos1 = mesh->getPositions()[triangle.vertexIndices[1]];
+  _pos2 = mesh->getPositions()[triangle.vertexIndices[2]];
 
   if (mesh->getNormals().size())
   {

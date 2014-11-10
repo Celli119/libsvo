@@ -30,7 +30,7 @@
 
 /// general setup
 static unsigned int g_screenWidth  = 1024;
-static unsigned int g_screenHeight = 1024;
+static unsigned int g_screenHeight = 768;
 
 static unsigned int g_bufferWidth   = g_screenWidth;
 static unsigned int g_bufferHeight  = g_bufferHeight;
@@ -253,7 +253,9 @@ void init()
 //  const std::string svo_dir_path = "/home/otaco/Desktop/SVO_DATA/";
 
 
-  g_svoBaseName  = "TreeletBuildManager_out";
+//  g_svoBaseName  = "frog2_seperated_s8_d7";
+//  g_svoBaseName  = "TreeletBuildManager_out";
+//  g_svoBaseName  = "lucy_s2_d11";
 //  g_svoBaseName  = "david_2mm_final_ao_s4_d11";
 //  g_svoBaseName  = "david_face_s1_D13";
 //  g_svoBaseName  = "david_face_s4_D13";
@@ -390,7 +392,7 @@ void frameStep()
   glfwGetMousePos(&x,&y);
 
   g_mouse.setSpeedToZero();
-  g_mouse.setLoc(x,g_screenHeight-y,0);
+  g_mouse.setLoc(x,(float)g_screenHeight-y,0);
 
 
 //  g_eye.move(glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ),
@@ -881,7 +883,7 @@ void draw2d()
 
 
 
-
+#if 0
         g_texter->begin();
         {
           glColor4f(1.0f, 1.0f, 1.0f, 1.0);
@@ -960,7 +962,7 @@ void draw2d()
           g_texter->renderTextLine(gloost::toString(sumLast));
         }
         g_texter->end();
-
+#endif
       }
 
     }
